@@ -1,0 +1,14 @@
+name: "integration-test"
+on: [ pull_request ]
+
+jobs:
+  # test action works running from the graph
+  run-action:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Fetch Dependabot metadata
+      id: metadata
+      uses: ./
+      with:
+        github-token: "${{ secrets.GITHUB_TOKEN }}"
