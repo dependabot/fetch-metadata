@@ -28,3 +28,6 @@ jobs:
 
     - name: Run tests
       run: npm test
+
+    - name: Verify the build artefact is updated
+      run: npm run build && git diff --quiet
