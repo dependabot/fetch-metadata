@@ -1,0 +1,12 @@
+name: 'Dependabot PR Automation'
+description: 'Parse Dependabot commit metadata to automate PR handling'
+inputs:
+  github-token:
+    description: 'The GITHUB_TOKEN secret'
+    required: true
+outputs:
+  dependabot-updated-dependencies:
+    description: 'A JSON serialised hash of any metadata found in verified Dependabot commits in the PR.'
+runs:
+  using: 'node12'
+  main: 'dist/index.js'
