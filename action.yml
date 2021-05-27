@@ -5,7 +5,7 @@ inputs:
     description: 'The GITHUB_TOKEN secret'
     required: true
 outputs:
-  dependabot-updated-dependencies:
+  updated-dependencies:
     description: 'A JSON serialised hash of any metadata found in verified Dependabot commits in the PR.'
 runs:
   using: 'node12'

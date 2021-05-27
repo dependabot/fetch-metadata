@@ -75,7 +75,7 @@ test('it sets the updated dependencies as an output for subsequent actions', asy
     expect.stringContaining('Outputting metadata')
   )
   expect(core.setOutput).toHaveBeenCalledWith(
-    'dependabot-updated-dependencies',
+    'updated-dependencies',
     [
       {
         name: 'coffee-rails',
