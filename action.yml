@@ -8,5 +8,5 @@ outputs:
   updated-dependencies:
     description: 'A JSON serialised hash of any metadata found in verified Dependabot commits in the PR.'
 runs:
-  using: 'node12'
+  using: 'node14'
   main: 'dist/index.js'
