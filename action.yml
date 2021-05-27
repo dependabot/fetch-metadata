@@ -1,12 +1,16 @@
-name: 'Dependabot PR Automation'
-description: 'Parse Dependabot commit metadata to automate PR handling'
+name: 'Fetch Metadata from Dependabot PRs'
+description: 'Extract information from about the dependency being updated by a Dependabot-generated PR'
 inputs:
   github-token:
     description: 'The GITHUB_TOKEN secret'
     required: true
 outputs:
-  updated-dependencies:
-    description: 'A JSON serialised hash of any metadata found in verified Dependabot commits in the PR.'
+  dependency-name:
+    description: 'The updated package name.'
+  dependency-type:
+    description: 'The type of dependency Dependabot has determined this to be, e.g. "direct:production".'
+  update-type:
+    description: 'The semvvar change being made, e.g. "version-update:semver-major"'
 runs:
   using: 'node12'
   main: 'dist/index.js'
