@@ -16,19 +16,20 @@ test('it returns an empty array for commit message with no dependabot yaml fragm
 })
 
 test('it returns the updated dependency information when there is a yaml fragment', async () => {
-  const commitMessage = `Bumps [coffee-rails](https://github.com/rails/coffee-rails) from 4.0.1 to 4.2.2.
-  - [Release notes](https://github.com/rails/coffee-rails/releases)
-  - [Changelog](https://github.com/rails/coffee-rails/blob/master/CHANGELOG.md)
-  - [Commits](rails/coffee-rails@v4.0.1...v4.2.2)
-
-  ---
-  updated-dependencies:
-  - dependency-name: coffee-rails
-    dependency-type: direct:production
-    update-type: version-update:semver-minor
-  ...
-
-  Signed-off-by: dependabot[bot] <support@github.com>`
+  const commitMessage =
+    'Bumps [coffee-rails](https://github.com/rails/coffee-rails) from 4.0.1 to 4.2.2.\n' +
+    '- [Release notes](https://github.com/rails/coffee-rails/releases)\n' +
+    '- [Changelog](https://github.com/rails/coffee-rails/blob/master/CHANGELOG.md)\n' +
+    '- [Commits](rails/coffee-rails@v4.0.1...v4.2.2)\n' +
+    '\n' +
+    '---\n' +
+    'updated-dependencies:\n' +
+    '- dependency-name: coffee-rails\n' +
+    '  dependency-type: direct:production\n' +
+    '  update-type: version-update:semver-minor\n' +
+    '...\n' +
+    '\n' +
+    'Signed-off-by: dependabot[bot] <support@github.com>'
 
   const updatedDependencies = updateMetadata.parse(commitMessage)
 
@@ -40,22 +41,23 @@ test('it returns the updated dependency information when there is a yaml fragmen
 })
 
 test('it supports multiple dependencies within a single fragment', async () => {
-  const commitMessage = `Bumps [coffee-rails](https://github.com/rails/coffee-rails) from 4.0.1 to 4.2.2.
-  - [Release notes](https://github.com/rails/coffee-rails/releases)
-  - [Changelog](https://github.com/rails/coffee-rails/blob/master/CHANGELOG.md)
-  - [Commits](rails/coffee-rails@v4.0.1...v4.2.2)
-
-  ---
-  updated-dependencies:
-  - dependency-name: coffee-rails
-    dependency-type: direct:production
-    update-type: version-update:semver-minor
-  - dependency-name: coffeescript
-    dependency-type: indirect:production
-    update-type: version-update:semver-patch
-  ...
-
-  Signed-off-by: dependabot[bot] <support@github.com>`
+  const commitMessage =
+    'Bumps [coffee-rails](https://github.com/rails/coffee-rails) from 4.0.1 to 4.2.2.\n' +
+    '- [Release notes](https://github.com/rails/coffee-rails/releases)\n' +
+    '- [Changelog](https://github.com/rails/coffee-rails/blob/master/CHANGELOG.md)\n' +
+    '- [Commits](rails/coffee-rails@v4.0.1...v4.2.2)\n' +
+    '\n' +
+    '---\n' +
+    'updated-dependencies:\n' +
+    '- dependency-name: coffee-rails\n' +
+    '  dependency-type: direct:production\n' +
+    '  update-type: version-update:semver-minor\n' +
+    '- dependency-name: coffeescript\n' +
+    '  dependency-type: indirect:production\n' +
+    '  update-type: version-update:semver-patch\n' +
+    '...\n' +
+    '\n' +
+    'Signed-off-by: dependabot[bot] <support@github.com>'
 
   const updatedDependencies = updateMetadata.parse(commitMessage)
 
@@ -71,25 +73,27 @@ test('it supports multiple dependencies within a single fragment', async () => {
 })
 
 test('it only returns information within the first fragment if there are multiple yaml documents', async () => {
-  const commitMessage = `Bumps [coffee-rails](https://github.com/rails/coffee-rails) from 4.0.1 to 4.2.2.
-  - [Release notes](https://github.com/rails/coffee-rails/releases)
-  - [Changelog](https://github.com/rails/coffee-rails/blob/master/CHANGELOG.md)
-  - [Commits](rails/coffee-rails@v4.0.1...v4.2.2)
-
-  ---
-  updated-dependencies:
-  - dependency-name: coffee-rails
-    dependency-type: direct:production
-    update-type: version-update:semver-minor
-  ...
-  ---
-  updated-dependencies:
-  - dependency-name: coffeescript
-    dependency-type: indirect:production
-    update-type: version-update:semver-patch
-  ...
-
-  Signed-off-by: dependabot[bot] <support@github.com>`
+  const commitMessage =
+    'Bumps [coffee-rails](https://github.com/rails/coffee-rails) from 4.0.1 to 4.2.2.\n' +
+    '- [Release notes](https://github.com/rails/coffee-rails/releases)\n' +
+    '- [Changelog](https://github.com/rails/coffee-rails/blob/master/CHANGELOG.md)\n' +
+    '- [Commits](rails/coffee-rails@v4.0.1...v4.2.2)\n' +
+    '\n' +
+    '---\n' +
+    'updated-dependencies:\n' +
+    '- dependency-name: coffee-rails\n' +
+    '  dependency-type: direct:production\n' +
+    '  update-type: version-update:semver-minor\n' +
+    '...\n' +
+    '\n' +
+    '---\n' +
+    'updated-dependencies:\n' +
+    '- dependency-name: coffeescript\n' +
+    '  dependency-type: indirect:production\n' +
+    '  update-type: version-update:semver-patch\n' +
+    '...\n' +
+    '\n' +
+    'Signed-off-by: dependabot[bot] <support@github.com>'
 
   const updatedDependencies = updateMetadata.parse(commitMessage)
 

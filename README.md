@@ -19,13 +19,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Fetch Dependabot metadata
-      id: metadata
+      id: dependabot-metadata
       uses: dependabot/pull-request-action
       with:
         github-token: "${{ secrets.GITHUB_TOKEN }}"
 ```
 
-Subsequent actions will have access to `steps.metadata.outputs.dependabot-updated-dependencies` which will contain a
+Subsequent actions will have access to `steps.dependabot-metadata.outputs.updated-dependencies` which will contain a
 JSON object with information about the changes, e.g.
 
 ```json

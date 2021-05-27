@@ -12874,7 +12874,7 @@ var yaml = __nccwpck_require__(3552);
 ;// CONCATENATED MODULE: ./src/dependabot/update_metadata.ts
 
 function parse(commitMessage) {
-    const yamlFragment = commitMessage.match(/-{3}\n(?<dependencies>[\S|\s]*?)(?=\s*\.{3}\n)/m);
+    const yamlFragment = commitMessage.match(/^-{3}\n(?<dependencies>[\S|\s]*?)\n^\.{3}\n/m);
     if (yamlFragment === null || yamlFragment === void 0 ? void 0 : yamlFragment.groups) {
         const data = yaml.parse(yamlFragment.groups.dependencies);
         if (data['updated-dependencies']) {
@@ -12921,8 +12921,8 @@ function run() {
             core.info('Parsing Dependabot metadata/');
             const updatedDependencies = parse(commitMessage);
             if (updatedDependencies.length > 0) {
-                core.info("Outputting metadata to 'dependabot-updated-dependencies'.");
-                core.setOutput('dependabot-updated-dependencies', updatedDependencies);
+                core.info("Outputting metadata to 'updated-dependencies'.");
+                core.setOutput('updated-dependencies', updatedDependencies);
             }
             else {
                 core.info('PR does not contain metadata, nothing to do.');

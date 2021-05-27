@@ -27,8 +27,8 @@ export async function run (): Promise<void> {
     const updatedDependencies = updateMetadata.parse(commitMessage)
 
     if (updatedDependencies.length > 0) {
-      core.info("Outputting metadata to 'dependabot-updated-dependencies'.")
-      core.setOutput('dependabot-updated-dependencies', updatedDependencies)
+      core.info("Outputting metadata to 'updated-dependencies'.")
+      core.setOutput('updated-dependencies', updatedDependencies)
     } else {
       core.info('PR does not contain metadata, nothing to do.')
     }
