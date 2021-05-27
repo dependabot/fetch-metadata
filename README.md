@@ -31,8 +31,8 @@ JSON object with information about the changes, e.g.
 ```json
 [
   {
-    "name": "dependabot-core",
-    "type": "direct:production",
+    "dependencyName": "dependabot-core",
+    "dependencyType": "direct:production",
     "updateType": "version-update:semver-major"
   }
 ]

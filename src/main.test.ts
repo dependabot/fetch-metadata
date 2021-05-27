@@ -78,8 +78,8 @@ test('it sets the updated dependencies as an output for subsequent actions', asy
     'dependabot-updated-dependencies',
     [
       {
-        name: 'coffee-rails',
-        type: 'direct:production',
+        dependencyName: 'coffee-rails',
+        dependencyType: 'direct:production',
         updateType: 'version-update:semver-minor'
       }
     ]

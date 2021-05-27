@@ -1,8 +1,8 @@
 import * as YAML from 'yaml'
 
 interface updatedDependency {
-  name: string,
-  type: string,
+  dependencyName: string,
+  dependencyType: string,
   updateType: string,
 }
 
@@ -15,8 +15,8 @@ export function parse (commitMessage: string): Array<updatedDependency> {
     if (data['updated-dependencies']) {
       return data['updated-dependencies'].map(dependency => {
         return {
-          name: dependency['dependency-name'],
-          type: dependency['dependency-type'],
+          dependencyName: dependency['dependency-name'],
+          dependencyType: dependency['dependency-type'],
           updateType: dependency['update-type']
         }
       })
