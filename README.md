@@ -35,7 +35,7 @@ Subsequent actions will have access to the following outputs:
 - `steps.dependabot-metadata.outputs.dependency-type`
   - The type of dependency Dependabot has determined this to be, e.g. "direct:production"
 - `steps.dependabot-metadata.outputs.update-name`
-  - The semvvar change being made, e.g. "version-update:semver-major"
+  - The semvver change being made, e.g. "version-update:semver-major"
 
 **Note:** These outputs will only be populated if the target Pull Request was opened by Dependabot and contains
 **only** Dependabot-created commits.
@@ -49,7 +49,7 @@ name: Dependabot auto-approve
 description: Auto-approve Dependabot PRs
 on: pull_request_target
 permissions:
-   # scope down as necessary here
+  pull-requests: write
 jobs:
   dependabot:
     if: ${{ github.actor == 'dependabot[bot]' }}
@@ -57,7 +57,6 @@ jobs:
       - name: Dependabot metadata
         id: metadata
         uses: dependabot/fetch-metadata
-        # outputs = {dependency_name: foo, dependency_type: development, update_type: version-update:semver-patch }
       - name: Approve a PR
         run: gh pr review --approve "$PR_URL"
         env:
@@ -72,7 +71,7 @@ name: Dependabot auto-merge
 description: Enable GitHub Automerge for patch updates on `bar`
 on: pull_request_target
 permissions:
-   # scope down as necessary here
+  pull-requests: write
 jobs:
   dependabot:
     if: ${{ github.actor == 'dependabot[bot]' }}
@@ -80,7 +79,6 @@ jobs:
       - name: Dependabot metadata
         id: metadata
         uses: dependabot/fetch-metadata
-        # outputs = {dependency_name: foo, dependency_type: development, update_type: version-update:semver-patch}
       - name: Enable auto-merge for Dependabot PRs # respects checks and approvals
         if: ${{steps.metadata.outputs.dependency_name == "bar" && steps.metadata.outputs.update_type == "version-update:semver-patch"}}
         run: gh pr merge --auto --merge "$PR_URL"
@@ -96,7 +94,7 @@ name: Dependabot auto-label
 description: Label all production dependencies with the "production" label
 on: pull_request_target
 permissions:
-   # scope down as necessary here
+  pull-requests: write
 jobs:
   dependabot:
     if: ${{ github.actor == 'dependabot[bot]' }}
@@ -104,7 +102,6 @@ jobs:
       - name: Dependabot metadata
         id: metadata
         uses: dependabot/fetch-metadata
-        # outputs = {dependency_name: foo, dependency_type: development, update_type: version-update:semver-patch}
       - name: Add a label for all production dependencies
         if: contains(steps.metadata.outputs.dependency_type, "production")
         run: gh pr edit "$PR_URL" --add-label "production"

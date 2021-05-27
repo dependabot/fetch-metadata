@@ -10,7 +10,7 @@ outputs:
   dependency-type:
     description: 'The type of dependency Dependabot has determined this to be, e.g. "direct:production".'
   update-type:
-    description: 'The semvvar change being made, e.g. "version-update:semver-major"'
+    description: 'The semvver change being made, e.g. "version-update:semver-major"'
 runs:
   using: 'node12'
   main: 'dist/index.js'
