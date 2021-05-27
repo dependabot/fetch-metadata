@@ -27,8 +27,11 @@ export async function run (): Promise<void> {
     const updatedDependencies = updateMetadata.parse(commitMessage)
 
     if (updatedDependencies.length > 0) {
-      core.info("Outputting metadata to 'updated-dependencies'.")
-      core.setOutput('updated-dependencies', updatedDependencies)
+      core.info(`Outputting metadata for the update to '${updatedDependencies[0].dependencyName}'.`)
+
+      core.setOutput('dependency-name', updatedDependencies[0].dependencyName)
+      core.setOutput('dependency-type', updatedDependencies[0].dependencyType)
+      core.setOutput('update-type', updatedDependencies[0].updateType)
     } else {
       core.info('PR does not contain metadata, nothing to do.')
     }
