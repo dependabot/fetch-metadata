@@ -12874,7 +12874,7 @@ var yaml = __nccwpck_require__(3552);
 ;// CONCATENATED MODULE: ./src/dependabot/update_metadata.ts
 
 function parse(commitMessage) {
-    const yamlFragment = commitMessage.match(/-{3}\n(?<dependencies>[\S|\s]*?)(?=\s*\.{3}\n)/m);
+    const yamlFragment = commitMessage.match(/^-{3}\n(?<dependencies>[\S|\s]*?)\n^\.{3}\n/m);
     if (yamlFragment === null || yamlFragment === void 0 ? void 0 : yamlFragment.groups) {
         const data = yaml.parse(yamlFragment.groups.dependencies);
         if (data['updated-dependencies']) {
