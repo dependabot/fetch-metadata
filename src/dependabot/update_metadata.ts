@@ -7,7 +7,7 @@ interface updatedDependency {
 }
 
 export function parse (commitMessage: string): Array<updatedDependency> {
-  const yamlFragment = commitMessage.match(/-{3}\n(?<dependencies>[\S|\s]*?)(?=\s*\.{3}\n)/m)
+  const yamlFragment = commitMessage.match(/^-{3}\n(?<dependencies>[\S|\s]*?)\n^\.{3}\n/m)
 
   if (yamlFragment?.groups) {
     const data = YAML.parse(yamlFragment.groups.dependencies)
