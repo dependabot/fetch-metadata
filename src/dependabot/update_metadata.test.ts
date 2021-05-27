@@ -35,8 +35,8 @@ test('it returns the updated dependency information when there is a yaml fragmen
 
   expect(updatedDependencies).toHaveLength(1)
 
-  expect(updatedDependencies[0].name).toEqual('coffee-rails')
-  expect(updatedDependencies[0].type).toEqual('direct:production')
+  expect(updatedDependencies[0].dependencyName).toEqual('coffee-rails')
+  expect(updatedDependencies[0].dependencyType).toEqual('direct:production')
   expect(updatedDependencies[0].updateType).toEqual('version-update:semver-minor')
 })
 
@@ -63,12 +63,12 @@ test('it supports multiple dependencies within a single fragment', async () => {
 
   expect(updatedDependencies).toHaveLength(2)
 
-  expect(updatedDependencies[0].name).toEqual('coffee-rails')
-  expect(updatedDependencies[0].type).toEqual('direct:production')
+  expect(updatedDependencies[0].dependencyName).toEqual('coffee-rails')
+  expect(updatedDependencies[0].dependencyType).toEqual('direct:production')
   expect(updatedDependencies[0].updateType).toEqual('version-update:semver-minor')
 
-  expect(updatedDependencies[1].name).toEqual('coffeescript')
-  expect(updatedDependencies[1].type).toEqual('indirect:production')
+  expect(updatedDependencies[1].dependencyName).toEqual('coffeescript')
+  expect(updatedDependencies[1].dependencyType).toEqual('indirect:production')
   expect(updatedDependencies[1].updateType).toEqual('version-update:semver-patch')
 })
 
@@ -99,7 +99,7 @@ test('it only returns information within the first fragment if there are multipl
 
   expect(updatedDependencies).toHaveLength(1)
 
-  expect(updatedDependencies[0].name).toEqual('coffee-rails')
-  expect(updatedDependencies[0].type).toEqual('direct:production')
+  expect(updatedDependencies[0].dependencyName).toEqual('coffee-rails')
+  expect(updatedDependencies[0].dependencyType).toEqual('direct:production')
   expect(updatedDependencies[0].updateType).toEqual('version-update:semver-minor')
 })
