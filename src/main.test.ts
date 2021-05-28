@@ -106,7 +106,7 @@ test('if there are multiple dependencies, it summarizes them', async () => {
     '  update-type: version-update:semver-minor\n' +
     '- dependency-name: coffeescript\n' +
     '  dependency-type: indirect:production\n' +
-    '  update-type: version-update:semver-patch\n' +
+    '  update-type: version-update:semver-major\n' +
     '...\n' +
     '\n' +
     'Signed-off-by: dependabot[bot] <support@github.com>'
@@ -134,12 +134,12 @@ test('if there are multiple dependencies, it summarizes them', async () => {
       {
         dependencyName: 'coffeescript',
         dependencyType: 'indirect:production',
-        updateType: 'version-update:semver-patch'
+        updateType: 'version-update:semver-major'
       }
     ]
    )
 
   expect(core.setOutput).toBeCalledWith('dependency-names', 'coffee-rails, coffeescript')
   expect(core.setOutput).toBeCalledWith('dependency-type', 'direct:production')
-  expect(core.setOutput).toBeCalledWith('update-type', 'version-update:semver-minor')
+  expect(core.setOutput).toBeCalledWith('update-type', 'version-update:semver-major')
 })

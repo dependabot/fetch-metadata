@@ -11,5 +11,20 @@ export function set (updatedDependencies: Array<updatedDependency>): void {
     return dependency.dependencyName
   }).join(", "))
   core.setOutput('dependency-type', updatedDependencies[0].dependencyType)
-  core.setOutput('update-type', updatedDependencies[0].updateType)
+  core.setOutput('update-type', maxSemver(updatedDependencies))
+}
+
+function maxSemver(updatedDependencies: Array<updatedDependency>): string {
+  const semverLevels = updatedDependencies.reduce(function(semverLevels, dependency) {
+    semverLevels.push(dependency.updateType)
+    return semverLevels;
+  }, new Array);
+
+  if ( semverLevels.includes("version-update:semver-major") ) {
+    return "version-update:semver-major"
+  } else if ( semverLevels.includes("version-update:semver-minor") ) {
+    return "version-update:semver-minor"
+  } else {
+    return "version-update:semver-patch"
+  }
 }
