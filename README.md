@@ -31,11 +31,13 @@ jobs:
 Subsequent actions will have access to the following outputs:
 
 - `steps.dependabot-metadata.outputs.dependency-name`
-  - The updated package name
+  - A comma-separated list of the package names updated by the PR.
 - `steps.dependabot-metadata.outputs.dependency-type`
-  - The type of dependency Dependabot has determined this to be, e.g. "direct:production"
-- `steps.dependabot-metadata.outputs.update-name`
-  - The semver change being made, e.g. "version-update:semver-major"
+  - The type of dependency has determined this PR to be, e.g. `direct:production`. For all possible values, see [the `allow` documentation](https://docs.github.com/en/code-security/supply-chain-security/keeping-your-dependencies-updated-automatically/configuration-options-for-dependency-updates#allow).
+- `steps.dependabot-metadata.outputs.update-type`
+  - The highest semver change being made by this PR, e.g. `version-update:semver-major`. For all possible values, see [the `ignore` documentation](https://docs.github.com/en/code-security/supply-chain-security/keeping-your-dependencies-updated-automatically/configuration-options-for-dependency-updates#ignore).
+- `steps.dependabot-metadata.outputs.updated-dependencies-json`
+  - A JSON string containing the full information about each updated Dependency.
 
 **Note:** These outputs will only be populated if the target Pull Request was opened by Dependabot and contains
 **only** Dependabot-created commits.
@@ -45,6 +47,9 @@ useful automation for your Dependabot PRs.
 
 ### Auto-approving
 
+Since the `dependabot/fetch-metadata` Action will set a failure code if it cannot find any metadata, you can
+have a permissive auto-approval on all Dependabot PRs like so:
+
 ```yaml
 name: Dependabot auto-approve
 description: Auto-approve Dependabot PRs
@@ -53,6 +58,7 @@ permissions:
   pull-requests: write
 jobs:
   dependabot:
+    # Checking the actor will prevent your Action run failing on non-Dependabot PRs
     if: ${{ github.actor == 'dependabot[bot]' }}
     steps:
       - name: Dependabot metadata
@@ -80,8 +86,8 @@ jobs:
       - name: Dependabot metadata
         id: metadata
         uses: dependabot/fetch-metadata
-      - name: Enable auto-merge for Dependabot PRs # respects checks and approvals
-        if: ${{steps.metadata.outputs.dependency_name == "bar" && steps.metadata.outputs.update_type == "version-update:semver-patch"}}
+      - name: Enable auto-merge for Dependabot PRs # respects branch protection rules
+        if: ${{contains(steps.metadata.outputs.dependency_names, "bar") && steps.metadata.outputs.update_type == "version-update:semver-patch"}}
         run: gh pr merge --auto --merge "$PR_URL"
         env:
           PR_URL: ${{github.event.pull_request.html_url}}
