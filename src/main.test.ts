@@ -77,14 +77,14 @@ test('it sets the updated dependency as an output for subsequent actions', async
   )
 
   expect(core.setOutput).toHaveBeenCalledWith(
-   'updated-dependencies-json',
-   [
-     {
-       dependencyName: 'coffee-rails',
-       dependencyType: 'direct:production',
-       updateType: 'version-update:semver-minor'
-     }
-   ]
+    'updated-dependencies-json',
+    [
+      {
+        dependencyName: 'coffee-rails',
+        dependencyType: 'direct:production',
+        updateType: 'version-update:semver-minor'
+      }
+    ]
   )
 
   expect(core.setOutput).toBeCalledWith('dependency-names', 'coffee-rails')
@@ -137,7 +137,7 @@ test('if there are multiple dependencies, it summarizes them', async () => {
         updateType: 'version-update:semver-major'
       }
     ]
-   )
+  )
 
   expect(core.setOutput).toBeCalledWith('dependency-names', 'coffee-rails, coffeescript')
   expect(core.setOutput).toBeCalledWith('dependency-type', 'direct:production')
