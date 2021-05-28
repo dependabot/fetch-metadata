@@ -2,6 +2,18 @@ import Pluralize from 'pluralize';
 import * as core from '@actions/core'
 import { updatedDependency } from "./update_metadata"
 
+const DEPENDENCY_TYPES_PRIORITY = [
+  "direct:production",
+  "indirect:production",
+  "direct:development",
+  "indirect:development",
+]
+const UPDATE_TYPES_PRIORITY = [
+  "version-update:semver-major",
+  "version-update:semver-minor",
+  "version-update:semver-patch",
+]
+
 export function set (updatedDependencies: Array<updatedDependency>): void {
   core.info(`Outputting metadata for ${Pluralize( 'updated dependency', updatedDependencies.length, true )}`)
 
@@ -10,21 +22,25 @@ export function set (updatedDependencies: Array<updatedDependency>): void {
   core.setOutput('dependency-names', updatedDependencies.map(dependency => {
     return dependency.dependencyName
   }).join(", "))
-  core.setOutput('dependency-type', updatedDependencies[0].dependencyType)
+  core.setOutput('dependency-type', maxDependencyTypes(updatedDependencies))
   core.setOutput('update-type', maxSemver(updatedDependencies))
 }
 
-function maxSemver(updatedDependencies: Array<updatedDependency>): string {
-  const semverLevels = updatedDependencies.reduce(function(semverLevels, dependency) {
-    semverLevels.push(dependency.updateType)
-    return semverLevels;
-  }, new Array);
+function maxDependencyTypes(updatedDependencies: Array<updatedDependency>): string {
+  const dependencyTypes = updatedDependencies.reduce(function(dependencyTypes, dependency) {
+    dependencyTypes.add(dependency.dependencyType)
+    return dependencyTypes;
+  }, new Set);
 
-  if ( semverLevels.includes("version-update:semver-major") ) {
-    return "version-update:semver-major"
-  } else if ( semverLevels.includes("version-update:semver-minor") ) {
-    return "version-update:semver-minor"
-  } else {
-    return "version-update:semver-patch"
-  }
+
+  return DEPENDENCY_TYPES_PRIORITY.find(dependencyType => dependencyTypes.has(dependencyType)) || "unknown"
+}
+
+function maxSemver(updatedDependencies: Array<updatedDependency>): string | null {
+  const semverLevels = updatedDependencies.reduce(function(semverLevels, dependency) {
+    semverLevels.add(dependency.updateType)
+    return semverLevels;
+  }, new Set);
+
+  return UPDATE_TYPES_PRIORITY.find(semverLevel => semverLevels.has(semverLevel)) || null
 }
