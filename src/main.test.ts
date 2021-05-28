@@ -30,7 +30,7 @@ test('it does nothing if the PR is not verified as from Dependabot', async () =>
 
   await run()
 
-  expect(core.info).toHaveBeenCalledWith(
+  expect(core.setFailed).toHaveBeenCalledWith(
     expect.stringContaining('PR is not from Dependabot, nothing to do.')
   )
 })
@@ -43,7 +43,7 @@ test('it does nothing if there is no metadata in the commit', async () => {
 
   await run()
 
-  expect(core.info).toHaveBeenCalledWith(
+  expect(core.setFailed).toHaveBeenCalledWith(
     expect.stringContaining('PR does not contain metadata, nothing to do.')
   )
 })

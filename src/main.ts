@@ -30,10 +30,10 @@ export async function run (): Promise<void> {
     if (updatedDependencies.length > 0) {
       output.set(updatedDependencies)
     } else {
-      core.info('PR does not contain metadata, nothing to do.')
+      core.setFailed('PR does not contain metadata, nothing to do.')
     }
   } else {
-    core.info('PR is not from Dependabot, nothing to do.')
+    core.setFailed('PR is not from Dependabot, nothing to do.')
   }
 }
 
