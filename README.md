@@ -35,13 +35,14 @@ Subsequent actions will have access to the following outputs:
 - `steps.dependabot-metadata.outputs.dependency-type`
   - The type of dependency Dependabot has determined this to be, e.g. "direct:production"
 - `steps.dependabot-metadata.outputs.update-name`
-  - The semvver change being made, e.g. "version-update:semver-major"
+  - The semver change being made, e.g. "version-update:semver-major"
 
 **Note:** These outputs will only be populated if the target Pull Request was opened by Dependabot and contains
 **only** Dependabot-created commits.
 
 This metadata can be used along with Action's [expression syntax](https://docs.github.com/en/actions/reference/context-and-expression-syntax-for-github-actions#functions) and the [GitHub CLI](https://github.com/cli/cli) to create
 useful automation for your Dependabot PRs.
+
 ### Auto-approving
 
 ```yaml

@@ -2,6 +2,7 @@ import * as core from '@actions/core'
 import * as github from '@actions/github'
 import * as verifiedCommits from './dependabot/verified_commits'
 import * as updateMetadata from './dependabot/update_metadata'
+import * as output from './dependabot/output'
 
 export async function run (): Promise<void> {
   const token = core.getInput('github-token')
@@ -27,11 +28,7 @@ export async function run (): Promise<void> {
     const updatedDependencies = updateMetadata.parse(commitMessage)
 
     if (updatedDependencies.length > 0) {
-      core.info(`Outputting metadata for the update to '${updatedDependencies[0].dependencyName}'.`)
-
-      core.setOutput('dependency-name', updatedDependencies[0].dependencyName)
-      core.setOutput('dependency-type', updatedDependencies[0].dependencyType)
-      core.setOutput('update-type', updatedDependencies[0].updateType)
+      output.set(updatedDependencies)
     } else {
       core.info('PR does not contain metadata, nothing to do.')
     }

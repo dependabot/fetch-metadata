@@ -1,6 +1,6 @@
 import * as YAML from 'yaml'
 
-interface updatedDependency {
+export interface updatedDependency {
   dependencyName: string,
   dependencyType: string,
   updateType: string,

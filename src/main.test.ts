@@ -73,15 +73,26 @@ test('it sets the updated dependency as an output for subsequent actions', async
   await run()
 
   expect(core.info).toHaveBeenCalledWith(
-    expect.stringContaining('Outputting metadata')
+    expect.stringContaining('Outputting metadata for 1 updated dependency')
   )
 
-  expect(core.setOutput).toBeCalledWith('dependency-name', 'coffee-rails')
+  expect(core.setOutput).toHaveBeenCalledWith(
+   'updated-dependencies-json',
+   [
+     {
+       dependencyName: 'coffee-rails',
+       dependencyType: 'direct:production',
+       updateType: 'version-update:semver-minor'
+     }
+   ]
+  )
+
+  expect(core.setOutput).toBeCalledWith('dependency-names', 'coffee-rails')
   expect(core.setOutput).toBeCalledWith('dependency-type', 'direct:production')
   expect(core.setOutput).toBeCalledWith('update-type', 'version-update:semver-minor')
 })
 
-test('if there are multiple dependencies, it only sets the first as output', async () => {
+test('if there are multiple dependencies, it summarizes them', async () => {
   const mockCommitMessage =
     'Bumps [coffee-rails](https://github.com/rails/coffee-rails) from 4.0.1 to 4.2.2.\n' +
     '- [Release notes](https://github.com/rails/coffee-rails/releases)\n' +
@@ -109,10 +120,26 @@ test('if there are multiple dependencies, it only sets the first as output', asy
   await run()
 
   expect(core.info).toHaveBeenCalledWith(
-    expect.stringContaining('Outputting metadata')
+    expect.stringContaining('Outputting metadata for 2 updated dependencies')
   )
 
-  expect(core.setOutput).toBeCalledWith('dependency-name', 'coffee-rails')
+  expect(core.setOutput).toHaveBeenCalledWith(
+    'updated-dependencies-json',
+    [
+      {
+        dependencyName: 'coffee-rails',
+        dependencyType: 'direct:production',
+        updateType: 'version-update:semver-minor'
+      },
+      {
+        dependencyName: 'coffeescript',
+        dependencyType: 'indirect:production',
+        updateType: 'version-update:semver-patch'
+      }
+    ]
+   )
+
+  expect(core.setOutput).toBeCalledWith('dependency-names', 'coffee-rails, coffeescript')
   expect(core.setOutput).toBeCalledWith('dependency-type', 'direct:production')
   expect(core.setOutput).toBeCalledWith('update-type', 'version-update:semver-minor')
 })
