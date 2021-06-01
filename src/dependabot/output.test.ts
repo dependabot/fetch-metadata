@@ -94,17 +94,17 @@ test('when given a multiple dependencies, and some do not have update types', as
     },
     {
       dependencyName: 'coffee-rails',
-      dependencyType: 'indirect:production',
+      dependencyType: 'indirect',
       updateType: 'version-update:semver-minor'
     },
     {
       dependencyName: 'coffeescript',
-      dependencyType: 'indirect:production',
+      dependencyType: 'indirect',
       updateType: ''
     },
     {
       dependencyName: 'rspec-coffeescript',
-      dependencyType: 'indirect:development',
+      dependencyType: 'indirect',
       updateType: 'version-update:semver-patch'
     }
   ]

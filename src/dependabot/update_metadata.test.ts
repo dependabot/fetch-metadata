@@ -53,7 +53,7 @@ test('it supports multiple dependencies within a single fragment', async () => {
     '  dependency-type: direct:production\n' +
     '  update-type: version-update:semver-minor\n' +
     '- dependency-name: coffeescript\n' +
-    '  dependency-type: indirect:production\n' +
+    '  dependency-type: indirect\n' +
     '  update-type: version-update:semver-patch\n' +
     '...\n' +
     '\n' +
@@ -68,7 +68,7 @@ test('it supports multiple dependencies within a single fragment', async () => {
   expect(updatedDependencies[0].updateType).toEqual('version-update:semver-minor')
 
   expect(updatedDependencies[1].dependencyName).toEqual('coffeescript')
-  expect(updatedDependencies[1].dependencyType).toEqual('indirect:production')
+  expect(updatedDependencies[1].dependencyType).toEqual('indirect')
   expect(updatedDependencies[1].updateType).toEqual('version-update:semver-patch')
 })
 
@@ -89,7 +89,7 @@ test('it only returns information within the first fragment if there are multipl
     '---\n' +
     'updated-dependencies:\n' +
     '- dependency-name: coffeescript\n' +
-    '  dependency-type: indirect:production\n' +
+    '  dependency-type: indirect\n' +
     '  update-type: version-update:semver-patch\n' +
     '...\n' +
     '\n' +
