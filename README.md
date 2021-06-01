@@ -6,7 +6,7 @@
 
 **Name:** `dependabot/fetch-metadata`
 
-Extract information from about the dependency being updated by a Dependabot-generated PR.
+Extract information about the dependencies being updated by a Dependabot-generated PR.
 
 ## Usage instructions
 
@@ -30,7 +30,7 @@ jobs:
 
 Subsequent actions will have access to the following outputs:
 
-- `steps.dependabot-metadata.outputs.dependency-name`
+- `steps.dependabot-metadata.outputs.dependency-names`
   - A comma-separated list of the package names updated by the PR.
 - `steps.dependabot-metadata.outputs.dependency-type`
   - The type of dependency has determined this PR to be, e.g. `direct:production`. For all possible values, see [the `allow` documentation](https://docs.github.com/en/code-security/supply-chain-security/keeping-your-dependencies-updated-automatically/configuration-options-for-dependency-updates#allow).
@@ -87,7 +87,7 @@ jobs:
         id: metadata
         uses: dependabot/fetch-metadata
       - name: Enable auto-merge for Dependabot PRs # respects branch protection rules
-        if: ${{contains(steps.metadata.outputs.dependency_names, "bar") && steps.metadata.outputs.update_type == "version-update:semver-patch"}}
+        if: ${{contains(steps.metadata.outputs.dependency-names, "bar") && steps.metadata.outputs.update-type == "version-update:semver-patch"}}
         run: gh pr merge --auto --merge "$PR_URL"
         env:
           PR_URL: ${{github.event.pull_request.html_url}}
@@ -110,7 +110,7 @@ jobs:
         id: metadata
         uses: dependabot/fetch-metadata
       - name: Add a label for all production dependencies
-        if: contains(steps.metadata.outputs.dependency_type, "production")
+        if: ${{ steps.metadata.outputs.dependency-type == "direct:production" }}
         run: gh pr edit "$PR_URL" --add-label "production"
         env:
           PR_URL: ${{github.event.pull_request.html_url}}
