@@ -13412,9 +13412,8 @@ var pluralize_default = /*#__PURE__*/__nccwpck_require__.n(pluralize);
 
 const DEPENDENCY_TYPES_PRIORITY = [
     'direct:production',
-    'indirect:production',
     'direct:development',
-    'indirect:development'
+    'indirect'
 ];
 const UPDATE_TYPES_PRIORITY = [
     'version-update:semver-major',

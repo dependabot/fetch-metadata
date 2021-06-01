@@ -105,7 +105,7 @@ test('if there are multiple dependencies, it summarizes them', async () => {
     '  dependency-type: direct:production\n' +
     '  update-type: version-update:semver-minor\n' +
     '- dependency-name: coffeescript\n' +
-    '  dependency-type: indirect:production\n' +
+    '  dependency-type: indirect\n' +
     '  update-type: version-update:semver-major\n' +
     '...\n' +
     '\n' +
@@ -133,7 +133,7 @@ test('if there are multiple dependencies, it summarizes them', async () => {
       },
       {
         dependencyName: 'coffeescript',
-        dependencyType: 'indirect:production',
+        dependencyType: 'indirect',
         updateType: 'version-update:semver-major'
       }
     ]

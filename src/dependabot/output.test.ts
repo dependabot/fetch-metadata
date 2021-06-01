@@ -39,17 +39,17 @@ test('when given a multiple dependencies, it uses the highest values for types',
     },
     {
       dependencyName: 'coffee-rails',
-      dependencyType: 'indirect:production',
+      dependencyType: 'indirect',
       updateType: 'version-update:semver-minor'
     },
     {
       dependencyName: 'coffeescript',
-      dependencyType: 'indirect:production',
+      dependencyType: 'indirect',
       updateType: 'version-update:semver-major'
     },
     {
       dependencyName: 'rspec-coffeescript',
-      dependencyType: 'indirect:development',
+      dependencyType: 'indirect',
       updateType: 'version-update:semver-patch'
     }
   ]
@@ -59,7 +59,7 @@ test('when given a multiple dependencies, it uses the highest values for types',
   expect(core.setOutput).toHaveBeenCalledWith('updated-dependencies-json', updatedDependencies)
 
   expect(core.setOutput).toBeCalledWith('dependency-names', 'rspec, coffee-rails, coffeescript, rspec-coffeescript')
-  expect(core.setOutput).toBeCalledWith('dependency-type', 'indirect:production')
+  expect(core.setOutput).toBeCalledWith('dependency-type', 'direct:development')
   expect(core.setOutput).toBeCalledWith('update-type', 'version-update:semver-major')
 })
 
@@ -114,6 +114,6 @@ test('when given a multiple dependencies, and some do not have update types', as
   expect(core.setOutput).toHaveBeenCalledWith('updated-dependencies-json', updatedDependencies)
 
   expect(core.setOutput).toBeCalledWith('dependency-names', 'rspec, coffee-rails, coffeescript, rspec-coffeescript')
-  expect(core.setOutput).toBeCalledWith('dependency-type', 'indirect:production')
+  expect(core.setOutput).toBeCalledWith('dependency-type', 'direct:development')
   expect(core.setOutput).toBeCalledWith('update-type', 'version-update:semver-minor')
 })

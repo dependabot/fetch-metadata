@@ -4,9 +4,8 @@ import { updatedDependency } from './update_metadata'
 
 const DEPENDENCY_TYPES_PRIORITY = [
   'direct:production',
-  'indirect:production',
   'direct:development',
-  'indirect:development'
+  'indirect'
 ]
 const UPDATE_TYPES_PRIORITY = [
   'version-update:semver-major',
