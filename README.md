@@ -16,7 +16,6 @@ Create a workflow file that contains a step that uses: dependabot/fetch-metadata
 -- .github/workflows/dependabot-prs.yml
 name: Dependabot Pull Request
 on: pull_request_target
-
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -52,18 +51,20 @@ have a permissive auto-approval on all Dependabot PRs like so:
 
 ```yaml
 name: Dependabot auto-approve
-description: Auto-approve Dependabot PRs
 on: pull_request_target
 permissions:
   pull-requests: write
 jobs:
   dependabot:
+    runs-on: ubuntu-latest
     # Checking the actor will prevent your Action run failing on non-Dependabot PRs
     if: ${{ github.actor == 'dependabot[bot]' }}
     steps:
       - name: Dependabot metadata
         id: metadata
-        uses: dependabot/fetch-metadata
+        uses: dependabot/fetch-metadata@v1.1.0
+        with:
+          github-token: "${{ secrets.GITHUB_TOKEN }}"
       - name: Approve a PR
         run: gh pr review --approve "$PR_URL"
         env:
@@ -71,23 +72,31 @@ jobs:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
 ```
 
-### Enabling GitHub automerge
+### Enabling auto-merge
+
+If you are using [the auto-merge](https://docs.github.com/en/github/collaborating-with-pull-requests/incorporating-changes-from-a-pull-request/automatically-merging-a-pull-request) feature on your repository,
+you can set up an action that will mark Dependabot PRs to merge once CI and other [branch protection](https://docs.github.com/en/github/administering-a-repository/defining-the-mergeability-of-pull-requests/managing-a-branch-protection-rule) conditions are met.
+
+For example, if you want to automatically merge all patch updates to Rails:
 
 ```yaml
 name: Dependabot auto-merge
-description: Enable GitHub Automerge for patch updates on `bar`
 on: pull_request_target
 permissions:
   pull-requests: write
+  content: write
 jobs:
   dependabot:
+    runs-on: ubuntu-latest
     if: ${{ github.actor == 'dependabot[bot]' }}
     steps:
       - name: Dependabot metadata
         id: metadata
-        uses: dependabot/fetch-metadata
-      - name: Enable auto-merge for Dependabot PRs # respects branch protection rules
-        if: ${{contains(steps.metadata.outputs.dependency-names, "bar") && steps.metadata.outputs.update-type == "version-update:semver-patch"}}
+        uses: dependabot/fetch-metadata@v1.1.0
+        with:
+          github-token: "${{ secrets.GITHUB_TOKEN }}"
+      - name: Enable auto-merge for Dependabot PRs
+        if: ${{contains(steps.metadata.outputs.dependency-names, 'rails') && steps.metadata.outputs.update-type == 'version-update:semver-patch'}}
         run: gh pr merge --auto --merge "$PR_URL"
         env:
           PR_URL: ${{github.event.pull_request.html_url}}
@@ -96,21 +105,29 @@ jobs:
 
 ### Labelling
 
+If you have other automation or triage workflows based on GitHub labels, you can configure an action to assign these based on the metadata.
+
+For example, if you want to flag all production dependency updates with a label:
+
 ```yaml
 name: Dependabot auto-label
-description: Label all production dependencies with the "production" label
 on: pull_request_target
 permissions:
   pull-requests: write
+  issues: write
+  repository-projects: write
 jobs:
   dependabot:
+    runs-on: ubuntu-latest
     if: ${{ github.actor == 'dependabot[bot]' }}
     steps:
       - name: Dependabot metadata
         id: metadata
-        uses: dependabot/fetch-metadata
+        uses: dependabot/fetch-metadata@v1.1.0
+        with:
+          github-token: "${{ secrets.GITHUB_TOKEN }}"
       - name: Add a label for all production dependencies
-        if: ${{ steps.metadata.outputs.dependency-type == "direct:production" }}
+        if: ${{ steps.metadata.outputs.dependency-type == 'direct:production' }}
         run: gh pr edit "$PR_URL" --add-label "production"
         env:
           PR_URL: ${{github.event.pull_request.html_url}}
