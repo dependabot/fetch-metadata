@@ -13421,13 +13421,20 @@ const UPDATE_TYPES_PRIORITY = [
     'version-update:semver-patch'
 ];
 function set(updatedDependencies) {
-    core.info(`Outputting metadata for ${pluralize_default()('updated dependency', updatedDependencies.length, true)}`);
-    core.setOutput('updated-dependencies-json', updatedDependencies);
-    core.setOutput('dependency-names', updatedDependencies.map(dependency => {
+    const dependencyNames = updatedDependencies.map(dependency => {
         return dependency.dependencyName;
-    }).join(', '));
-    core.setOutput('dependency-type', maxDependencyTypes(updatedDependencies));
-    core.setOutput('update-type', maxSemver(updatedDependencies));
+    }).join(', ');
+    const dependencyType = maxDependencyTypes(updatedDependencies);
+    const updateType = maxSemver(updatedDependencies);
+    core.startGroup(`Outputting metadata for ${pluralize_default()('updated dependency', updatedDependencies.length, true)}`);
+    core.info(`outputs.dependency-names: ${dependencyNames}`);
+    core.info(`outputs.dependency-type: ${dependencyType}`);
+    core.info(`outputs.update-type: ${updateType}`);
+    core.endGroup();
+    core.setOutput('updated-dependencies-json', updatedDependencies);
+    core.setOutput('dependency-names', dependencyNames);
+    core.setOutput('dependency-type', dependencyType);
+    core.setOutput('update-type', updateType);
 }
 function maxDependencyTypes(updatedDependencies) {
     const dependencyTypes = updatedDependencies.reduce(function (dependencyTypes, dependency) {
@@ -13473,7 +13480,7 @@ function run() {
         const commitMessage = yield getMessage(githubClient, github.context);
         if (commitMessage) {
             // Parse metadata
-            core.info('Parsing Dependabot metadata/');
+            core.info('Parsing Dependabot metadata');
             const updatedDependencies = parse(commitMessage);
             if (updatedDependencies.length > 0) {
                 set(updatedDependencies);

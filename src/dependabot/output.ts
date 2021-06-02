@@ -14,15 +14,22 @@ const UPDATE_TYPES_PRIORITY = [
 ]
 
 export function set (updatedDependencies: Array<updatedDependency>): void {
-  core.info(`Outputting metadata for ${Pluralize('updated dependency', updatedDependencies.length, true)}`)
+  const dependencyNames = updatedDependencies.map(dependency => {
+    return dependency.dependencyName
+  }).join(', ');
+  const dependencyType = maxDependencyTypes(updatedDependencies);
+  const updateType = maxSemver(updatedDependencies);
+
+  core.startGroup(`Outputting metadata for ${Pluralize('updated dependency', updatedDependencies.length, true)}`);
+  core.info(`outputs.dependency-names: ${dependencyNames}`);
+  core.info(`outputs.dependency-type: ${dependencyType}`);
+  core.info(`outputs.update-type: ${updateType}`);
+  core.endGroup();
 
   core.setOutput('updated-dependencies-json', updatedDependencies)
-
-  core.setOutput('dependency-names', updatedDependencies.map(dependency => {
-    return dependency.dependencyName
-  }).join(', '))
-  core.setOutput('dependency-type', maxDependencyTypes(updatedDependencies))
-  core.setOutput('update-type', maxSemver(updatedDependencies))
+  core.setOutput('dependency-names', dependencyNames);
+  core.setOutput('dependency-type', dependencyType);
+  core.setOutput('update-type', updateType);
 }
 
 function maxDependencyTypes (updatedDependencies: Array<updatedDependency>): string {
