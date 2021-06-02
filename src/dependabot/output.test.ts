@@ -4,8 +4,9 @@ import * as Output from './output'
 beforeEach(() => {
   jest.restoreAllMocks()
 
-  jest.spyOn(core, 'setOutput').mockImplementation(jest.fn())
   jest.spyOn(core, 'info').mockImplementation(jest.fn())
+  jest.spyOn(core, 'setOutput').mockImplementation(jest.fn())
+  jest.spyOn(core, 'startGroup').mockImplementation(jest.fn())
 })
 
 test('when given a single dependency it sets its values', async () => {
@@ -19,7 +20,7 @@ test('when given a single dependency it sets its values', async () => {
 
   Output.set(updatedDependencies)
 
-  expect(core.info).toHaveBeenCalledWith(
+  expect(core.startGroup).toHaveBeenCalledWith(
     expect.stringContaining('Outputting metadata for 1 updated dependency')
   )
 
@@ -74,7 +75,7 @@ test('when the dependency has no update type', async () => {
 
   Output.set(updatedDependencies)
 
-  expect(core.info).toHaveBeenCalledWith(
+  expect(core.startGroup).toHaveBeenCalledWith(
     expect.stringContaining('Outputting metadata for 1 updated dependency')
   )
 

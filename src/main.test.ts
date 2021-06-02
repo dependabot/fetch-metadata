@@ -5,8 +5,9 @@ import * as dependabotCommits from './dependabot/verified_commits'
 beforeEach(() => {
   jest.restoreAllMocks()
 
-  jest.spyOn(core, 'setFailed').mockImplementation(jest.fn())
   jest.spyOn(core, 'info').mockImplementation(jest.fn())
+  jest.spyOn(core, 'setFailed').mockImplementation(jest.fn())
+  jest.spyOn(core, 'startGroup').mockImplementation(jest.fn())
 })
 
 test('it early exits with an error if github-token is not set', async () => {
@@ -72,7 +73,7 @@ test('it sets the updated dependency as an output for subsequent actions', async
 
   await run()
 
-  expect(core.info).toHaveBeenCalledWith(
+  expect(core.startGroup).toHaveBeenCalledWith(
     expect.stringContaining('Outputting metadata for 1 updated dependency')
   )
 
@@ -119,7 +120,7 @@ test('if there are multiple dependencies, it summarizes them', async () => {
 
   await run()
 
-  expect(core.info).toHaveBeenCalledWith(
+  expect(core.startGroup).toHaveBeenCalledWith(
     expect.stringContaining('Outputting metadata for 2 updated dependencies')
   )
 

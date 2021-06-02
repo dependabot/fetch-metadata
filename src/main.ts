@@ -23,7 +23,7 @@ export async function run (): Promise<void> {
 
   if (commitMessage) {
     // Parse metadata
-    core.info('Parsing Dependabot metadata/')
+    core.info('Parsing Dependabot metadata')
 
     const updatedDependencies = updateMetadata.parse(commitMessage)
 
