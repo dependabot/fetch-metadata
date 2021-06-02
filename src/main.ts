@@ -16,24 +16,28 @@ export async function run (): Promise<void> {
     return
   }
 
-  const githubClient = github.getOctokit(token)
+  try {
+    const githubClient = github.getOctokit(token)
 
-  // Validate the job
-  const commitMessage = await verifiedCommits.getMessage(githubClient, github.context)
+    // Validate the job
+    const commitMessage = await verifiedCommits.getMessage(githubClient, github.context)
 
-  if (commitMessage) {
-    // Parse metadata
-    core.info('Parsing Dependabot metadata')
+    if (commitMessage) {
+      // Parse metadata
+      core.info('Parsing Dependabot metadata')
 
-    const updatedDependencies = updateMetadata.parse(commitMessage)
+      const updatedDependencies = updateMetadata.parse(commitMessage)
 
-    if (updatedDependencies.length > 0) {
-      output.set(updatedDependencies)
+      if (updatedDependencies.length > 0) {
+        output.set(updatedDependencies)
+      } else {
+        core.setFailed('PR does not contain metadata, nothing to do.')
+      }
     } else {
-      core.setFailed('PR does not contain metadata, nothing to do.')
+      core.setFailed('PR is not from Dependabot, nothing to do.')
     }
-  } else {
-    core.setFailed('PR is not from Dependabot, nothing to do.')
+  } catch (error) {
+    core.setFailed(error.message);
   }
 }
 
