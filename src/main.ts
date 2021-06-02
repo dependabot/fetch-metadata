@@ -1,5 +1,6 @@
 import * as core from '@actions/core'
 import * as github from '@actions/github'
+import { RequestError } from '@octokit/request-error'
 import * as verifiedCommits from './dependabot/verified_commits'
 import * as updateMetadata from './dependabot/update_metadata'
 import * as output from './dependabot/output'
@@ -37,7 +38,11 @@ export async function run (): Promise<void> {
       core.setFailed('PR is not from Dependabot, nothing to do.')
     }
   } catch (error) {
-    core.setFailed(error.message);
+    if (error instanceof RequestError) {
+      core.setFailed(`Api Error: (${error.status}) ${error.message}`)
+      return
+    }
+    core.setFailed(error.message)
   }
 }
 
