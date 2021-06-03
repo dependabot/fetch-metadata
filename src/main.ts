@@ -1,5 +1,6 @@
 import * as core from '@actions/core'
 import * as github from '@actions/github'
+import { RequestError } from '@octokit/request-error'
 import * as verifiedCommits from './dependabot/verified_commits'
 import * as updateMetadata from './dependabot/update_metadata'
 import * as output from './dependabot/output'
@@ -16,24 +17,32 @@ export async function run (): Promise<void> {
     return
   }
 
-  const githubClient = github.getOctokit(token)
+  try {
+    const githubClient = github.getOctokit(token)
 
-  // Validate the job
-  const commitMessage = await verifiedCommits.getMessage(githubClient, github.context)
+    // Validate the job
+    const commitMessage = await verifiedCommits.getMessage(githubClient, github.context)
 
-  if (commitMessage) {
-    // Parse metadata
-    core.info('Parsing Dependabot metadata')
+    if (commitMessage) {
+      // Parse metadata
+      core.info('Parsing Dependabot metadata')
 
-    const updatedDependencies = updateMetadata.parse(commitMessage)
+      const updatedDependencies = updateMetadata.parse(commitMessage)
 
-    if (updatedDependencies.length > 0) {
-      output.set(updatedDependencies)
+      if (updatedDependencies.length > 0) {
+        output.set(updatedDependencies)
+      } else {
+        core.setFailed('PR does not contain metadata, nothing to do.')
+      }
     } else {
-      core.setFailed('PR does not contain metadata, nothing to do.')
+      core.setFailed('PR is not from Dependabot, nothing to do.')
     }
-  } else {
-    core.setFailed('PR is not from Dependabot, nothing to do.')
+  } catch (error) {
+    if (error instanceof RequestError) {
+      core.setFailed(`Api Error: (${error.status}) ${error.message}`)
+      return
+    }
+    core.setFailed(error.message)
   }
 }
 
