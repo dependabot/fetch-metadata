@@ -1,12 +1,14 @@
 import * as core from '@actions/core'
 import { run } from './main'
+import { RequestError } from '@octokit/request-error'
 import * as dependabotCommits from './dependabot/verified_commits'
 
 beforeEach(() => {
   jest.restoreAllMocks()
 
-  jest.spyOn(core, 'setFailed').mockImplementation(jest.fn())
   jest.spyOn(core, 'info').mockImplementation(jest.fn())
+  jest.spyOn(core, 'setFailed').mockImplementation(jest.fn())
+  jest.spyOn(core, 'startGroup').mockImplementation(jest.fn())
 })
 
 test('it early exits with an error if github-token is not set', async () => {
@@ -72,7 +74,7 @@ test('it sets the updated dependency as an output for subsequent actions', async
 
   await run()
 
-  expect(core.info).toHaveBeenCalledWith(
+  expect(core.startGroup).toHaveBeenCalledWith(
     expect.stringContaining('Outputting metadata for 1 updated dependency')
   )
 
@@ -119,7 +121,7 @@ test('if there are multiple dependencies, it summarizes them', async () => {
 
   await run()
 
-  expect(core.info).toHaveBeenCalledWith(
+  expect(core.startGroup).toHaveBeenCalledWith(
     expect.stringContaining('Outputting metadata for 2 updated dependencies')
   )
 
@@ -142,4 +144,39 @@ test('if there are multiple dependencies, it summarizes them', async () => {
   expect(core.setOutput).toBeCalledWith('dependency-names', 'coffee-rails, coffeescript')
   expect(core.setOutput).toBeCalledWith('dependency-type', 'direct:production')
   expect(core.setOutput).toBeCalledWith('update-type', 'version-update:semver-major')
+})
+
+test('it sets the action to failed if there is an unexpected exception', async () => {
+  jest.spyOn(core, 'getInput').mockReturnValue('mock-token')
+  jest.spyOn(dependabotCommits, 'getMessage').mockImplementation(jest.fn(
+    () => Promise.reject(new Error('Something bad happened!'))
+  ))
+
+  await run()
+
+  expect(core.setFailed).toHaveBeenCalledWith(
+    expect.stringContaining('Something bad happened!')
+  )
+})
+
+test('it sets the action to failed if there is a request error', async () => {
+  jest.spyOn(core, 'getInput').mockReturnValue('mock-token')
+  jest.spyOn(dependabotCommits, 'getMessage').mockImplementation(jest.fn(
+    () => Promise.reject(new RequestError('Something bad happened!', 500, {
+      headers: {},
+      request: {
+        method: 'GET',
+        url: 'https://api.github.com/repos/dependabot/dependabot/pulls/101/commits',
+        headers: {
+          authorization: 'foo'
+        }
+      }
+    }))
+  ))
+
+  await run()
+
+  expect(core.setFailed).toHaveBeenCalledWith(
+    expect.stringContaining('(500) Something bad happened!')
+  )
 })

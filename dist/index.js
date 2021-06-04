@@ -13327,6 +13327,8 @@ __nccwpck_require__.d(__webpack_exports__, {
 var core = __nccwpck_require__(2186);
 // EXTERNAL MODULE: ./node_modules/@actions/github/lib/github.js
 var github = __nccwpck_require__(5438);
+// EXTERNAL MODULE: ./node_modules/@octokit/request-error/dist-node/index.js
+var dist_node = __nccwpck_require__(537);
 ;// CONCATENATED MODULE: ./src/dependabot/verified_commits.ts
 var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
@@ -13421,13 +13423,20 @@ const UPDATE_TYPES_PRIORITY = [
     'version-update:semver-patch'
 ];
 function set(updatedDependencies) {
-    core.info(`Outputting metadata for ${pluralize_default()('updated dependency', updatedDependencies.length, true)}`);
-    core.setOutput('updated-dependencies-json', updatedDependencies);
-    core.setOutput('dependency-names', updatedDependencies.map(dependency => {
+    const dependencyNames = updatedDependencies.map(dependency => {
         return dependency.dependencyName;
-    }).join(', '));
-    core.setOutput('dependency-type', maxDependencyTypes(updatedDependencies));
-    core.setOutput('update-type', maxSemver(updatedDependencies));
+    }).join(', ');
+    const dependencyType = maxDependencyTypes(updatedDependencies);
+    const updateType = maxSemver(updatedDependencies);
+    core.startGroup(`Outputting metadata for ${pluralize_default()('updated dependency', updatedDependencies.length, true)}`);
+    core.info(`outputs.dependency-names: ${dependencyNames}`);
+    core.info(`outputs.dependency-type: ${dependencyType}`);
+    core.info(`outputs.update-type: ${updateType}`);
+    core.endGroup();
+    core.setOutput('updated-dependencies-json', updatedDependencies);
+    core.setOutput('dependency-names', dependencyNames);
+    core.setOutput('dependency-type', dependencyType);
+    core.setOutput('update-type', updateType);
 }
 function maxDependencyTypes(updatedDependencies) {
     const dependencyTypes = updatedDependencies.reduce(function (dependencyTypes, dependency) {
@@ -13459,6 +13468,7 @@ var main_awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arg
 
 
 
+
 function run() {
     return main_awaiter(this, void 0, void 0, function* () {
         const token = core.getInput('github-token');
@@ -13468,22 +13478,31 @@ function run() {
             /* eslint-enable no-template-curly-in-string */
             return;
         }
-        const githubClient = github.getOctokit(token);
-        // Validate the job
-        const commitMessage = yield getMessage(githubClient, github.context);
-        if (commitMessage) {
-            // Parse metadata
-            core.info('Parsing Dependabot metadata/');
-            const updatedDependencies = parse(commitMessage);
-            if (updatedDependencies.length > 0) {
-                set(updatedDependencies);
+        try {
+            const githubClient = github.getOctokit(token);
+            // Validate the job
+            const commitMessage = yield getMessage(githubClient, github.context);
+            if (commitMessage) {
+                // Parse metadata
+                core.info('Parsing Dependabot metadata');
+                const updatedDependencies = parse(commitMessage);
+                if (updatedDependencies.length > 0) {
+                    set(updatedDependencies);
+                }
+                else {
+                    core.setFailed('PR does not contain metadata, nothing to do.');
+                }
             }
             else {
-                core.setFailed('PR does not contain metadata, nothing to do.');
+                core.setFailed('PR is not from Dependabot, nothing to do.');
             }
         }
-        else {
-            core.setFailed('PR is not from Dependabot, nothing to do.');
+        catch (error) {
+            if (error instanceof dist_node.RequestError) {
+                core.setFailed(`Api Error: (${error.status}) ${error.message}`);
+                return;
+            }
+            core.setFailed(error.message);
         }
     });
 }
