@@ -1,0 +1,7 @@
+contact_links:
+  - name: "\U0001F41B Report a bug in Dependabot"
+    url: https://github.com/dependabot/dependabot-core/issues/new?assignees=&labels=T%3A+bug+%F0%9F%90%9E&template=bug-report.md&title=
+    about: If you are encountering a more general issue with Dependabot, please open an issue on dependabot/dependabot-core
+  - name: "\U0001F680 Feature request"
+    url: https://github.com/dependabot/dependabot-core/issues/new?assignees=&labels=T%3A+bug+%F0%9F%90%9E&template=bug-report.md&title=
+    about: If want to suggest an idea for Dependabot, please open an issue on dependabot/dependabot-core
