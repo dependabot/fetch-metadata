@@ -84,7 +84,7 @@ name: Dependabot auto-merge
 on: pull_request_target
 permissions:
   pull-requests: write
-  content: write
+  contents: write
 jobs:
   dependabot:
     runs-on: ubuntu-latest
