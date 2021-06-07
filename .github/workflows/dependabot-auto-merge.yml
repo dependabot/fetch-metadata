@@ -1,0 +1,20 @@
+name: Dependabot auto-merge
+on: pull_request_target
+permissions:
+  pull-requests: write
+  contents: write
+jobs:
+  dependabot:
+    runs-on: ubuntu-latest
+    if: ${{ github.actor == 'dependabot[bot]' }}
+    steps:
+      - name: Fetch metadata
+        id: metadata
+        uses: ./
+        with:
+          github-token: "${{ secrets.GITHUB_TOKEN }}"
+      - name: Auto-merge
+        run: gh pr merge --auto --merge "$PR_URL"
+        env:
+          PR_URL: ${{github.event.pull_request.html_url}}
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
