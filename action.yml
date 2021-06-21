@@ -1,5 +1,8 @@
 name: 'Fetch Metadata from Dependabot PRs'
 description: 'Extract information from about the dependency being updated by a Dependabot-generated PR'
+branding:
+  icon: 'search'
+  color: 'blue'
 inputs:
   github-token:
     description: 'The GITHUB_TOKEN secret'
