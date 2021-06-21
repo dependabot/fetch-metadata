@@ -10,7 +10,7 @@ Extract information about the dependencies being updated by a Dependabot-generat
 
 ## Usage instructions
 
-Create a workflow file that contains a step that uses: dependabot/fetch-metadata@v1`, e.g.
+Create a workflow file that contains a step that uses: `dependabot/fetch-metadata@v1.1.0`, e.g.
 
 ```yaml
 -- .github/workflows/dependabot-prs.yml
@@ -22,7 +22,7 @@ jobs:
     steps:
     - name: Fetch Dependabot metadata
       id: dependabot-metadata
-      uses: dependabot/fetch-metadata
+      uses: dependabot/fetch-metadata@v1.1.0
       with:
         github-token: "${{ secrets.GITHUB_TOKEN }}"
 ```
