@@ -8,11 +8,15 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.actor == 'dependabot[bot]' }}
     steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+
       - name: Fetch metadata
         id: metadata
         uses: ./
         with:
           github-token: "${{ secrets.GITHUB_TOKEN }}"
+
       - name: Auto-merge
         run: gh pr merge --auto --merge "$PR_URL"
         env:
