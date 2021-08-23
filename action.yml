@@ -9,7 +9,7 @@ inputs:
     description: 'If true, then call populate the `alert-state`, `ghsa-id` and `cvss` outputs'
   github-token:
     description: 'The GITHUB_TOKEN secret'
-    required: true
+    default: ${{ github.token }}
 outputs:
   dependency-names:
     description: 'A comma-separated list of all package names updated.'
