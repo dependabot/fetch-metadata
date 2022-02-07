@@ -13368,9 +13368,9 @@ function getMessage(client, context) {
                 'triggering this action on the `pull_request` or `pull_request_target` events.');
             return false;
         }
-        // Don't bother hitting the API if the event actor isn't Dependabot
-        if (context.actor !== DEPENDABOT_LOGIN) {
-            core.debug(`Event actor '${context.actor}' is not Dependabot.`);
+        // Don't bother hitting the API if the PR author isn't Dependabot
+        if (pr.user.login !== DEPENDABOT_LOGIN) {
+            core.debug(`PR author '${pr.user.login}' is not Dependabot.`);
             return false;
         }
         core.debug('Verifying the Pull Request contents are from Dependabot');

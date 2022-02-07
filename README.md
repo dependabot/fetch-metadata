@@ -57,8 +57,8 @@ permissions:
 jobs:
   dependabot:
     runs-on: ubuntu-latest
-    # Checking the actor will prevent your Action run failing on non-Dependabot PRs
-    if: ${{ github.actor == 'dependabot[bot]' }}
+    # Checking the author will prevent your Action run failing on non-Dependabot PRs
+    if: ${{ github.event.pull_request.user.login == 'dependabot[bot]' }}
     steps:
       - name: Dependabot metadata
         id: dependabot-metadata
@@ -88,7 +88,7 @@ permissions:
 jobs:
   dependabot:
     runs-on: ubuntu-latest
-    if: ${{ github.actor == 'dependabot[bot]' }}
+    if: ${{ github.event.pull_request.user.login == 'dependabot[bot]' }}
     steps:
       - name: Dependabot metadata
         id: dependabot-metadata
@@ -119,7 +119,7 @@ permissions:
 jobs:
   dependabot:
     runs-on: ubuntu-latest
-    if: ${{ github.actor == 'dependabot[bot]' }}
+    if: ${{ github.event.pull_request.user.login == 'dependabot[bot]' }}
     steps:
       - name: Dependabot metadata
         id: dependabot-metadata
