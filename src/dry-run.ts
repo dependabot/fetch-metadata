@@ -43,7 +43,7 @@ async function check (args: any): Promise<void> {
     if (commitMessage) {
       console.log('This appears to be a valid Dependabot Pull Request.')
 
-      const updatedDependencies = parse(commitMessage)
+      const updatedDependencies = parse(commitMessage, 'dependabot/test_ecosystem/test_directory', 'test_branch')
 
       if (updatedDependencies.length > 0) {
         console.log('Updated dependencies:')

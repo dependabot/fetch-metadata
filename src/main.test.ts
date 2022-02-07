@@ -2,6 +2,7 @@ import * as core from '@actions/core'
 import { run } from './main'
 import { RequestError } from '@octokit/request-error'
 import * as dependabotCommits from './dependabot/verified_commits'
+import * as util from './dependabot/util'
 
 beforeEach(() => {
   jest.restoreAllMocks()
@@ -13,6 +14,7 @@ beforeEach(() => {
 
 test('it early exits with an error if github-token is not set', async () => {
   jest.spyOn(core, 'getInput').mockReturnValue('')
+  jest.spyOn(util, 'getBranchNames').mockReturnValue({ headName: 'dependabot|nuget|feature1', baseName: 'main' })
 
   await run()
 
@@ -26,6 +28,7 @@ test('it early exits with an error if github-token is not set', async () => {
 
 test('it does nothing if the PR is not verified as from Dependabot', async () => {
   jest.spyOn(core, 'getInput').mockReturnValue('mock-token')
+  jest.spyOn(util, 'getBranchNames').mockReturnValue({ headName: 'dependabot|nuget|feature1', baseName: 'main' })
   jest.spyOn(dependabotCommits, 'getMessage').mockImplementation(jest.fn(
     () => Promise.resolve(false)
   ))
@@ -39,6 +42,7 @@ test('it does nothing if the PR is not verified as from Dependabot', async () =>
 
 test('it does nothing if there is no metadata in the commit', async () => {
   jest.spyOn(core, 'getInput').mockReturnValue('mock-token')
+  jest.spyOn(util, 'getBranchNames').mockReturnValue({ headName: 'dependabot|nuget|feature1', baseName: 'main' })
   jest.spyOn(dependabotCommits, 'getMessage').mockImplementation(jest.fn(
     () => Promise.resolve('Just a commit message, nothing to see here.')
   ))
@@ -67,6 +71,7 @@ test('it sets the updated dependency as an output for subsequent actions', async
     'Signed-off-by: dependabot[bot] <support@github.com>'
 
   jest.spyOn(core, 'getInput').mockReturnValue('mock-token')
+  jest.spyOn(util, 'getBranchNames').mockReturnValue({ headName: 'dependabot|nuget|feature1', baseName: 'main' })
   jest.spyOn(dependabotCommits, 'getMessage').mockImplementation(jest.fn(
     () => Promise.resolve(mockCommitMessage)
   ))
@@ -84,7 +89,10 @@ test('it sets the updated dependency as an output for subsequent actions', async
       {
         dependencyName: 'coffee-rails',
         dependencyType: 'direct:production',
-        updateType: 'version-update:semver-minor'
+        updateType: 'version-update:semver-minor',
+        directory: '/',
+        packageEcosystem: 'nuget',
+        targetBranch: 'main'
       }
     ]
   )
@@ -92,6 +100,9 @@ test('it sets the updated dependency as an output for subsequent actions', async
   expect(core.setOutput).toBeCalledWith('dependency-names', 'coffee-rails')
   expect(core.setOutput).toBeCalledWith('dependency-type', 'direct:production')
   expect(core.setOutput).toBeCalledWith('update-type', 'version-update:semver-minor')
+  expect(core.setOutput).toBeCalledWith('directory', '/')
+  expect(core.setOutput).toBeCalledWith('package-ecosystem', 'nuget')
+  expect(core.setOutput).toBeCalledWith('target_branch', 'main')
 })
 
 test('if there are multiple dependencies, it summarizes them', async () => {
@@ -114,6 +125,7 @@ test('if there are multiple dependencies, it summarizes them', async () => {
     'Signed-off-by: dependabot[bot] <support@github.com>'
 
   jest.spyOn(core, 'getInput').mockReturnValue('mock-token')
+  jest.spyOn(util, 'getBranchNames').mockReturnValue({ headName: 'dependabot/npm_and_yarn/api/main/feature1', baseName: 'trunk' })
   jest.spyOn(dependabotCommits, 'getMessage').mockImplementation(jest.fn(
     () => Promise.resolve(mockCommitMessage)
   ))
@@ -131,12 +143,18 @@ test('if there are multiple dependencies, it summarizes them', async () => {
       {
         dependencyName: 'coffee-rails',
         dependencyType: 'direct:production',
-        updateType: 'version-update:semver-minor'
+        updateType: 'version-update:semver-minor',
+        directory: 'api/main',
+        packageEcosystem: 'npm_and_yarn',
+        targetBranch: 'trunk'
       },
       {
         dependencyName: 'coffeescript',
         dependencyType: 'indirect',
-        updateType: 'version-update:semver-major'
+        updateType: 'version-update:semver-major',
+        directory: 'api/main',
+        packageEcosystem: 'npm_and_yarn',
+        targetBranch: 'trunk'
       }
     ]
   )
@@ -144,10 +162,14 @@ test('if there are multiple dependencies, it summarizes them', async () => {
   expect(core.setOutput).toBeCalledWith('dependency-names', 'coffee-rails, coffeescript')
   expect(core.setOutput).toBeCalledWith('dependency-type', 'direct:production')
   expect(core.setOutput).toBeCalledWith('update-type', 'version-update:semver-major')
+  expect(core.setOutput).toBeCalledWith('directory', 'api/main')
+  expect(core.setOutput).toBeCalledWith('package-ecosystem', 'npm_and_yarn')
+  expect(core.setOutput).toBeCalledWith('target_branch', 'trunk')
 })
 
 test('it sets the action to failed if there is an unexpected exception', async () => {
   jest.spyOn(core, 'getInput').mockReturnValue('mock-token')
+  jest.spyOn(util, 'getBranchNames').mockReturnValue({ headName: 'dependabot|nuget|feature1', baseName: 'main' })
   jest.spyOn(dependabotCommits, 'getMessage').mockImplementation(jest.fn(
     () => Promise.reject(new Error('Something bad happened!'))
   ))
@@ -161,6 +183,7 @@ test('it sets the action to failed if there is an unexpected exception', async (
 
 test('it sets the action to failed if there is a request error', async () => {
   jest.spyOn(core, 'getInput').mockReturnValue('mock-token')
+  jest.spyOn(util, 'getBranchNames').mockReturnValue({ headName: 'dependabot|nuget|feature1', baseName: 'main' })
   jest.spyOn(dependabotCommits, 'getMessage').mockImplementation(jest.fn(
     () => Promise.reject(new RequestError('Something bad happened!', 500, {
       headers: {},

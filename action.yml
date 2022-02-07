@@ -16,6 +16,12 @@ outputs:
     description: 'The highest semver change being made by this PR, e.g. "version-update:semver-major"'
   updated-dependencies-json:
     description: 'A JSON string containing the full information about each updated Dependency.'
+  directory:
+    description: 'The `directory` configuration that was used by dependabot for this updated Dependency.'
+  package-ecosystem:
+    description: 'The `package-ecosystem` configuration that was used by dependabot for this updated Dependency.'
+  target_branch:
+    description: 'The `target_branch` configuration that was used by dependabot for this updated Dependency.'
 runs:
   using: 'node12'
   main: 'dist/index.js'

@@ -4,6 +4,7 @@ import { RequestError } from '@octokit/request-error'
 import * as verifiedCommits from './dependabot/verified_commits'
 import * as updateMetadata from './dependabot/update_metadata'
 import * as output from './dependabot/output'
+import * as util from './dependabot/util'
 
 export async function run (): Promise<void> {
   const token = core.getInput('github-token')
@@ -22,12 +23,13 @@ export async function run (): Promise<void> {
 
     // Validate the job
     const commitMessage = await verifiedCommits.getMessage(githubClient, github.context)
+    const branchNames = util.getBranchNames(github.context)
 
     if (commitMessage) {
       // Parse metadata
       core.info('Parsing Dependabot metadata')
 
-      const updatedDependencies = updateMetadata.parse(commitMessage)
+      const updatedDependencies = updateMetadata.parse(commitMessage, branchNames.headName, branchNames.baseName)
 
       if (updatedDependencies.length > 0) {
         output.set(updatedDependencies)
