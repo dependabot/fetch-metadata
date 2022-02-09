@@ -39,11 +39,11 @@ async function check (args: any): Promise<void> {
 
     // Retries the commit message if the PR is from Dependabot
     const commitMessage = await getMessage(githubClient, actionContext)
-    const pull_request: any = await (await githubClient.rest.pulls.get({ owner: repoDetails.owner, repo: repoDetails.repo, pull_number: args.prNumber })).data
+    const pullRequest: any = await (await githubClient.rest.pulls.get({ owner: repoDetails.owner, repo: repoDetails.repo, pull_number: args.prNumber })).data
 
     const newContext = new Context()
     newContext.payload = {
-      pull_request: pull_request,
+      pull_request: pullRequest,
       repository: actionContext.payload.repository
     }
 
