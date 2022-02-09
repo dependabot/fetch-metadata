@@ -16,7 +16,7 @@ export function parse (commitMessage: string, branchName: string, mainBranch: st
     const data = YAML.parse(yamlFragment.groups.dependencies)
 
     // Since we are on the `dependabot` branch (9 letters), the 10th letter in the branch name is the delimiter
-    const delim = branchName[10]  
+    const delim = branchName[10]
     const chunks = branchName.split(delim)
     const dirname = chunks.slice(2, -1).join(delim) || '/'
 
