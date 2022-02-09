@@ -13410,6 +13410,7 @@ function parse(commitMessage, branchName, mainBranch) {
     const yamlFragment = commitMessage.match(/^-{3}\n(?<dependencies>[\S|\s]*?)\n^\.{3}\n/m);
     if ((yamlFragment === null || yamlFragment === void 0 ? void 0 : yamlFragment.groups) && branchName.startsWith('dependabot')) {
         const data = yaml.parse(yamlFragment.groups.dependencies);
+        // Since we are on the `dependabot` branch (9 letters), the 10th letter in the branch name is the delimiter
         const delim = branchName[10];
         const chunks = branchName.split(delim);
         const dirname = chunks.slice(2, -1).join(delim) || '/';
