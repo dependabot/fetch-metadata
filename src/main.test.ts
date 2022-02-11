@@ -102,7 +102,7 @@ test('it sets the updated dependency as an output for subsequent actions', async
   expect(core.setOutput).toBeCalledWith('update-type', 'version-update:semver-minor')
   expect(core.setOutput).toBeCalledWith('directory', '/')
   expect(core.setOutput).toBeCalledWith('package-ecosystem', 'nuget')
-  expect(core.setOutput).toBeCalledWith('target_branch', 'main')
+  expect(core.setOutput).toBeCalledWith('target-branch', 'main')
 })
 
 test('if there are multiple dependencies, it summarizes them', async () => {
@@ -164,7 +164,7 @@ test('if there are multiple dependencies, it summarizes them', async () => {
   expect(core.setOutput).toBeCalledWith('update-type', 'version-update:semver-major')
   expect(core.setOutput).toBeCalledWith('directory', 'api/main')
   expect(core.setOutput).toBeCalledWith('package-ecosystem', 'npm_and_yarn')
-  expect(core.setOutput).toBeCalledWith('target_branch', 'trunk')
+  expect(core.setOutput).toBeCalledWith('target-branch', 'trunk')
 })
 
 test('it sets the action to failed if there is an unexpected exception', async () => {
