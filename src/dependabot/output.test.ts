@@ -34,7 +34,7 @@ test('when given a single dependency it sets its values', async () => {
   expect(core.setOutput).toBeCalledWith('update-type', 'version-update:semver-minor')
   expect(core.setOutput).toBeCalledWith('directory', 'wwwroot')
   expect(core.setOutput).toBeCalledWith('package-ecosystem', 'nuget')
-  expect(core.setOutput).toBeCalledWith('target_branch', 'main')
+  expect(core.setOutput).toBeCalledWith('target-branch', 'main')
 })
 
 test('when given a multiple dependencies, it uses the highest values for types', async () => {
@@ -82,7 +82,7 @@ test('when given a multiple dependencies, it uses the highest values for types',
   expect(core.setOutput).toBeCalledWith('update-type', 'version-update:semver-major')
   expect(core.setOutput).toBeCalledWith('directory', '')
   expect(core.setOutput).toBeCalledWith('package-ecosystem', '')
-  expect(core.setOutput).toBeCalledWith('target_branch', '')
+  expect(core.setOutput).toBeCalledWith('target-branch', '')
 })
 
 test('when the dependency has no update type', async () => {
@@ -110,7 +110,7 @@ test('when the dependency has no update type', async () => {
   expect(core.setOutput).toBeCalledWith('update-type', null)
   expect(core.setOutput).toBeCalledWith('directory', '')
   expect(core.setOutput).toBeCalledWith('package-ecosystem', '')
-  expect(core.setOutput).toBeCalledWith('target_branch', '')
+  expect(core.setOutput).toBeCalledWith('target-branch', '')
 })
 
 test('when given a multiple dependencies, and some do not have update types', async () => {
@@ -158,5 +158,5 @@ test('when given a multiple dependencies, and some do not have update types', as
   expect(core.setOutput).toBeCalledWith('update-type', 'version-update:semver-minor')
   expect(core.setOutput).toBeCalledWith('directory', '')
   expect(core.setOutput).toBeCalledWith('package-ecosystem', '')
-  expect(core.setOutput).toBeCalledWith('target_branch', '')
+  expect(core.setOutput).toBeCalledWith('target-branch', '')
 })

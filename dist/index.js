@@ -13462,7 +13462,7 @@ function set(updatedDependencies) {
     core.info(`outputs.update-type: ${updateType}`);
     core.info(`outputs.directory: ${directory}`);
     core.info(`outputs.package-ecosystem: ${ecosystem}`);
-    core.info(`outputs.target_branch: ${target}`);
+    core.info(`outputs.target-branch: ${target}`);
     core.endGroup();
     core.setOutput('updated-dependencies-json', updatedDependencies);
     core.setOutput('dependency-names', dependencyNames);
@@ -13470,7 +13470,7 @@ function set(updatedDependencies) {
     core.setOutput('update-type', updateType);
     core.setOutput('directory', directory);
     core.setOutput('package-ecosystem', ecosystem);
-    core.setOutput('target_branch', target);
+    core.setOutput('target-branch', target);
 }
 function maxDependencyTypes(updatedDependencies) {
     const dependencyTypes = updatedDependencies.reduce(function (dependencyTypes, dependency) {

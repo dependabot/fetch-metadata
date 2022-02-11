@@ -41,8 +41,8 @@ Subsequent actions will have access to the following outputs:
   - The `directory` configuration that was used by dependabot for this updated Dependency.
 - `steps.dependabot-metadata.outputs.package-ecosystem`
   - The `package-ecosystem` configuration that was used by dependabot for this updated Dependency.
-- `steps.dependabot-metadata.outputs.target_branch`
-  - The `target_branch` configuration that was used by dependabot for this updated Dependency.
+- `steps.dependabot-metadata.outputs.target-branch`
+  - The `target-branch` configuration that was used by dependabot for this updated Dependency.
 
 **Note:** These outputs will only be populated if the target Pull Request was opened by Dependabot and contains
 **only** Dependabot-created commits.
