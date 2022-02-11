@@ -14,7 +14,10 @@ test('when given a single dependency it sets its values', async () => {
     {
       dependencyName: 'coffee-rails',
       dependencyType: 'direct:production',
-      updateType: 'version-update:semver-minor'
+      updateType: 'version-update:semver-minor',
+      directory: 'wwwroot',
+      packageEcosystem: 'nuget',
+      targetBranch: 'main'
     }
   ]
 
@@ -29,6 +32,9 @@ test('when given a single dependency it sets its values', async () => {
   expect(core.setOutput).toBeCalledWith('dependency-names', 'coffee-rails')
   expect(core.setOutput).toBeCalledWith('dependency-type', 'direct:production')
   expect(core.setOutput).toBeCalledWith('update-type', 'version-update:semver-minor')
+  expect(core.setOutput).toBeCalledWith('directory', 'wwwroot')
+  expect(core.setOutput).toBeCalledWith('package-ecosystem', 'nuget')
+  expect(core.setOutput).toBeCalledWith('target_branch', 'main')
 })
 
 test('when given a multiple dependencies, it uses the highest values for types', async () => {
@@ -36,22 +42,34 @@ test('when given a multiple dependencies, it uses the highest values for types',
     {
       dependencyName: 'rspec',
       dependencyType: 'direct:development',
-      updateType: 'version-update:semver-minor'
+      updateType: 'version-update:semver-minor',
+      directory: '',
+      packageEcosystem: '',
+      targetBranch: ''
     },
     {
       dependencyName: 'coffee-rails',
       dependencyType: 'indirect',
-      updateType: 'version-update:semver-minor'
+      updateType: 'version-update:semver-minor',
+      directory: '',
+      packageEcosystem: '',
+      targetBranch: ''
     },
     {
       dependencyName: 'coffeescript',
       dependencyType: 'indirect',
-      updateType: 'version-update:semver-major'
+      updateType: 'version-update:semver-major',
+      directory: '',
+      packageEcosystem: '',
+      targetBranch: ''
     },
     {
       dependencyName: 'rspec-coffeescript',
       dependencyType: 'indirect',
-      updateType: 'version-update:semver-patch'
+      updateType: 'version-update:semver-patch',
+      directory: '',
+      packageEcosystem: '',
+      targetBranch: ''
     }
   ]
 
@@ -62,6 +80,9 @@ test('when given a multiple dependencies, it uses the highest values for types',
   expect(core.setOutput).toBeCalledWith('dependency-names', 'rspec, coffee-rails, coffeescript, rspec-coffeescript')
   expect(core.setOutput).toBeCalledWith('dependency-type', 'direct:development')
   expect(core.setOutput).toBeCalledWith('update-type', 'version-update:semver-major')
+  expect(core.setOutput).toBeCalledWith('directory', '')
+  expect(core.setOutput).toBeCalledWith('package-ecosystem', '')
+  expect(core.setOutput).toBeCalledWith('target_branch', '')
 })
 
 test('when the dependency has no update type', async () => {
@@ -69,7 +90,10 @@ test('when the dependency has no update type', async () => {
     {
       dependencyName: 'coffee-rails',
       dependencyType: 'direct:production',
-      updateType: ''
+      updateType: '',
+      directory: '',
+      packageEcosystem: '',
+      targetBranch: ''
     }
   ]
 
@@ -84,6 +108,9 @@ test('when the dependency has no update type', async () => {
   expect(core.setOutput).toBeCalledWith('dependency-names', 'coffee-rails')
   expect(core.setOutput).toBeCalledWith('dependency-type', 'direct:production')
   expect(core.setOutput).toBeCalledWith('update-type', null)
+  expect(core.setOutput).toBeCalledWith('directory', '')
+  expect(core.setOutput).toBeCalledWith('package-ecosystem', '')
+  expect(core.setOutput).toBeCalledWith('target_branch', '')
 })
 
 test('when given a multiple dependencies, and some do not have update types', async () => {
@@ -91,22 +118,34 @@ test('when given a multiple dependencies, and some do not have update types', as
     {
       dependencyName: 'rspec',
       dependencyType: 'direct:development',
-      updateType: ''
+      updateType: '',
+      directory: '',
+      packageEcosystem: '',
+      targetBranch: ''
     },
     {
       dependencyName: 'coffee-rails',
       dependencyType: 'indirect',
-      updateType: 'version-update:semver-minor'
+      updateType: 'version-update:semver-minor',
+      directory: '',
+      packageEcosystem: '',
+      targetBranch: ''
     },
     {
       dependencyName: 'coffeescript',
       dependencyType: 'indirect',
-      updateType: ''
+      updateType: '',
+      directory: '',
+      packageEcosystem: '',
+      targetBranch: ''
     },
     {
       dependencyName: 'rspec-coffeescript',
       dependencyType: 'indirect',
-      updateType: 'version-update:semver-patch'
+      updateType: 'version-update:semver-patch',
+      directory: '',
+      packageEcosystem: '',
+      targetBranch: ''
     }
   ]
 
@@ -117,4 +156,7 @@ test('when given a multiple dependencies, and some do not have update types', as
   expect(core.setOutput).toBeCalledWith('dependency-names', 'rspec, coffee-rails, coffeescript, rspec-coffeescript')
   expect(core.setOutput).toBeCalledWith('dependency-type', 'direct:development')
   expect(core.setOutput).toBeCalledWith('update-type', 'version-update:semver-minor')
+  expect(core.setOutput).toBeCalledWith('directory', '')
+  expect(core.setOutput).toBeCalledWith('package-ecosystem', '')
+  expect(core.setOutput).toBeCalledWith('target_branch', '')
 })

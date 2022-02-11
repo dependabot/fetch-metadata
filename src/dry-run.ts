@@ -7,7 +7,7 @@ import { hideBin } from 'yargs/helpers'
 
 import { getMessage } from './dependabot/verified_commits'
 import { parse } from './dependabot/update_metadata'
-import { parseNwo } from './dependabot/util'
+import { getBranchNames, parseNwo } from './dependabot/util'
 
 async function check (args: any): Promise<void> {
   try {
@@ -39,11 +39,19 @@ async function check (args: any): Promise<void> {
 
     // Retries the commit message if the PR is from Dependabot
     const commitMessage = await getMessage(githubClient, actionContext)
+    const pullRequest: any = await (await githubClient.rest.pulls.get({ owner: repoDetails.owner, repo: repoDetails.repo, pull_number: args.prNumber })).data
+
+    const newContext = new Context()
+    newContext.payload = {
+      pull_request: pullRequest,
+      repository: actionContext.payload.repository
+    }
 
     if (commitMessage) {
       console.log('This appears to be a valid Dependabot Pull Request.')
+      const branchNames = getBranchNames(newContext)
 
-      const updatedDependencies = parse(commitMessage)
+      const updatedDependencies = parse(commitMessage, branchNames.headName, branchNames.baseName)
 
       if (updatedDependencies.length > 0) {
         console.log('Updated dependencies:')

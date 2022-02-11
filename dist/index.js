@@ -13406,16 +13406,23 @@ function warnOtherCommits() {
 var yaml = __nccwpck_require__(3552);
 ;// CONCATENATED MODULE: ./src/dependabot/update_metadata.ts
 
-function parse(commitMessage) {
+function parse(commitMessage, branchName, mainBranch) {
     const yamlFragment = commitMessage.match(/^-{3}\n(?<dependencies>[\S|\s]*?)\n^\.{3}\n/m);
-    if (yamlFragment === null || yamlFragment === void 0 ? void 0 : yamlFragment.groups) {
+    if ((yamlFragment === null || yamlFragment === void 0 ? void 0 : yamlFragment.groups) && branchName.startsWith('dependabot')) {
         const data = yaml.parse(yamlFragment.groups.dependencies);
+        // Since we are on the `dependabot` branch (9 letters), the 10th letter in the branch name is the delimiter
+        const delim = branchName[10];
+        const chunks = branchName.split(delim);
+        const dirname = chunks.slice(2, -1).join(delim) || '/';
         if (data['updated-dependencies']) {
             return data['updated-dependencies'].map(dependency => {
                 return {
                     dependencyName: dependency['dependency-name'],
                     dependencyType: dependency['dependency-type'],
-                    updateType: dependency['update-type']
+                    updateType: dependency['update-type'],
+                    directory: dirname,
+                    packageEcosystem: chunks[1],
+                    targetBranch: mainBranch
                 };
             });
         }
@@ -13445,15 +13452,25 @@ function set(updatedDependencies) {
     }).join(', ');
     const dependencyType = maxDependencyTypes(updatedDependencies);
     const updateType = maxSemver(updatedDependencies);
+    const firstDependency = updatedDependencies[0];
+    const directory = firstDependency === null || firstDependency === void 0 ? void 0 : firstDependency.directory;
+    const ecosystem = firstDependency === null || firstDependency === void 0 ? void 0 : firstDependency.packageEcosystem;
+    const target = firstDependency === null || firstDependency === void 0 ? void 0 : firstDependency.targetBranch;
     core.startGroup(`Outputting metadata for ${pluralize_default()('updated dependency', updatedDependencies.length, true)}`);
     core.info(`outputs.dependency-names: ${dependencyNames}`);
     core.info(`outputs.dependency-type: ${dependencyType}`);
     core.info(`outputs.update-type: ${updateType}`);
+    core.info(`outputs.directory: ${directory}`);
+    core.info(`outputs.package-ecosystem: ${ecosystem}`);
+    core.info(`outputs.target_branch: ${target}`);
     core.endGroup();
     core.setOutput('updated-dependencies-json', updatedDependencies);
     core.setOutput('dependency-names', dependencyNames);
     core.setOutput('dependency-type', dependencyType);
     core.setOutput('update-type', updateType);
+    core.setOutput('directory', directory);
+    core.setOutput('package-ecosystem', ecosystem);
+    core.setOutput('target_branch', target);
 }
 function maxDependencyTypes(updatedDependencies) {
     const dependencyTypes = updatedDependencies.reduce(function (dependencyTypes, dependency) {
@@ -13470,6 +13487,19 @@ function maxSemver(updatedDependencies) {
     return UPDATE_TYPES_PRIORITY.find(semverLevel => semverLevels.has(semverLevel)) || null;
 }
 
+;// CONCATENATED MODULE: ./src/dependabot/util.ts
+function parseNwo(nwo) {
+    const [owner, name] = nwo.split('/');
+    if (!owner || !name) {
+        throw new Error(`'${nwo}' does not appear to be a valid repository NWO`);
+    }
+    return { owner: owner, repo: name };
+}
+function getBranchNames(context) {
+    const { pull_request: pr } = context.payload;
+    return { headName: (pr === null || pr === void 0 ? void 0 : pr.head.ref) || '', baseName: pr === null || pr === void 0 ? void 0 : pr.base.ref };
+}
+
 ;// CONCATENATED MODULE: ./src/main.ts
 var main_awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
@@ -13480,6 +13510,7 @@ var main_awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arg
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+
 
 
 
@@ -13499,10 +13530,11 @@ function run() {
             const githubClient = github.getOctokit(token);
             // Validate the job
             const commitMessage = yield getMessage(githubClient, github.context);
+            const branchNames = getBranchNames(github.context);
             if (commitMessage) {
                 // Parse metadata
                 core.info('Parsing Dependabot metadata');
-                const updatedDependencies = parse(commitMessage);
+                const updatedDependencies = parse(commitMessage, branchNames.headName, branchNames.baseName);
                 if (updatedDependencies.length > 0) {
                     set(updatedDependencies);
                 }
