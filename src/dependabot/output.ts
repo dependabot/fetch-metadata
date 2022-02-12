@@ -20,16 +20,27 @@ export function set (updatedDependencies: Array<updatedDependency>): void {
   const dependencyType = maxDependencyTypes(updatedDependencies)
   const updateType = maxSemver(updatedDependencies)
 
+  const firstDependency = updatedDependencies[0]
+  const directory = firstDependency?.directory
+  const ecosystem = firstDependency?.packageEcosystem
+  const target = firstDependency?.targetBranch
+
   core.startGroup(`Outputting metadata for ${Pluralize('updated dependency', updatedDependencies.length, true)}`)
   core.info(`outputs.dependency-names: ${dependencyNames}`)
   core.info(`outputs.dependency-type: ${dependencyType}`)
   core.info(`outputs.update-type: ${updateType}`)
+  core.info(`outputs.directory: ${directory}`)
+  core.info(`outputs.package-ecosystem: ${ecosystem}`)
+  core.info(`outputs.target-branch: ${target}`)
   core.endGroup()
 
   core.setOutput('updated-dependencies-json', updatedDependencies)
   core.setOutput('dependency-names', dependencyNames)
   core.setOutput('dependency-type', dependencyType)
   core.setOutput('update-type', updateType)
+  core.setOutput('directory', directory)
+  core.setOutput('package-ecosystem', ecosystem)
+  core.setOutput('target-branch', target)
 }
 
 function maxDependencyTypes (updatedDependencies: Array<updatedDependency>): string {
