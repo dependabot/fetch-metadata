@@ -1,6 +1,7 @@
 import * as core from '@actions/core'
 import { GitHub } from '@actions/github/lib/utils'
 import { Context } from '@actions/github/lib/context'
+import type { dependencyAlert } from './update_metadata'
 
 const DEPENDABOT_LOGIN = 'dependabot[bot]'
 
@@ -60,4 +61,42 @@ function warnOtherCommits (): void {
       "Try using '@dependabot rebase' to remove merge commits or '@dependabot recreate' to remove " +
         'any non-Dependabot changes.'
   )
+}
+
+export async function getAlert (name: string, version: string, directory: string, client: InstanceType<typeof GitHub>, context: Context): Promise<dependencyAlert> {
+  const alerts: any = await client.graphql(`
+     {
+       repository(owner: "${context.repo.owner}", name: "${context.repo.repo}") { 
+         vulnerabilityAlerts(first: 100) {
+           nodes {
+             vulnerableManifestFilename
+             vulnerableManifestPath
+             vulnerableRequirements
+             state
+             securityVulnerability { 
+               package { name } 
+             }
+             securityAdvisory { 
+              cvss { score }
+              ghsaId 
+             }
+           }
+         }
+       }
+     }`)
+
+  const nodes = alerts?.repository?.vulnerabilityAlerts?.nodes
+  const found = nodes.find(a => a.vulnerableRequirements == `= ${version}` 
+      && trimSlashes(a.vulnerableManifestPath) == `${trimSlashes(directory)}/${a.vulnerableManifestFilename}`
+      && a.securityVulnerability.package.name == name)
+
+  return { 
+    alertState: found?.state ?? "", 
+    ghsaId: found?.securityAdvisory.ghsaId ?? "",
+    cvss: found?.securityAdvisory.cvss.score ?? 0.0
+  }
+}
+
+export function trimSlashes(value: string): string {
+  return value.replace(/^\//, '').replace(/\/$/, '')
 }

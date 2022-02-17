@@ -24,12 +24,13 @@ export async function run (): Promise<void> {
     // Validate the job
     const commitMessage = await verifiedCommits.getMessage(githubClient, github.context)
     const branchNames = util.getBranchNames(github.context)
+    const alertLookup = (name, version, directory) => verifiedCommits.getAlert(name, version, directory, githubClient, github.context)
 
     if (commitMessage) {
       // Parse metadata
       core.info('Parsing Dependabot metadata')
 
-      const updatedDependencies = updateMetadata.parse(commitMessage, branchNames.headName, branchNames.baseName)
+      const updatedDependencies = await updateMetadata.parse(commitMessage, branchNames.headName, branchNames.baseName, alertLookup)
 
       if (updatedDependencies.length > 0) {
         output.set(updatedDependencies)
