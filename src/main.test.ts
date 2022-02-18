@@ -119,6 +119,11 @@ test('it sets the updated dependency as an output for subsequent actions', async
   expect(core.setOutput).toBeCalledWith('directory', '/')
   expect(core.setOutput).toBeCalledWith('package-ecosystem', 'nuget')
   expect(core.setOutput).toBeCalledWith('target-branch', 'main')
+  expect(core.setOutput).toBeCalledWith('previous-version', '4.0.1')
+  expect(core.setOutput).toBeCalledWith('new-version', '4.2.2')
+  expect(core.setOutput).toBeCalledWith('alert-state', 'FIXED')
+  expect(core.setOutput).toBeCalledWith('ghsa-id', 'GSHA')
+  expect(core.setOutput).toBeCalledWith('cvss', 3.4)
 })
 
 test('if there are multiple dependencies, it summarizes them', async () => {
@@ -196,6 +201,11 @@ test('if there are multiple dependencies, it summarizes them', async () => {
   expect(core.setOutput).toBeCalledWith('directory', 'api/main')
   expect(core.setOutput).toBeCalledWith('package-ecosystem', 'npm_and_yarn')
   expect(core.setOutput).toBeCalledWith('target-branch', 'trunk')
+  expect(core.setOutput).toBeCalledWith('previous-version', '4.0.1')
+  expect(core.setOutput).toBeCalledWith('new-version', '4.2.2')
+  expect(core.setOutput).toBeCalledWith('alert-state', '')
+  expect(core.setOutput).toBeCalledWith('ghsa-id', '')
+  expect(core.setOutput).toBeCalledWith('cvss', 0)
 })
 
 test('it sets the action to failed if there is an unexpected exception', async () => {

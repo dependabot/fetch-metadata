@@ -43,6 +43,16 @@ Subsequent actions will have access to the following outputs:
   - The `package-ecosystem` configuration that was used by dependabot for this updated Dependency.
 - `steps.dependabot-metadata.outputs.target-branch`
   - The `target-branch` configuration that was used by dependabot for this updated Dependency.
+- `steps.dependabot-metadata.outputs.previous-version`
+  - The version that this PR updates the dependency from.
+- `steps.dependabot-metadata.outputs.new-version`
+  - The version that this PR updates the dependency to.
+- `steps.dependabot-metadata.outputs.alert-state`
+  - If this PR is associated with a security alert, this contains the current state of that alert (OPEN, FIXED or DISMISSED).
+- `steps.dependabot-metadata.outputs.ghsa-id`
+  - If this PR is associated with a security alert, this contains the GHSA-ID of that alert.
+- `steps.dependabot-metadata.outputs.cvss`
+  - If this PR is associated with a security alert, this contains the CVSS value of that alert (otherwise it contains 0).
 
 **Note:** These outputs will only be populated if the target Pull Request was opened by Dependabot and contains
 **only** Dependabot-created commits.
