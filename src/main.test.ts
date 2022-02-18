@@ -39,7 +39,9 @@ test('it does nothing if the PR is not verified as from Dependabot', async () =>
   expect(core.setFailed).toHaveBeenCalledWith(
     expect.stringContaining('PR is not from Dependabot, nothing to do.')
   )
+  /* eslint-disable no-unused-expressions */
   expect(dependabotCommits.getAlert).not.toHaveBeenCalled
+  /* eslint-enable no-unused-expressions */
 })
 
 test('it does nothing if there is no metadata in the commit', async () => {
@@ -54,7 +56,9 @@ test('it does nothing if there is no metadata in the commit', async () => {
   expect(core.setFailed).toHaveBeenCalledWith(
     expect.stringContaining('PR does not contain metadata, nothing to do.')
   )
+  /* eslint-disable no-unused-expressions */
   expect(dependabotCommits.getAlert).not.toHaveBeenCalled
+  /* eslint-enable no-unused-expressions */
 })
 
 test('it sets the updated dependency as an output for subsequent actions', async () => {
@@ -72,7 +76,7 @@ test('it sets the updated dependency as an output for subsequent actions', async
     '...\n' +
     '\n' +
     'Signed-off-by: dependabot[bot] <support@github.com>'
-  const mockAlert = { alertState: "FIXED", ghsaId: "GSHA", cvss: 3.4 }
+  const mockAlert = { alertState: 'FIXED', ghsaId: 'GSHA', cvss: 3.4 }
 
   jest.spyOn(core, 'getInput').mockReturnValue('mock-token')
   jest.spyOn(util, 'getBranchNames').mockReturnValue({ headName: 'dependabot|nuget|feature1', baseName: 'main' })
@@ -136,7 +140,7 @@ test('if there are multiple dependencies, it summarizes them', async () => {
     '...\n' +
     '\n' +
     'Signed-off-by: dependabot[bot] <support@github.com>'
-  const mockAlert = { alertState: "", ghsaId: "", cvss: 0 }
+  const mockAlert = { alertState: '', ghsaId: '', cvss: 0 }
 
   jest.spyOn(core, 'getInput').mockReturnValue('mock-token')
   jest.spyOn(util, 'getBranchNames').mockReturnValue({ headName: 'dependabot/npm_and_yarn/api/main/feature1', baseName: 'trunk' })
@@ -203,10 +207,12 @@ test('it sets the action to failed if there is an unexpected exception', async (
 
   await run()
 
-  expect(dependabotCommits.getAlert).not.toHaveBeenCalled
   expect(core.setFailed).toHaveBeenCalledWith(
     expect.stringContaining('Something bad happened!')
   )
+  /* eslint-disable no-unused-expressions */
+  expect(dependabotCommits.getAlert).not.toHaveBeenCalled
+  /* eslint-enable no-unused-expressions */
 })
 
 test('it sets the action to failed if there is a request error', async () => {
@@ -227,8 +233,10 @@ test('it sets the action to failed if there is a request error', async () => {
 
   await run()
 
-  expect(dependabotCommits.getAlert).not.toHaveBeenCalled
   expect(core.setFailed).toHaveBeenCalledWith(
     expect.stringContaining('(500) Something bad happened!')
   )
+  /* eslint-disable no-unused-expressions */
+  expect(dependabotCommits.getAlert).not.toHaveBeenCalled
+  /* eslint-enable no-unused-expressions */
 })

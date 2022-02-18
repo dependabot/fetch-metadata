@@ -45,9 +45,9 @@ export async function parse (commitMessage: string, branchName: string, mainBran
         directory: dirname,
         packageEcosystem: chunks[1],
         targetBranch: mainBranch,
-        prevVersion: index === 0 ? prev : "",
-        newVersion: index === 0 ? next : "",
-        ...await lookup(dependency['dependency-name'], index === 0 ? prev : "", dirname)
+        prevVersion: index === 0 ? prev : '',
+        newVersion: index === 0 ? next : '',
+        ...await lookup(dependency['dependency-name'], index === 0 ? prev : '', dirname)
       })))
     }
   }
