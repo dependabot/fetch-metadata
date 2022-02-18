@@ -9,6 +9,20 @@ beforeEach(() => {
   jest.spyOn(core, 'startGroup').mockImplementation(jest.fn())
 })
 
+const baseDependency = {
+  dependencyName: '',
+  dependencyType: '',
+  updateType: '',
+  directory: '',
+  packageEcosystem: '',
+  targetBranch: '',
+  prevVersion: '',
+  newVersion: '',
+  alertState: '',
+  ghsaId: '',
+  cvss: 0
+}
+
 test('when given a single dependency it sets its values', async () => {
   const updatedDependencies = [
     {
@@ -17,7 +31,12 @@ test('when given a single dependency it sets its values', async () => {
       updateType: 'version-update:semver-minor',
       directory: 'wwwroot',
       packageEcosystem: 'nuget',
-      targetBranch: 'main'
+      targetBranch: 'main',
+      prevVersion: '1.0.2',
+      newVersion: '1.1.3-beta',
+      alertState: 'FIXED',
+      ghsaId: 'VERY_LONG_ID',
+      cvss: 4.6
     }
   ]
 
@@ -40,36 +59,28 @@ test('when given a single dependency it sets its values', async () => {
 test('when given a multiple dependencies, it uses the highest values for types', async () => {
   const updatedDependencies = [
     {
+      ...baseDependency,
       dependencyName: 'rspec',
       dependencyType: 'direct:development',
-      updateType: 'version-update:semver-minor',
-      directory: '',
-      packageEcosystem: '',
-      targetBranch: ''
+      updateType: 'version-update:semver-minor'
     },
     {
+      ...baseDependency,
       dependencyName: 'coffee-rails',
       dependencyType: 'indirect',
-      updateType: 'version-update:semver-minor',
-      directory: '',
-      packageEcosystem: '',
-      targetBranch: ''
+      updateType: 'version-update:semver-minor'
     },
     {
+      ...baseDependency,
       dependencyName: 'coffeescript',
       dependencyType: 'indirect',
-      updateType: 'version-update:semver-major',
-      directory: '',
-      packageEcosystem: '',
-      targetBranch: ''
+      updateType: 'version-update:semver-major'
     },
     {
+      ...baseDependency,
       dependencyName: 'rspec-coffeescript',
       dependencyType: 'indirect',
-      updateType: 'version-update:semver-patch',
-      directory: '',
-      packageEcosystem: '',
-      targetBranch: ''
+      updateType: 'version-update:semver-patch'
     }
   ]
 
@@ -88,12 +99,9 @@ test('when given a multiple dependencies, it uses the highest values for types',
 test('when the dependency has no update type', async () => {
   const updatedDependencies = [
     {
+      ...baseDependency,
       dependencyName: 'coffee-rails',
-      dependencyType: 'direct:production',
-      updateType: '',
-      directory: '',
-      packageEcosystem: '',
-      targetBranch: ''
+      dependencyType: 'direct:production'
     }
   ]
 
@@ -116,36 +124,26 @@ test('when the dependency has no update type', async () => {
 test('when given a multiple dependencies, and some do not have update types', async () => {
   const updatedDependencies = [
     {
+      ...baseDependency,
       dependencyName: 'rspec',
-      dependencyType: 'direct:development',
-      updateType: '',
-      directory: '',
-      packageEcosystem: '',
-      targetBranch: ''
+      dependencyType: 'direct:development'
     },
     {
+      ...baseDependency,
       dependencyName: 'coffee-rails',
       dependencyType: 'indirect',
-      updateType: 'version-update:semver-minor',
-      directory: '',
-      packageEcosystem: '',
-      targetBranch: ''
+      updateType: 'version-update:semver-minor'
     },
     {
+      ...baseDependency,
       dependencyName: 'coffeescript',
-      dependencyType: 'indirect',
-      updateType: '',
-      directory: '',
-      packageEcosystem: '',
-      targetBranch: ''
+      dependencyType: 'indirect'
     },
     {
+      ...baseDependency,
       dependencyName: 'rspec-coffeescript',
       dependencyType: 'indirect',
-      updateType: 'version-update:semver-patch',
-      directory: '',
-      packageEcosystem: '',
-      targetBranch: ''
+      updateType: 'version-update:semver-patch'
     }
   ]
 

@@ -86,17 +86,17 @@ export async function getAlert (name: string, version: string, directory: string
      }`)
 
   const nodes = alerts?.repository?.vulnerabilityAlerts?.nodes
-  const found = nodes.find(a => a.vulnerableRequirements == `= ${version}` 
-      && trimSlashes(a.vulnerableManifestPath) == `${trimSlashes(directory)}/${a.vulnerableManifestFilename}`
-      && a.securityVulnerability.package.name == name)
+  const found = nodes.find(a => (version === '' || a.vulnerableRequirements === `= ${version}`) &&
+      trimSlashes(a.vulnerableManifestPath) === `${trimSlashes(directory)}/${a.vulnerableManifestFilename}` &&
+      a.securityVulnerability.package.name === name)
 
-  return { 
-    alertState: found?.state ?? "", 
-    ghsaId: found?.securityAdvisory.ghsaId ?? "",
+  return {
+    alertState: found?.state ?? '',
+    ghsaId: found?.securityAdvisory.ghsaId ?? '',
     cvss: found?.securityAdvisory.cvss.score ?? 0.0
   }
 }
 
-export function trimSlashes(value: string): string {
+export function trimSlashes (value: string): string {
   return value.replace(/^\//, '').replace(/\/$/, '')
 }

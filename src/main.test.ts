@@ -23,6 +23,7 @@ test('it early exits with an error if github-token is not set', async () => {
   )
   /* eslint-disable no-unused-expressions */
   expect(dependabotCommits.getMessage).not.toHaveBeenCalled
+  expect(dependabotCommits.getAlert).not.toHaveBeenCalled
   /* eslint-enable no-unused-expressions */
 })
 
@@ -38,6 +39,7 @@ test('it does nothing if the PR is not verified as from Dependabot', async () =>
   expect(core.setFailed).toHaveBeenCalledWith(
     expect.stringContaining('PR is not from Dependabot, nothing to do.')
   )
+  expect(dependabotCommits.getAlert).not.toHaveBeenCalled
 })
 
 test('it does nothing if there is no metadata in the commit', async () => {
@@ -52,6 +54,7 @@ test('it does nothing if there is no metadata in the commit', async () => {
   expect(core.setFailed).toHaveBeenCalledWith(
     expect.stringContaining('PR does not contain metadata, nothing to do.')
   )
+  expect(dependabotCommits.getAlert).not.toHaveBeenCalled
 })
 
 test('it sets the updated dependency as an output for subsequent actions', async () => {
@@ -69,11 +72,15 @@ test('it sets the updated dependency as an output for subsequent actions', async
     '...\n' +
     '\n' +
     'Signed-off-by: dependabot[bot] <support@github.com>'
+  const mockAlert = { alertState: "FIXED", ghsaId: "GSHA", cvss: 3.4 }
 
   jest.spyOn(core, 'getInput').mockReturnValue('mock-token')
   jest.spyOn(util, 'getBranchNames').mockReturnValue({ headName: 'dependabot|nuget|feature1', baseName: 'main' })
   jest.spyOn(dependabotCommits, 'getMessage').mockImplementation(jest.fn(
     () => Promise.resolve(mockCommitMessage)
+  ))
+  jest.spyOn(dependabotCommits, 'getAlert').mockImplementation(jest.fn(
+    () => Promise.resolve(mockAlert)
   ))
   jest.spyOn(core, 'setOutput').mockImplementation(jest.fn())
 
@@ -92,7 +99,12 @@ test('it sets the updated dependency as an output for subsequent actions', async
         updateType: 'version-update:semver-minor',
         directory: '/',
         packageEcosystem: 'nuget',
-        targetBranch: 'main'
+        targetBranch: 'main',
+        prevVersion: '4.0.1',
+        newVersion: '4.2.2',
+        alertState: 'FIXED',
+        ghsaId: 'GSHA',
+        cvss: 3.4
       }
     ]
   )
@@ -107,6 +119,7 @@ test('it sets the updated dependency as an output for subsequent actions', async
 
 test('if there are multiple dependencies, it summarizes them', async () => {
   const mockCommitMessage =
+    'Bump coffee-rails from 4.0.1 to 4.2.2 in api/main\n' +
     'Bumps [coffee-rails](https://github.com/rails/coffee-rails) from 4.0.1 to 4.2.2.\n' +
     '- [Release notes](https://github.com/rails/coffee-rails/releases)\n' +
     '- [Changelog](https://github.com/rails/coffee-rails/blob/master/CHANGELOG.md)\n' +
@@ -123,11 +136,15 @@ test('if there are multiple dependencies, it summarizes them', async () => {
     '...\n' +
     '\n' +
     'Signed-off-by: dependabot[bot] <support@github.com>'
+  const mockAlert = { alertState: "", ghsaId: "", cvss: 0 }
 
   jest.spyOn(core, 'getInput').mockReturnValue('mock-token')
   jest.spyOn(util, 'getBranchNames').mockReturnValue({ headName: 'dependabot/npm_and_yarn/api/main/feature1', baseName: 'trunk' })
   jest.spyOn(dependabotCommits, 'getMessage').mockImplementation(jest.fn(
     () => Promise.resolve(mockCommitMessage)
+  ))
+  jest.spyOn(dependabotCommits, 'getAlert').mockImplementation(jest.fn(
+    () => Promise.resolve(mockAlert)
   ))
   jest.spyOn(core, 'setOutput').mockImplementation(jest.fn())
 
@@ -146,7 +163,12 @@ test('if there are multiple dependencies, it summarizes them', async () => {
         updateType: 'version-update:semver-minor',
         directory: 'api/main',
         packageEcosystem: 'npm_and_yarn',
-        targetBranch: 'trunk'
+        targetBranch: 'trunk',
+        prevVersion: '4.0.1',
+        newVersion: '4.2.2',
+        alertState: '',
+        ghsaId: '',
+        cvss: 0
       },
       {
         dependencyName: 'coffeescript',
@@ -154,7 +176,12 @@ test('if there are multiple dependencies, it summarizes them', async () => {
         updateType: 'version-update:semver-major',
         directory: 'api/main',
         packageEcosystem: 'npm_and_yarn',
-        targetBranch: 'trunk'
+        targetBranch: 'trunk',
+        prevVersion: '',
+        newVersion: '',
+        alertState: '',
+        ghsaId: '',
+        cvss: 0
       }
     ]
   )
@@ -176,6 +203,7 @@ test('it sets the action to failed if there is an unexpected exception', async (
 
   await run()
 
+  expect(dependabotCommits.getAlert).not.toHaveBeenCalled
   expect(core.setFailed).toHaveBeenCalledWith(
     expect.stringContaining('Something bad happened!')
   )
@@ -199,6 +227,7 @@ test('it sets the action to failed if there is a request error', async () => {
 
   await run()
 
+  expect(dependabotCommits.getAlert).not.toHaveBeenCalled
   expect(core.setFailed).toHaveBeenCalledWith(
     expect.stringContaining('(500) Something bad happened!')
   )
