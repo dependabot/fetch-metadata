@@ -13425,7 +13425,7 @@ function getAlert(name, version, directory, client, context) {
        }
      }`);
         const nodes = (_b = (_a = alerts === null || alerts === void 0 ? void 0 : alerts.repository) === null || _a === void 0 ? void 0 : _a.vulnerabilityAlerts) === null || _b === void 0 ? void 0 : _b.nodes;
-        const found = nodes.find(a => a.vulnerableRequirements === `= ${version}` &&
+        const found = nodes.find(a => (version === '' || a.vulnerableRequirements === `= ${version}`) &&
             trimSlashes(a.vulnerableManifestPath) === `${trimSlashes(directory)}/${a.vulnerableManifestFilename}` &&
             a.securityVulnerability.package.name === name);
         return {
@@ -13456,7 +13456,7 @@ function parse(commitMessage, branchName, mainBranch, lookup) {
     var _a, _b, _c, _d, _e, _f;
     return update_metadata_awaiter(this, void 0, void 0, function* () {
         const firstLine = commitMessage.split('\n')[0];
-        const directory = firstLine.match(/ in (?<directory>\/[^ ]*)$/);
+        const directory = firstLine.match(/ in (?<directory>[^ ]+)$/);
         const bumpFragment = commitMessage.match(/^Bumps .* from (?<from>\d[^ ]*) to (?<to>\d[^ ]*)\.$/m);
         const yamlFragment = commitMessage.match(/^-{3}\n(?<dependencies>[\S|\s]*?)\n^\.{3}\n/m);
         if ((yamlFragment === null || yamlFragment === void 0 ? void 0 : yamlFragment.groups) && branchName.startsWith('dependabot')) {
@@ -13468,8 +13468,8 @@ function parse(commitMessage, branchName, mainBranch, lookup) {
             const prev = (_d = (_c = bumpFragment === null || bumpFragment === void 0 ? void 0 : bumpFragment.groups) === null || _c === void 0 ? void 0 : _c.from) !== null && _d !== void 0 ? _d : '';
             const next = (_f = (_e = bumpFragment === null || bumpFragment === void 0 ? void 0 : bumpFragment.groups) === null || _e === void 0 ? void 0 : _e.to) !== null && _f !== void 0 ? _f : '';
             if (data['updated-dependencies']) {
-                return yield Promise.all(data['updated-dependencies'].map((dependency) => update_metadata_awaiter(this, void 0, void 0, function* () {
-                    return (Object.assign({ dependencyName: dependency['dependency-name'], dependencyType: dependency['dependency-type'], updateType: dependency['update-type'], directory: dirname, packageEcosystem: chunks[1], targetBranch: mainBranch, prevVersion: prev, newVersion: next }, yield lookup(dependency['dependency-name'], prev, dirname)));
+                return yield Promise.all(data['updated-dependencies'].map((dependency, index) => update_metadata_awaiter(this, void 0, void 0, function* () {
+                    return (Object.assign({ dependencyName: dependency['dependency-name'], dependencyType: dependency['dependency-type'], updateType: dependency['update-type'], directory: dirname, packageEcosystem: chunks[1], targetBranch: mainBranch, prevVersion: index === 0 ? prev : '', newVersion: index === 0 ? next : '' }, yield lookup(dependency['dependency-name'], index === 0 ? prev : '', dirname)));
                 })));
             }
         }
