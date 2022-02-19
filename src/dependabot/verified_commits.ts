@@ -98,5 +98,5 @@ export async function getAlert (name: string, version: string, directory: string
 }
 
 export function trimSlashes (value: string): string {
-  return value.replace(/^\//, '').replace(/\/$/, '')
+  return value.replace(/^\/+/, '').replace(/\/+$/, '')
 }

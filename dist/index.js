@@ -13436,7 +13436,7 @@ function getAlert(name, version, directory, client, context) {
     });
 }
 function trimSlashes(value) {
-    return value.replace(/^\//, '').replace(/\/$/, '');
+    return value.replace(/^\/+/, '').replace(/\/+$/, '');
 }
 
 // EXTERNAL MODULE: ./node_modules/yaml/index.js
