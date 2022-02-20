@@ -13453,10 +13453,8 @@ var update_metadata_awaiter = (undefined && undefined.__awaiter) || function (th
 };
 
 function parse(commitMessage, branchName, mainBranch, lookup) {
-    var _a, _b, _c, _d, _e, _f;
+    var _a, _b, _c, _d;
     return update_metadata_awaiter(this, void 0, void 0, function* () {
-        const firstLine = commitMessage.split('\n')[0];
-        const directory = firstLine.match(/ in (?<directory>[^ ]+)$/);
         const bumpFragment = commitMessage.match(/^Bumps .* from (?<from>\d[^ ]*) to (?<to>\d[^ ]*)\.$/m);
         const yamlFragment = commitMessage.match(/^-{3}\n(?<dependencies>[\S|\s]*?)\n^\.{3}\n/m);
         if ((yamlFragment === null || yamlFragment === void 0 ? void 0 : yamlFragment.groups) && branchName.startsWith('dependabot')) {
@@ -13464,12 +13462,12 @@ function parse(commitMessage, branchName, mainBranch, lookup) {
             // Since we are on the `dependabot` branch (9 letters), the 10th letter in the branch name is the delimiter
             const delim = branchName[10];
             const chunks = branchName.split(delim);
-            const dirname = (_b = (_a = directory === null || directory === void 0 ? void 0 : directory.groups) === null || _a === void 0 ? void 0 : _a.directory) !== null && _b !== void 0 ? _b : '/';
-            const prev = (_d = (_c = bumpFragment === null || bumpFragment === void 0 ? void 0 : bumpFragment.groups) === null || _c === void 0 ? void 0 : _c.from) !== null && _d !== void 0 ? _d : '';
-            const next = (_f = (_e = bumpFragment === null || bumpFragment === void 0 ? void 0 : bumpFragment.groups) === null || _e === void 0 ? void 0 : _e.to) !== null && _f !== void 0 ? _f : '';
+            const prev = (_b = (_a = bumpFragment === null || bumpFragment === void 0 ? void 0 : bumpFragment.groups) === null || _a === void 0 ? void 0 : _a.from) !== null && _b !== void 0 ? _b : '';
+            const next = (_d = (_c = bumpFragment === null || bumpFragment === void 0 ? void 0 : bumpFragment.groups) === null || _c === void 0 ? void 0 : _c.to) !== null && _d !== void 0 ? _d : '';
             if (data['updated-dependencies']) {
                 return yield Promise.all(data['updated-dependencies'].map((dependency, index) => update_metadata_awaiter(this, void 0, void 0, function* () {
-                    return (Object.assign({ dependencyName: dependency['dependency-name'], dependencyType: dependency['dependency-type'], updateType: dependency['update-type'], directory: dirname, packageEcosystem: chunks[1], targetBranch: mainBranch, prevVersion: index === 0 ? prev : '', newVersion: index === 0 ? next : '' }, yield lookup(dependency['dependency-name'], index === 0 ? prev : '', dirname)));
+                    const dirname = `/${chunks.slice(2, -1 * (1 + (dependency['dependency-name'].match(/\//g) || []).length)).join(delim) || ''}`;
+                    return Object.assign({ dependencyName: dependency['dependency-name'], dependencyType: dependency['dependency-type'], updateType: dependency['update-type'], directory: dirname, packageEcosystem: chunks[1], targetBranch: mainBranch, prevVersion: index === 0 ? prev : '', newVersion: index === 0 ? next : '' }, yield lookup(dependency['dependency-name'], index === 0 ? prev : '', dirname));
                 })));
             }
         }

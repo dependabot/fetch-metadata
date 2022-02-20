@@ -170,7 +170,7 @@ test('if there are multiple dependencies, it summarizes them', async () => {
         dependencyName: 'coffee-rails',
         dependencyType: 'direct:production',
         updateType: 'version-update:semver-minor',
-        directory: 'api/main',
+        directory: '/api/main',
         packageEcosystem: 'npm_and_yarn',
         targetBranch: 'trunk',
         prevVersion: '4.0.1',
@@ -183,7 +183,7 @@ test('if there are multiple dependencies, it summarizes them', async () => {
         dependencyName: 'coffeescript',
         dependencyType: 'indirect',
         updateType: 'version-update:semver-major',
-        directory: 'api/main',
+        directory: '/api/main',
         packageEcosystem: 'npm_and_yarn',
         targetBranch: 'trunk',
         prevVersion: '',
@@ -198,7 +198,7 @@ test('if there are multiple dependencies, it summarizes them', async () => {
   expect(core.setOutput).toBeCalledWith('dependency-names', 'coffee-rails, coffeescript')
   expect(core.setOutput).toBeCalledWith('dependency-type', 'direct:production')
   expect(core.setOutput).toBeCalledWith('update-type', 'version-update:semver-major')
-  expect(core.setOutput).toBeCalledWith('directory', 'api/main')
+  expect(core.setOutput).toBeCalledWith('directory', '/api/main')
   expect(core.setOutput).toBeCalledWith('package-ecosystem', 'npm_and_yarn')
   expect(core.setOutput).toBeCalledWith('target-branch', 'trunk')
   expect(core.setOutput).toBeCalledWith('previous-version', '4.0.1')
