@@ -27,7 +27,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.issue = exports.issueCommand = void 0;
-const os = __importStar(__nccwpck_require__(2087));
+const os = __importStar(__nccwpck_require__(2037));
 const utils_1 = __nccwpck_require__(5278);
 /**
  * Commands
@@ -138,8 +138,8 @@ exports.getState = exports.saveState = exports.group = exports.endGroup = export
 const command_1 = __nccwpck_require__(7351);
 const file_command_1 = __nccwpck_require__(717);
 const utils_1 = __nccwpck_require__(5278);
-const os = __importStar(__nccwpck_require__(2087));
-const path = __importStar(__nccwpck_require__(5622));
+const os = __importStar(__nccwpck_require__(2037));
+const path = __importStar(__nccwpck_require__(1017));
 /**
  * The code to exit an action
  */
@@ -430,8 +430,8 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.issueCommand = void 0;
 // We use any as a valid input type
 /* eslint-disable @typescript-eslint/no-explicit-any */
-const fs = __importStar(__nccwpck_require__(5747));
-const os = __importStar(__nccwpck_require__(2087));
+const fs = __importStar(__nccwpck_require__(7147));
+const os = __importStar(__nccwpck_require__(2037));
 const utils_1 = __nccwpck_require__(5278);
 function issueCommand(command, message) {
     const filePath = process.env[`GITHUB_${command}`];
@@ -484,8 +484,8 @@ exports.toCommandValue = toCommandValue;
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.Context = void 0;
-const fs_1 = __nccwpck_require__(5747);
-const os_1 = __nccwpck_require__(2087);
+const fs_1 = __nccwpck_require__(7147);
+const os_1 = __nccwpck_require__(2037);
 class Context {
     /**
      * Hydrate the context from the environment
@@ -698,8 +698,8 @@ exports.getOctokitOptions = getOctokitOptions;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-const http = __nccwpck_require__(8605);
-const https = __nccwpck_require__(7211);
+const http = __nccwpck_require__(3685);
+const https = __nccwpck_require__(5687);
 const pm = __nccwpck_require__(6443);
 let tunnel;
 var HttpCodes;
@@ -3963,11 +3963,11 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 
 function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
 
-var Stream = _interopDefault(__nccwpck_require__(2413));
-var http = _interopDefault(__nccwpck_require__(8605));
-var Url = _interopDefault(__nccwpck_require__(8835));
-var https = _interopDefault(__nccwpck_require__(7211));
-var zlib = _interopDefault(__nccwpck_require__(8761));
+var Stream = _interopDefault(__nccwpck_require__(2781));
+var http = _interopDefault(__nccwpck_require__(3685));
+var Url = _interopDefault(__nccwpck_require__(7310));
+var https = _interopDefault(__nccwpck_require__(5687));
+var zlib = _interopDefault(__nccwpck_require__(9796));
 
 // Based on https://github.com/tmpvar/jsdom/blob/aa85b2abf07766ff7bf5c1f6daafb3726f2f2db5/lib/jsdom/living/blob.js
 
@@ -4118,7 +4118,7 @@ FetchError.prototype.name = 'FetchError';
 
 let convert;
 try {
-	convert = __nccwpck_require__(2877).convert;
+	convert = (__nccwpck_require__(2877).convert);
 } catch (e) {}
 
 const INTERNALS = Symbol('Body internals');
@@ -5601,7 +5601,7 @@ fetch.Promise = global.Promise;
 
 module.exports = exports = fetch;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.default = exports;
+exports["default"] = exports;
 exports.Headers = Headers;
 exports.Request = Request;
 exports.Response = Response;
@@ -6175,13 +6175,13 @@ module.exports = __nccwpck_require__(4219);
 "use strict";
 
 
-var net = __nccwpck_require__(1631);
-var tls = __nccwpck_require__(4016);
-var http = __nccwpck_require__(8605);
-var https = __nccwpck_require__(7211);
-var events = __nccwpck_require__(8614);
-var assert = __nccwpck_require__(2357);
-var util = __nccwpck_require__(1669);
+var net = __nccwpck_require__(1808);
+var tls = __nccwpck_require__(4404);
+var http = __nccwpck_require__(3685);
+var https = __nccwpck_require__(5687);
+var events = __nccwpck_require__(2361);
+var assert = __nccwpck_require__(9491);
+var util = __nccwpck_require__(3837);
 
 
 exports.httpOverHttp = httpOverHttp;
@@ -6507,15 +6507,463 @@ function wrappy (fn, cb) {
 
 /***/ }),
 
-/***/ 5506:
+/***/ 8434:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.set = void 0;
+const pluralize_1 = __importDefault(__nccwpck_require__(2522));
+const core = __importStar(__nccwpck_require__(2186));
+const DEPENDENCY_TYPES_PRIORITY = [
+    'direct:production',
+    'direct:development',
+    'indirect'
+];
+const UPDATE_TYPES_PRIORITY = [
+    'version-update:semver-major',
+    'version-update:semver-minor',
+    'version-update:semver-patch'
+];
+function set(updatedDependencies) {
+    const dependencyNames = updatedDependencies.map(dependency => {
+        return dependency.dependencyName;
+    }).join(', ');
+    const dependencyType = maxDependencyTypes(updatedDependencies);
+    const updateType = maxSemver(updatedDependencies);
+    const firstDependency = updatedDependencies[0];
+    const directory = firstDependency === null || firstDependency === void 0 ? void 0 : firstDependency.directory;
+    const ecosystem = firstDependency === null || firstDependency === void 0 ? void 0 : firstDependency.packageEcosystem;
+    const target = firstDependency === null || firstDependency === void 0 ? void 0 : firstDependency.targetBranch;
+    core.startGroup(`Outputting metadata for ${pluralize_1.default('updated dependency', updatedDependencies.length, true)}`);
+    core.info(`outputs.dependency-names: ${dependencyNames}`);
+    core.info(`outputs.dependency-type: ${dependencyType}`);
+    core.info(`outputs.update-type: ${updateType}`);
+    core.info(`outputs.directory: ${directory}`);
+    core.info(`outputs.package-ecosystem: ${ecosystem}`);
+    core.info(`outputs.target-branch: ${target}`);
+    core.endGroup();
+    core.setOutput('updated-dependencies-json', updatedDependencies);
+    core.setOutput('dependency-names', dependencyNames);
+    core.setOutput('dependency-type', dependencyType);
+    core.setOutput('update-type', updateType);
+    core.setOutput('directory', directory);
+    core.setOutput('package-ecosystem', ecosystem);
+    core.setOutput('target-branch', target);
+}
+exports.set = set;
+function maxDependencyTypes(updatedDependencies) {
+    const dependencyTypes = updatedDependencies.reduce(function (dependencyTypes, dependency) {
+        dependencyTypes.add(dependency.dependencyType);
+        return dependencyTypes;
+    }, new Set());
+    return DEPENDENCY_TYPES_PRIORITY.find(dependencyType => dependencyTypes.has(dependencyType)) || 'unknown';
+}
+function maxSemver(updatedDependencies) {
+    const semverLevels = updatedDependencies.reduce(function (semverLevels, dependency) {
+        semverLevels.add(dependency.updateType);
+        return semverLevels;
+    }, new Set());
+    return UPDATE_TYPES_PRIORITY.find(semverLevel => semverLevels.has(semverLevel)) || null;
+}
+
+
+/***/ }),
+
+/***/ 9553:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.parse = void 0;
+const YAML = __importStar(__nccwpck_require__(4603));
+function parse(commitMessage, branchName, mainBranch) {
+    const yamlFragment = commitMessage.match(/^-{3}\n(?<dependencies>[\S|\s]*?)\n^\.{3}\n/m);
+    if ((yamlFragment === null || yamlFragment === void 0 ? void 0 : yamlFragment.groups) && branchName.startsWith('dependabot')) {
+        const data = YAML.parse(yamlFragment.groups.dependencies);
+        // Since we are on the `dependabot` branch (9 letters), the 10th letter in the branch name is the delimiter
+        const delim = branchName[10];
+        const chunks = branchName.split(delim);
+        const dirname = chunks.slice(2, -1).join(delim) || '/';
+        if (data['updated-dependencies']) {
+            return data['updated-dependencies'].map(dependency => {
+                return {
+                    dependencyName: dependency['dependency-name'],
+                    dependencyType: dependency['dependency-type'],
+                    updateType: dependency['update-type'],
+                    directory: dirname,
+                    packageEcosystem: chunks[1],
+                    targetBranch: mainBranch
+                };
+            });
+        }
+    }
+    return [];
+}
+exports.parse = parse;
+
+
+/***/ }),
+
+/***/ 6454:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.getBranchNames = exports.parseNwo = void 0;
+function parseNwo(nwo) {
+    const [owner, name] = nwo.split('/');
+    if (!owner || !name) {
+        throw new Error(`'${nwo}' does not appear to be a valid repository NWO`);
+    }
+    return { owner: owner, repo: name };
+}
+exports.parseNwo = parseNwo;
+function getBranchNames(context) {
+    const { pull_request: pr } = context.payload;
+    return { headName: (pr === null || pr === void 0 ? void 0 : pr.head.ref) || '', baseName: pr === null || pr === void 0 ? void 0 : pr.base.ref };
+}
+exports.getBranchNames = getBranchNames;
+
+
+/***/ }),
+
+/***/ 1035:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.getMessage = void 0;
+const core = __importStar(__nccwpck_require__(2186));
+const DEPENDABOT_LOGIN = 'dependabot[bot]';
+function getMessage(client, context) {
+    var _a;
+    return __awaiter(this, void 0, void 0, function* () {
+        core.debug('Verifying the job is for an authentic Dependabot Pull Request');
+        const { pull_request: pr } = context.payload;
+        if (!pr) {
+            core.warning("Event payload missing `pull_request` key. Make sure you're " +
+                'triggering this action on the `pull_request` or `pull_request_target` events.');
+            return false;
+        }
+        // Don't bother hitting the API if the PR author isn't Dependabot
+        if (pr.user.login !== DEPENDABOT_LOGIN) {
+            core.debug(`PR author '${pr.user.login}' is not Dependabot.`);
+            return false;
+        }
+        core.debug('Verifying the Pull Request contents are from Dependabot');
+        const { data: commits } = yield client.rest.pulls.listCommits({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            pull_number: pr.number
+        });
+        if (commits.length > 1) {
+            warnOtherCommits();
+            return false;
+        }
+        const { commit, author } = commits[0];
+        if ((author === null || author === void 0 ? void 0 : author.login) !== DEPENDABOT_LOGIN) {
+            warnOtherCommits();
+            return false;
+        }
+        if (!((_a = commit.verification) === null || _a === void 0 ? void 0 : _a.verified)) {
+            // TODO: Promote to setFailed
+            core.warning("Dependabot's commit signature is not verified, refusing to proceed.");
+            return false;
+        }
+        return commit.message;
+    });
+}
+exports.getMessage = getMessage;
+function warnOtherCommits() {
+    core.warning("It looks like this PR has contains commits that aren't part of a Dependabot update. " +
+        "Try using '@dependabot rebase' to remove merge commits or '@dependabot recreate' to remove " +
+        'any non-Dependabot changes.');
+}
+
+
+/***/ }),
+
+/***/ 399:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.run = void 0;
+const core = __importStar(__nccwpck_require__(2186));
+const github = __importStar(__nccwpck_require__(5438));
+const request_error_1 = __nccwpck_require__(537);
+const verifiedCommits = __importStar(__nccwpck_require__(1035));
+const updateMetadata = __importStar(__nccwpck_require__(9553));
+const output = __importStar(__nccwpck_require__(8434));
+const util = __importStar(__nccwpck_require__(6454));
+function run() {
+    return __awaiter(this, void 0, void 0, function* () {
+        const token = core.getInput('github-token');
+        if (!token) {
+            /* eslint-disable no-template-curly-in-string */
+            core.setFailed('github-token is not set! Please add \'github-token: "${{ secrets.GITHUB_TOKEN }}"\' to your workflow file.');
+            /* eslint-enable no-template-curly-in-string */
+            return;
+        }
+        try {
+            const githubClient = github.getOctokit(token);
+            // Validate the job
+            const commitMessage = yield verifiedCommits.getMessage(githubClient, github.context);
+            const branchNames = util.getBranchNames(github.context);
+            if (commitMessage) {
+                // Parse metadata
+                core.info('Parsing Dependabot metadata');
+                const updatedDependencies = updateMetadata.parse(commitMessage, branchNames.headName, branchNames.baseName);
+                if (updatedDependencies.length > 0) {
+                    output.set(updatedDependencies);
+                }
+                else {
+                    core.setFailed('PR does not contain metadata, nothing to do.');
+                }
+            }
+            else {
+                core.setFailed('PR is not from Dependabot, nothing to do.');
+            }
+        }
+        catch (error) {
+            if (error instanceof request_error_1.RequestError) {
+                core.setFailed(`Api Error: (${error.status}) ${error.message}`);
+                return;
+            }
+            core.setFailed(error.message);
+        }
+    });
+}
+exports.run = run;
+run();
+
+
+/***/ }),
+
+/***/ 2877:
+/***/ ((module) => {
+
+module.exports = eval("require")("encoding");
+
+
+/***/ }),
+
+/***/ 9491:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("assert");
+
+/***/ }),
+
+/***/ 2361:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("events");
+
+/***/ }),
+
+/***/ 7147:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("fs");
+
+/***/ }),
+
+/***/ 3685:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("http");
+
+/***/ }),
+
+/***/ 5687:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("https");
+
+/***/ }),
+
+/***/ 1808:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("net");
+
+/***/ }),
+
+/***/ 2037:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("os");
+
+/***/ }),
+
+/***/ 1017:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("path");
+
+/***/ }),
+
+/***/ 2781:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("stream");
+
+/***/ }),
+
+/***/ 4404:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("tls");
+
+/***/ }),
+
+/***/ 7310:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("url");
+
+/***/ }),
+
+/***/ 3837:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("util");
+
+/***/ }),
+
+/***/ 9796:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("zlib");
+
+/***/ }),
+
+/***/ 525:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
 
 
-var PlainValue = __nccwpck_require__(5215);
-var resolveSeq = __nccwpck_require__(4227);
-var Schema = __nccwpck_require__(8021);
+var PlainValue = __nccwpck_require__(4941);
+var resolveSeq = __nccwpck_require__(9914);
+var Schema = __nccwpck_require__(1387);
 
 const defaultOptions = {
   anchorPrefix: 'a',
@@ -7272,7 +7720,7 @@ exports.scalarOptions = scalarOptions;
 
 /***/ }),
 
-/***/ 5215:
+/***/ 4941:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -8156,15 +8604,15 @@ exports.defaultTags = defaultTags;
 
 /***/ }),
 
-/***/ 8021:
+/***/ 1387:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
 
 
-var PlainValue = __nccwpck_require__(5215);
-var resolveSeq = __nccwpck_require__(4227);
-var warnings = __nccwpck_require__(6003);
+var PlainValue = __nccwpck_require__(4941);
+var resolveSeq = __nccwpck_require__(9914);
+var warnings = __nccwpck_require__(5130);
 
 function createMap(schema, obj, ctx) {
   const map = new resolveSeq.YAMLMap(schema);
@@ -8689,18 +9137,18 @@ exports.Schema = Schema;
 
 /***/ }),
 
-/***/ 5065:
+/***/ 4083:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
 
 
-var parseCst = __nccwpck_require__(445);
-var Document$1 = __nccwpck_require__(5506);
-var Schema = __nccwpck_require__(8021);
-var PlainValue = __nccwpck_require__(5215);
-var warnings = __nccwpck_require__(6003);
-__nccwpck_require__(4227);
+var parseCst = __nccwpck_require__(4611);
+var Document$1 = __nccwpck_require__(525);
+var Schema = __nccwpck_require__(1387);
+var PlainValue = __nccwpck_require__(4941);
+var warnings = __nccwpck_require__(5130);
+__nccwpck_require__(9914);
 
 function createNode(value, wrapScalars = true, tag) {
   if (tag === undefined && typeof wrapScalars === 'string') {
@@ -8776,13 +9224,13 @@ exports.YAML = YAML;
 
 /***/ }),
 
-/***/ 445:
+/***/ 4611:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
 
 
-var PlainValue = __nccwpck_require__(5215);
+var PlainValue = __nccwpck_require__(4941);
 
 class BlankLine extends PlainValue.Node {
   constructor() {
@@ -10537,13 +10985,13 @@ exports.parse = parse;
 
 /***/ }),
 
-/***/ 4227:
+/***/ 9914:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
 
 
-var PlainValue = __nccwpck_require__(5215);
+var PlainValue = __nccwpck_require__(4941);
 
 function addCommentBefore(str, indent, comment) {
   if (!comment) return str;
@@ -12706,14 +13154,14 @@ exports.toJSON = toJSON;
 
 /***/ }),
 
-/***/ 6003:
+/***/ 5130:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
 
 
-var PlainValue = __nccwpck_require__(5215);
-var resolveSeq = __nccwpck_require__(4227);
+var PlainValue = __nccwpck_require__(4941);
+var resolveSeq = __nccwpck_require__(9914);
 
 /* global atob, btoa, Buffer */
 const binary = {
@@ -13130,123 +13578,11 @@ exports.warnOptionDeprecation = warnOptionDeprecation;
 
 /***/ }),
 
-/***/ 3552:
+/***/ 4603:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-module.exports = __nccwpck_require__(5065).YAML
+module.exports = __nccwpck_require__(4083).YAML
 
-
-/***/ }),
-
-/***/ 2877:
-/***/ ((module) => {
-
-module.exports = eval("require")("encoding");
-
-
-/***/ }),
-
-/***/ 2357:
-/***/ ((module) => {
-
-"use strict";
-module.exports = require("assert");
-
-/***/ }),
-
-/***/ 8614:
-/***/ ((module) => {
-
-"use strict";
-module.exports = require("events");
-
-/***/ }),
-
-/***/ 5747:
-/***/ ((module) => {
-
-"use strict";
-module.exports = require("fs");
-
-/***/ }),
-
-/***/ 8605:
-/***/ ((module) => {
-
-"use strict";
-module.exports = require("http");
-
-/***/ }),
-
-/***/ 7211:
-/***/ ((module) => {
-
-"use strict";
-module.exports = require("https");
-
-/***/ }),
-
-/***/ 1631:
-/***/ ((module) => {
-
-"use strict";
-module.exports = require("net");
-
-/***/ }),
-
-/***/ 2087:
-/***/ ((module) => {
-
-"use strict";
-module.exports = require("os");
-
-/***/ }),
-
-/***/ 5622:
-/***/ ((module) => {
-
-"use strict";
-module.exports = require("path");
-
-/***/ }),
-
-/***/ 2413:
-/***/ ((module) => {
-
-"use strict";
-module.exports = require("stream");
-
-/***/ }),
-
-/***/ 4016:
-/***/ ((module) => {
-
-"use strict";
-module.exports = require("tls");
-
-/***/ }),
-
-/***/ 8835:
-/***/ ((module) => {
-
-"use strict";
-module.exports = require("url");
-
-/***/ }),
-
-/***/ 1669:
-/***/ ((module) => {
-
-"use strict";
-module.exports = require("util");
-
-/***/ }),
-
-/***/ 8761:
-/***/ ((module) => {
-
-"use strict";
-module.exports = require("zlib");
 
 /***/ })
 
@@ -13283,282 +13619,17 @@ module.exports = require("zlib");
 /******/ 	}
 /******/ 	
 /************************************************************************/
-/******/ 	/* webpack/runtime/compat get default export */
-/******/ 	(() => {
-/******/ 		// getDefaultExport function for compatibility with non-harmony modules
-/******/ 		__nccwpck_require__.n = (module) => {
-/******/ 			var getter = module && module.__esModule ?
-/******/ 				() => (module['default']) :
-/******/ 				() => (module);
-/******/ 			__nccwpck_require__.d(getter, { a: getter });
-/******/ 			return getter;
-/******/ 		};
-/******/ 	})();
-/******/ 	
-/******/ 	/* webpack/runtime/define property getters */
-/******/ 	(() => {
-/******/ 		// define getter functions for harmony exports
-/******/ 		__nccwpck_require__.d = (exports, definition) => {
-/******/ 			for(var key in definition) {
-/******/ 				if(__nccwpck_require__.o(definition, key) && !__nccwpck_require__.o(exports, key)) {
-/******/ 					Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
-/******/ 				}
-/******/ 			}
-/******/ 		};
-/******/ 	})();
-/******/ 	
-/******/ 	/* webpack/runtime/hasOwnProperty shorthand */
-/******/ 	(() => {
-/******/ 		__nccwpck_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
-/******/ 	})();
-/******/ 	
-/******/ 	/* webpack/runtime/make namespace object */
-/******/ 	(() => {
-/******/ 		// define __esModule on exports
-/******/ 		__nccwpck_require__.r = (exports) => {
-/******/ 			if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
-/******/ 				Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
-/******/ 			}
-/******/ 			Object.defineProperty(exports, '__esModule', { value: true });
-/******/ 		};
-/******/ 	})();
-/******/ 	
 /******/ 	/* webpack/runtime/compat */
 /******/ 	
 /******/ 	if (typeof __nccwpck_require__ !== 'undefined') __nccwpck_require__.ab = __dirname + "/";
 /******/ 	
 /************************************************************************/
-var __webpack_exports__ = {};
-// This entry need to be wrapped in an IIFE because it need to be in strict mode.
-(() => {
-"use strict";
-// ESM COMPAT FLAG
-__nccwpck_require__.r(__webpack_exports__);
-
-// EXPORTS
-__nccwpck_require__.d(__webpack_exports__, {
-  "run": () => (/* binding */ run)
-});
-
-// EXTERNAL MODULE: ./node_modules/@actions/core/lib/core.js
-var core = __nccwpck_require__(2186);
-// EXTERNAL MODULE: ./node_modules/@actions/github/lib/github.js
-var github = __nccwpck_require__(5438);
-// EXTERNAL MODULE: ./node_modules/@octokit/request-error/dist-node/index.js
-var dist_node = __nccwpck_require__(537);
-;// CONCATENATED MODULE: ./src/dependabot/verified_commits.ts
-var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-
-const DEPENDABOT_LOGIN = 'dependabot[bot]';
-function getMessage(client, context) {
-    var _a;
-    return __awaiter(this, void 0, void 0, function* () {
-        core.debug('Verifying the job is for an authentic Dependabot Pull Request');
-        const { pull_request: pr } = context.payload;
-        if (!pr) {
-            core.warning("Event payload missing `pull_request` key. Make sure you're " +
-                'triggering this action on the `pull_request` or `pull_request_target` events.');
-            return false;
-        }
-        // Don't bother hitting the API if the PR author isn't Dependabot
-        if (pr.user.login !== DEPENDABOT_LOGIN) {
-            core.debug(`PR author '${pr.user.login}' is not Dependabot.`);
-            return false;
-        }
-        core.debug('Verifying the Pull Request contents are from Dependabot');
-        const { data: commits } = yield client.rest.pulls.listCommits({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            pull_number: pr.number
-        });
-        if (commits.length > 1) {
-            warnOtherCommits();
-            return false;
-        }
-        const { commit, author } = commits[0];
-        if ((author === null || author === void 0 ? void 0 : author.login) !== DEPENDABOT_LOGIN) {
-            warnOtherCommits();
-            return false;
-        }
-        if (!((_a = commit.verification) === null || _a === void 0 ? void 0 : _a.verified)) {
-            // TODO: Promote to setFailed
-            core.warning("Dependabot's commit signature is not verified, refusing to proceed.");
-            return false;
-        }
-        return commit.message;
-    });
-}
-function warnOtherCommits() {
-    core.warning("It looks like this PR has contains commits that aren't part of a Dependabot update. " +
-        "Try using '@dependabot rebase' to remove merge commits or '@dependabot recreate' to remove " +
-        'any non-Dependabot changes.');
-}
-
-// EXTERNAL MODULE: ./node_modules/yaml/index.js
-var yaml = __nccwpck_require__(3552);
-;// CONCATENATED MODULE: ./src/dependabot/update_metadata.ts
-
-function parse(commitMessage, branchName, mainBranch) {
-    const yamlFragment = commitMessage.match(/^-{3}\n(?<dependencies>[\S|\s]*?)\n^\.{3}\n/m);
-    if ((yamlFragment === null || yamlFragment === void 0 ? void 0 : yamlFragment.groups) && branchName.startsWith('dependabot')) {
-        const data = yaml.parse(yamlFragment.groups.dependencies);
-        // Since we are on the `dependabot` branch (9 letters), the 10th letter in the branch name is the delimiter
-        const delim = branchName[10];
-        const chunks = branchName.split(delim);
-        const dirname = chunks.slice(2, -1).join(delim) || '/';
-        if (data['updated-dependencies']) {
-            return data['updated-dependencies'].map(dependency => {
-                return {
-                    dependencyName: dependency['dependency-name'],
-                    dependencyType: dependency['dependency-type'],
-                    updateType: dependency['update-type'],
-                    directory: dirname,
-                    packageEcosystem: chunks[1],
-                    targetBranch: mainBranch
-                };
-            });
-        }
-    }
-    return [];
-}
-
-// EXTERNAL MODULE: ./node_modules/pluralize/pluralize.js
-var pluralize = __nccwpck_require__(2522);
-var pluralize_default = /*#__PURE__*/__nccwpck_require__.n(pluralize);
-;// CONCATENATED MODULE: ./src/dependabot/output.ts
-
-
-const DEPENDENCY_TYPES_PRIORITY = [
-    'direct:production',
-    'direct:development',
-    'indirect'
-];
-const UPDATE_TYPES_PRIORITY = [
-    'version-update:semver-major',
-    'version-update:semver-minor',
-    'version-update:semver-patch'
-];
-function set(updatedDependencies) {
-    const dependencyNames = updatedDependencies.map(dependency => {
-        return dependency.dependencyName;
-    }).join(', ');
-    const dependencyType = maxDependencyTypes(updatedDependencies);
-    const updateType = maxSemver(updatedDependencies);
-    const firstDependency = updatedDependencies[0];
-    const directory = firstDependency === null || firstDependency === void 0 ? void 0 : firstDependency.directory;
-    const ecosystem = firstDependency === null || firstDependency === void 0 ? void 0 : firstDependency.packageEcosystem;
-    const target = firstDependency === null || firstDependency === void 0 ? void 0 : firstDependency.targetBranch;
-    core.startGroup(`Outputting metadata for ${pluralize_default()('updated dependency', updatedDependencies.length, true)}`);
-    core.info(`outputs.dependency-names: ${dependencyNames}`);
-    core.info(`outputs.dependency-type: ${dependencyType}`);
-    core.info(`outputs.update-type: ${updateType}`);
-    core.info(`outputs.directory: ${directory}`);
-    core.info(`outputs.package-ecosystem: ${ecosystem}`);
-    core.info(`outputs.target-branch: ${target}`);
-    core.endGroup();
-    core.setOutput('updated-dependencies-json', updatedDependencies);
-    core.setOutput('dependency-names', dependencyNames);
-    core.setOutput('dependency-type', dependencyType);
-    core.setOutput('update-type', updateType);
-    core.setOutput('directory', directory);
-    core.setOutput('package-ecosystem', ecosystem);
-    core.setOutput('target-branch', target);
-}
-function maxDependencyTypes(updatedDependencies) {
-    const dependencyTypes = updatedDependencies.reduce(function (dependencyTypes, dependency) {
-        dependencyTypes.add(dependency.dependencyType);
-        return dependencyTypes;
-    }, new Set());
-    return DEPENDENCY_TYPES_PRIORITY.find(dependencyType => dependencyTypes.has(dependencyType)) || 'unknown';
-}
-function maxSemver(updatedDependencies) {
-    const semverLevels = updatedDependencies.reduce(function (semverLevels, dependency) {
-        semverLevels.add(dependency.updateType);
-        return semverLevels;
-    }, new Set());
-    return UPDATE_TYPES_PRIORITY.find(semverLevel => semverLevels.has(semverLevel)) || null;
-}
-
-;// CONCATENATED MODULE: ./src/dependabot/util.ts
-function parseNwo(nwo) {
-    const [owner, name] = nwo.split('/');
-    if (!owner || !name) {
-        throw new Error(`'${nwo}' does not appear to be a valid repository NWO`);
-    }
-    return { owner: owner, repo: name };
-}
-function getBranchNames(context) {
-    const { pull_request: pr } = context.payload;
-    return { headName: (pr === null || pr === void 0 ? void 0 : pr.head.ref) || '', baseName: pr === null || pr === void 0 ? void 0 : pr.base.ref };
-}
-
-;// CONCATENATED MODULE: ./src/main.ts
-var main_awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-
-
-
-
-
-
-
-function run() {
-    return main_awaiter(this, void 0, void 0, function* () {
-        const token = core.getInput('github-token');
-        if (!token) {
-            /* eslint-disable no-template-curly-in-string */
-            core.setFailed('github-token is not set! Please add \'github-token: "${{ secrets.GITHUB_TOKEN }}"\' to your workflow file.');
-            /* eslint-enable no-template-curly-in-string */
-            return;
-        }
-        try {
-            const githubClient = github.getOctokit(token);
-            // Validate the job
-            const commitMessage = yield getMessage(githubClient, github.context);
-            const branchNames = getBranchNames(github.context);
-            if (commitMessage) {
-                // Parse metadata
-                core.info('Parsing Dependabot metadata');
-                const updatedDependencies = parse(commitMessage, branchNames.headName, branchNames.baseName);
-                if (updatedDependencies.length > 0) {
-                    set(updatedDependencies);
-                }
-                else {
-                    core.setFailed('PR does not contain metadata, nothing to do.');
-                }
-            }
-            else {
-                core.setFailed('PR is not from Dependabot, nothing to do.');
-            }
-        }
-        catch (error) {
-            if (error instanceof dist_node.RequestError) {
-                core.setFailed(`Api Error: (${error.status}) ${error.message}`);
-                return;
-            }
-            core.setFailed(error.message);
-        }
-    });
-}
-run();
-
-})();
-
-module.exports = __webpack_exports__;
+/******/ 	
+/******/ 	// startup
+/******/ 	// Load entry module and return exports
+/******/ 	// This entry module is referenced by other modules so it can't be inlined
+/******/ 	var __webpack_exports__ = __nccwpck_require__(399);
+/******/ 	module.exports = __webpack_exports__;
+/******/ 	
 /******/ })()
 ;
