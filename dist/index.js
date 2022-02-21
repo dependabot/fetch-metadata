@@ -8956,7 +8956,7 @@ function set(updatedDependencies) {
     const directory = firstDependency === null || firstDependency === void 0 ? void 0 : firstDependency.directory;
     const ecosystem = firstDependency === null || firstDependency === void 0 ? void 0 : firstDependency.packageEcosystem;
     const target = firstDependency === null || firstDependency === void 0 ? void 0 : firstDependency.targetBranch;
-    core.startGroup(`Outputting metadata for ${pluralize_1.default('updated dependency', updatedDependencies.length, true)}`);
+    core.startGroup(`Outputting metadata for ${(0, pluralize_1.default)('updated dependency', updatedDependencies.length, true)}`);
     core.info(`outputs.dependency-names: ${dependencyNames}`);
     core.info(`outputs.dependency-type: ${dependencyType}`);
     core.info(`outputs.update-type: ${updateType}`);
@@ -9231,7 +9231,12 @@ function run() {
                 core.setFailed(`Api Error: (${error.status}) ${error.message}`);
                 return;
             }
-            core.setFailed(error.message);
+            if (error instanceof Error) {
+                core.setFailed(error.message);
+            }
+            else {
+                core.setFailed('There was an unexpected error.');
+            }
         }
     });
 }
