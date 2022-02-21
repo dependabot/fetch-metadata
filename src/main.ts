@@ -30,7 +30,7 @@ export async function run (): Promise<void> {
       // Parse metadata
       core.info('Parsing Dependabot metadata')
 
-      const updatedDependencies = await updateMetadata.parse(commitMessage, branchNames.headName, branchNames.baseName, alertLookup)
+      const updatedDependencies = await updateMetadata.parse(commitMessage, branchNames.headName, branchNames.baseName, alertLookup, verifiedCommits.getCompatibility)
 
       if (updatedDependencies.length > 0) {
         output.set(updatedDependencies)

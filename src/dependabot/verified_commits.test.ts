@@ -2,7 +2,7 @@ import * as github from '@actions/github'
 import * as core from '@actions/core'
 import nock from 'nock'
 import { Context } from '@actions/github/lib/context'
-import { getAlert, getMessage, trimSlashes } from './verified_commits'
+import { getAlert, getMessage, trimSlashes, getCompatibility } from './verified_commits'
 
 beforeAll(() => {
   nock.disableNetConnect()
@@ -192,6 +192,48 @@ test('trimSlashes should only trim slashes from both ends', () => {
   expect(trimSlashes('/abc/')).toEqual('abc')
   expect(trimSlashes('/a/b/c/')).toEqual('a/b/c')
   expect(trimSlashes('//a//b//c//')).toEqual('a//b//c')
+})
+
+const svgContents = `<svg width="132.9" height="20" viewBox="0 0 1329 200" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" role="img" aria-label="compatibility: 75%">
+  <title>compatibility: 75%</title>
+  <linearGradient id="a" x2="0" y2="100%">
+    <stop offset="0" stop-opacity=".1" stop-color="#EEE"/>
+    <stop offset="1" stop-opacity=".1"/>
+  </linearGradient>
+  <mask id="m"><rect width="1329" height="200" rx="30" fill="#FFF"/></mask>
+  <g mask="url(#m)">
+    <rect width="969" height="200" fill="#555"/>
+    <rect width="360" height="200" fill="#3C1" x="969"/>
+    <rect width="1329" height="200" fill="url(#a)"/>
+  </g>
+  <g aria-hidden="true" fill="#fff" text-anchor="start" font-family="Verdana,DejaVu Sans,sans-serif" font-size="110">
+    <text x="220" y="148" textLength="709" fill="#000" opacity="0.25">compatibility</text>
+    <text x="210" y="138" textLength="709">compatibility</text>
+    <text x="1024" y="148" textLength="260" fill="#000" opacity="0.25">75%</text>
+    <text x="1014" y="138" textLength="260">75%</text>
+  </g>
+  <image x="40" y="35" width="130" height="130" xlink:href="data:image/svg+xml;base64,PHN2ZyBmaWxsPSJub25lIiB2aWV3Qm94PSIwIDAgNTQgNTQiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggY2xpcC1ydWxlPSJldmVub2RkIiBkPSJNMzAgMTV2LTNoLTVhMSAxIDAgMDEtMS0xVjRhMSAxIDAgMDExLTFoN2ExIDEgMCAwMTEgMXYxMWgxNWEzIDMgMCAwMTMgM3YxMmgyYTEgMSAwIDAxMSAxdjEwYTEgMSAwIDAxLTEgMWgtMnY2YTMgMyAwIDAxLTMgM0g2YTMgMyAwIDAxLTMtM3YtNkgxYTEgMSAwIDAxLTEtMVYzMWExIDEgMCAwMTEtMWgyVjE4YTMgMyAwIDAxMy0zem02Ljg1NCAyMy42NDNsNi4yOS02LjI4OWExLjIxIDEuMjEgMCAwMDAtMS43MWwtMS4yOS0xLjI5YTEuMjEgMS4yMSAwIDAwLTEuNzEgMEwzNS45OTggMzMuNWwtMS42NDUtMS42NDVhMS4yMSAxLjIxIDAgMDAtMS43MSAwbC0xLjI5IDEuMjlhMS4yMSAxLjIxIDAgMDAwIDEuNzFsMy43OSAzLjc5YTEuMjEgMS4yMSAwIDAwMS43MSAwem0tMTMuNzEtNi4yODlsLTYuMjkgNi4yOWExLjIxIDEuMjEgMCAwMS0xLjcxIDBsLTMuNzktMy43OWExLjIxIDEuMjEgMCAwMTAtMS43MWwxLjI5LTEuMjlhMS4yMSAxLjIxIDAgMDExLjcxIDBMMTYgMzMuNWw0LjE0NC00LjE0NWExLjIxIDEuMjEgMCAwMTEuNzExIDBsMS4yOSAxLjI5YTEuMjEgMS4yMSAwIDAxMCAxLjcxeiIgZmlsbD0iI2ZmZiIgZmlsbC1ydWxlPSJldmVub2RkIi8+PC9zdmc+Cg=="/>
+</svg>`
+
+test('getCompatibility pulls out the score', async () => {
+  nock('https://dependabot-badges.githubapp.com').get('/badges/compatibility_score?dependency-name=coffee-script&package-manager=npm_and_yarn&previous-version=2.1.3&new-version=2.2.0')
+    .reply(200, svgContents)
+
+  expect(await getCompatibility('coffee-script', '2.1.3', '2.2.0', 'npm_and_yarn')).toEqual(75)
+})
+
+test('getCompatibility fails gracefully', async () => {
+  nock('https://dependabot-badges.githubapp.com').get('/badges/compatibility_score?dependency-name=coffee-script&package-manager=npm_and_yarn&previous-version=2.1.3&new-version=2.2.0')
+    .reply(200, '')
+
+  expect(await getCompatibility('coffee-script', '2.1.3', '2.2.0', 'npm_and_yarn')).toEqual(0)
+})
+
+test('getCompatibility handles errors', async () => {
+  nock('https://dependabot-badges.githubapp.com').get('/badges/compatibility_score?dependency-name=coffee-script&package-manager=npm_and_yarn&previous-version=2.1.3&new-version=2.2.0')
+    .reply(500, '')
+
+  expect(await getCompatibility('coffee-script', '2.1.3', '2.2.0', 'npm_and_yarn')).toEqual(0)
 })
 
 const mockGitHubClient = github.getOctokit('mock-token')

@@ -86,6 +86,9 @@ test('it sets the updated dependency as an output for subsequent actions', async
   jest.spyOn(dependabotCommits, 'getAlert').mockImplementation(jest.fn(
     () => Promise.resolve(mockAlert)
   ))
+  jest.spyOn(dependabotCommits, 'getCompatibility').mockImplementation(jest.fn(
+    () => Promise.resolve(34)
+  ))
   jest.spyOn(core, 'setOutput').mockImplementation(jest.fn())
 
   await run()
@@ -106,6 +109,7 @@ test('it sets the updated dependency as an output for subsequent actions', async
         targetBranch: 'main',
         prevVersion: '4.0.1',
         newVersion: '4.2.2',
+        compatScore: 34,
         alertState: 'FIXED',
         ghsaId: 'GSHA',
         cvss: 3.4
@@ -121,6 +125,7 @@ test('it sets the updated dependency as an output for subsequent actions', async
   expect(core.setOutput).toBeCalledWith('target-branch', 'main')
   expect(core.setOutput).toBeCalledWith('previous-version', '4.0.1')
   expect(core.setOutput).toBeCalledWith('new-version', '4.2.2')
+  expect(core.setOutput).toBeCalledWith('compatibility-score', 34)
   expect(core.setOutput).toBeCalledWith('alert-state', 'FIXED')
   expect(core.setOutput).toBeCalledWith('ghsa-id', 'GSHA')
   expect(core.setOutput).toBeCalledWith('cvss', 3.4)
@@ -155,6 +160,9 @@ test('if there are multiple dependencies, it summarizes them', async () => {
   jest.spyOn(dependabotCommits, 'getAlert').mockImplementation(jest.fn(
     () => Promise.resolve(mockAlert)
   ))
+  jest.spyOn(dependabotCommits, 'getCompatibility').mockImplementation(jest.fn(
+    () => Promise.resolve(34)
+  ))
   jest.spyOn(core, 'setOutput').mockImplementation(jest.fn())
 
   await run()
@@ -175,6 +183,7 @@ test('if there are multiple dependencies, it summarizes them', async () => {
         targetBranch: 'trunk',
         prevVersion: '4.0.1',
         newVersion: '4.2.2',
+        compatScore: 34,
         alertState: '',
         ghsaId: '',
         cvss: 0
@@ -188,6 +197,7 @@ test('if there are multiple dependencies, it summarizes them', async () => {
         targetBranch: 'trunk',
         prevVersion: '',
         newVersion: '',
+        compatScore: 34,
         alertState: '',
         ghsaId: '',
         cvss: 0
@@ -203,6 +213,7 @@ test('if there are multiple dependencies, it summarizes them', async () => {
   expect(core.setOutput).toBeCalledWith('target-branch', 'trunk')
   expect(core.setOutput).toBeCalledWith('previous-version', '4.0.1')
   expect(core.setOutput).toBeCalledWith('new-version', '4.2.2')
+  expect(core.setOutput).toBeCalledWith('compatibility-score', 34)
   expect(core.setOutput).toBeCalledWith('alert-state', '')
   expect(core.setOutput).toBeCalledWith('ghsa-id', '')
   expect(core.setOutput).toBeCalledWith('cvss', 0)

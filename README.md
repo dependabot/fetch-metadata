@@ -47,6 +47,8 @@ Subsequent actions will have access to the following outputs:
   - The version that this PR updates the dependency from.
 - `steps.dependabot-metadata.outputs.new-version`
   - The version that this PR updates the dependency to.
+- `steps.dependabot-metadata.outputs.compatibility-score`
+  - The compatibility score of this update (if known, 0 otherwise)
 - `steps.dependabot-metadata.outputs.alert-state`
   - If this PR is associated with a security alert, this contains the current state of that alert (OPEN, FIXED or DISMISSED).
 - `steps.dependabot-metadata.outputs.ghsa-id`

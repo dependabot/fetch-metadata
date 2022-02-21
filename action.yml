@@ -26,6 +26,8 @@ outputs:
     description: 'The version that this PR updates the dependency from.'
   new-version:
     description: 'The version that this PR updates the dependency to.'
+  compatibility-score:
+    description: 'The compatibility score of this update (if known, 0 otherwise)'
   alert-state:
     description: 'If this PR is associated with a security alert, this contains the current state of that alert (OPEN, FIXED or DISMISSED).'
   ghsa-id:

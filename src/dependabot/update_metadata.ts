@@ -14,14 +14,19 @@ export interface updatedDependency extends dependencyAlert {
   packageEcosystem: string,
   targetBranch: string,
   prevVersion: string,
-  newVersion: string
+  newVersion: string,
+  compatScore: number
 }
 
 export interface alertLookup {
     (dependencyName: string, dependencyVersion: string, directory: string): Promise<dependencyAlert>;
 }
 
-export async function parse (commitMessage: string, branchName: string, mainBranch: string, lookup: alertLookup): Promise<Array<updatedDependency>> {
+export interface scoreLookup {
+    (dependencyName: string, previousVersion: string, newVersion: string, ecosystem: string): Promise<number>;
+}
+
+export async function parse (commitMessage: string, branchName: string, mainBranch: string, lookup: alertLookup, getScore: scoreLookup): Promise<Array<updatedDependency>> {
   const bumpFragment = commitMessage.match(/^Bumps .* from (?<from>\d[^ ]*) to (?<to>\d[^ ]*)\.$/m)
   const yamlFragment = commitMessage.match(/^-{3}\n(?<dependencies>[\S|\s]*?)\n^\.{3}\n/m)
 
@@ -37,6 +42,8 @@ export async function parse (commitMessage: string, branchName: string, mainBran
     if (data['updated-dependencies']) {
       return await Promise.all(data['updated-dependencies'].map(async (dependency, index) => {
         const dirname = `/${chunks.slice(2, -1 * (1 + (dependency['dependency-name'].match(/\//g) || []).length)).join(delim) || ''}`
+        const lastVersion = index === 0 ? prev : ''
+        const nextVersion = index === 0 ? next : ''
         return {
           dependencyName: dependency['dependency-name'],
           dependencyType: dependency['dependency-type'],
@@ -44,9 +51,10 @@ export async function parse (commitMessage: string, branchName: string, mainBran
           directory: dirname,
           packageEcosystem: chunks[1],
           targetBranch: mainBranch,
-          prevVersion: index === 0 ? prev : '',
-          newVersion: index === 0 ? next : '',
-          ...await lookup(dependency['dependency-name'], index === 0 ? prev : '', dirname)
+          prevVersion: lastVersion,
+          newVersion: nextVersion,
+          compatScore: await getScore(dependency['dependency-name'], lastVersion, nextVersion, chunks[1]),
+          ...await lookup(dependency['dependency-name'], lastVersion, dirname)
         }
       }))
     }
