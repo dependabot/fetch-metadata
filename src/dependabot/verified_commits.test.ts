@@ -29,7 +29,7 @@ test('it returns false for an event triggered by someone other than Dependabot',
   expect(await getMessage(mockGitHubClient, mockGitHubPullContext('jane-doe'))).toBe(false)
 
   expect(core.debug).toHaveBeenCalledWith(
-    expect.stringContaining("Event actor 'jane-doe' is not Dependabot.")
+    expect.stringContaining("PR author 'jane-doe' is not Dependabot.")
   )
 })
 
@@ -142,11 +142,14 @@ function mockGitHubOtherContext (): Context {
   return ctx
 }
 
-function mockGitHubPullContext (actor = 'dependabot[bot]'): Context {
+function mockGitHubPullContext (author = 'dependabot[bot]'): Context {
   const ctx = new Context()
   ctx.payload = {
     pull_request: {
-      number: 101
+      number: 101,
+      user: {
+        login: author
+      }
     },
     repository: {
       name: 'dependabot',
@@ -155,6 +158,5 @@ function mockGitHubPullContext (actor = 'dependabot[bot]'): Context {
       }
     }
   }
-  ctx.actor = actor
   return ctx
 }
