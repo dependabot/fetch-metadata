@@ -44,7 +44,11 @@ export async function run (): Promise<void> {
       core.setFailed(`Api Error: (${error.status}) ${error.message}`)
       return
     }
-    core.setFailed(error.message)
+    if (error instanceof Error) {
+      core.setFailed(error.message)
+    } else {
+      core.setFailed('There was an unexpected error.')
+    }
   }
 }
 
