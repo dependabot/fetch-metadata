@@ -109,7 +109,7 @@ test('it sets the updated dependency as an output for subsequent actions', async
         targetBranch: 'main',
         prevVersion: '4.0.1',
         newVersion: '4.2.2',
-        compatScore: 34,
+        compatScore: 0,
         alertState: '',
         ghsaId: '',
         cvss: 0
@@ -125,7 +125,7 @@ test('it sets the updated dependency as an output for subsequent actions', async
   expect(core.setOutput).toBeCalledWith('target-branch', 'main')
   expect(core.setOutput).toBeCalledWith('previous-version', '4.0.1')
   expect(core.setOutput).toBeCalledWith('new-version', '4.2.2')
-  expect(core.setOutput).toBeCalledWith('compatibility-score', 34)
+  expect(core.setOutput).toBeCalledWith('compatibility-score', 0)
   expect(core.setOutput).toBeCalledWith('alert-state', '')
   expect(core.setOutput).toBeCalledWith('ghsa-id', '')
   expect(core.setOutput).toBeCalledWith('cvss', 0)
