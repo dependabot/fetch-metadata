@@ -9302,10 +9302,11 @@ function run() {
             if (core.getInput('alert-lookup')) {
                 alertLookup = (name, version, directory) => verifiedCommits.getAlert(name, version, directory, githubClient, github.context);
             }
+            const scoreLookup = core.getInput('compat-lookup') ? verifiedCommits.getCompatibility : undefined;
             if (commitMessage) {
                 // Parse metadata
                 core.info('Parsing Dependabot metadata');
-                const updatedDependencies = yield updateMetadata.parse(commitMessage, branchNames.headName, branchNames.baseName, alertLookup, verifiedCommits.getCompatibility);
+                const updatedDependencies = yield updateMetadata.parse(commitMessage, branchNames.headName, branchNames.baseName, alertLookup, scoreLookup);
                 if (updatedDependencies.length > 0) {
                     output.set(updatedDependencies);
                 }
