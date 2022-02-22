@@ -78,7 +78,7 @@ test('it sets the updated dependency as an output for subsequent actions', async
     'Signed-off-by: dependabot[bot] <support@github.com>'
   const mockAlert = { alertState: 'FIXED', ghsaId: 'GSHA', cvss: 3.4 }
 
-  jest.spyOn(core, 'getInput').mockImplementation(jest.fn((name) => { return name == 'github-token' ? 'mock-token' : '' }))
+  jest.spyOn(core, 'getInput').mockImplementation(jest.fn((name) => { return name === 'github-token' ? 'mock-token' : '' }))
   jest.spyOn(util, 'getBranchNames').mockReturnValue({ headName: 'dependabot|nuget|feature1', baseName: 'main' })
   jest.spyOn(dependabotCommits, 'getMessage').mockImplementation(jest.fn(
     () => Promise.resolve(mockCommitMessage)
