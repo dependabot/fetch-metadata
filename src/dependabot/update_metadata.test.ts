@@ -142,9 +142,7 @@ test('it only returns information within the first fragment if there are multipl
     '\n' +
     'Signed-off-by: dependabot[bot] <support@github.com>'
 
-  const getAlert = async () => Promise.resolve({ alertState: '', ghsaId: '', cvss: 0 })
-  const getScore = async () => Promise.resolve(0)
-  const updatedDependencies = await updateMetadata.parse(commitMessage, 'dependabot|nuget|coffee-rails', 'main', getAlert, getScore)
+  const updatedDependencies = await updateMetadata.parse(commitMessage, 'dependabot|nuget|coffee-rails', 'main', undefined, undefined)
 
   expect(updatedDependencies).toHaveLength(1)
 

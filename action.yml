@@ -4,6 +4,9 @@ branding:
   icon: 'search'
   color: 'blue'
 inputs:
+  alert-lookup:
+    type: boolean
+    description: 'If true, then call populate the `alert-state`, `ghsa-id` and `cvss` outputs'
   github-token:
     description: 'The GITHUB_TOKEN secret'
     required: true
@@ -29,11 +32,11 @@ outputs:
   compatibility-score:
     description: 'The compatibility score of this update (if known, 0 otherwise)'
   alert-state:
-    description: 'If this PR is associated with a security alert, this contains the current state of that alert (OPEN, FIXED or DISMISSED).'
+    description: 'If this PR is associated with a security alert and `alert-lookup` is `true`, this contains the current state of that alert (OPEN, FIXED or DISMISSED).'
   ghsa-id:
-    description: 'If this PR is associated with a security alert, this contains the GHSA-ID of that alert.'
+    description: 'If this PR is associated with a security alert and `alert-lookup` is `true`, this contains the GHSA-ID of that alert.'
   cvss:
-    description: 'If this PR is associated with a security alert, this contains the CVSS value of that alert (otherwise it contains 0).'
+    description: 'If this PR is associated with a security alert and `alert-lookup` is `true`, this contains the CVSS value of that alert (otherwise it contains 0).'
 runs:
   using: 'node12'
   main: 'dist/index.js'

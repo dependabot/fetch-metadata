@@ -24,7 +24,10 @@ export async function run (): Promise<void> {
     // Validate the job
     const commitMessage = await verifiedCommits.getMessage(githubClient, github.context)
     const branchNames = util.getBranchNames(github.context)
-    const alertLookup = (name, version, directory) => verifiedCommits.getAlert(name, version, directory, githubClient, github.context)
+    let alertLookup: updateMetadata.alertLookup | undefined
+    if (core.getInput('alert-lookup')) {
+      alertLookup = (name, version, directory) => verifiedCommits.getAlert(name, version, directory, githubClient, github.context)
+    }
 
     if (commitMessage) {
       // Parse metadata

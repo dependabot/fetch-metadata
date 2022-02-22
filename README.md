@@ -25,7 +25,16 @@ jobs:
       uses: dependabot/fetch-metadata@v1.1.1
       with:
         github-token: "${{ secrets.GITHUB_TOKEN }}"
+        alert-lookup: true
 ```
+
+Supported inputs are:
+
+- `github-token` (REQUIRED string)
+  - The `GITHUB_TOKEN` secret
+- `alert-lookup` (boolean)
+  - If `true`, then call populate the `alert-state`, `ghsa-id` and `cvss` outputs.
+  - Defaults to `false`
 
 Subsequent actions will have access to the following outputs:
 
@@ -50,11 +59,11 @@ Subsequent actions will have access to the following outputs:
 - `steps.dependabot-metadata.outputs.compatibility-score`
   - The compatibility score of this update (if known, 0 otherwise)
 - `steps.dependabot-metadata.outputs.alert-state`
-  - If this PR is associated with a security alert, this contains the current state of that alert (OPEN, FIXED or DISMISSED).
+  - If this PR is associated with a security alert and `alert-lookup` is `true`, this contains the current state of that alert (OPEN, FIXED or DISMISSED).
 - `steps.dependabot-metadata.outputs.ghsa-id`
-  - If this PR is associated with a security alert, this contains the GHSA-ID of that alert.
+  - If this PR is associated with a security alert and `alert-lookup` is `true`, this contains the GHSA-ID of that alert.
 - `steps.dependabot-metadata.outputs.cvss`
-  - If this PR is associated with a security alert, this contains the CVSS value of that alert (otherwise it contains 0).
+  - If this PR is associated with a security alert and `alert-lookup` is `true`, this contains the CVSS value of that alert (otherwise it contains 0).
 
 **Note:** These outputs will only be populated if the target Pull Request was opened by Dependabot and contains
 **only** Dependabot-created commits.

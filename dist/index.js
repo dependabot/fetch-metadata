@@ -9050,6 +9050,8 @@ function parse(commitMessage, branchName, mainBranch, lookup, getScore) {
     return __awaiter(this, void 0, void 0, function* () {
         const bumpFragment = commitMessage.match(/^Bumps .* from (?<from>\d[^ ]*) to (?<to>\d[^ ]*)\.$/m);
         const yamlFragment = commitMessage.match(/^-{3}\n(?<dependencies>[\S|\s]*?)\n^\.{3}\n/m);
+        const lookupFn = lookup !== null && lookup !== void 0 ? lookup : (() => Promise.resolve({ alertState: '', ghsaId: '', cvss: 0 }));
+        const scoreFn = getScore !== null && getScore !== void 0 ? getScore : (() => Promise.resolve(0));
         if ((yamlFragment === null || yamlFragment === void 0 ? void 0 : yamlFragment.groups) && branchName.startsWith('dependabot')) {
             const data = YAML.parse(yamlFragment.groups.dependencies);
             // Since we are on the `dependabot` branch (9 letters), the 10th letter in the branch name is the delimiter
@@ -9062,7 +9064,7 @@ function parse(commitMessage, branchName, mainBranch, lookup, getScore) {
                     const dirname = `/${chunks.slice(2, -1 * (1 + (dependency['dependency-name'].match(/\//g) || []).length)).join(delim) || ''}`;
                     const lastVersion = index === 0 ? prev : '';
                     const nextVersion = index === 0 ? next : '';
-                    return Object.assign({ dependencyName: dependency['dependency-name'], dependencyType: dependency['dependency-type'], updateType: dependency['update-type'], directory: dirname, packageEcosystem: chunks[1], targetBranch: mainBranch, prevVersion: lastVersion, newVersion: nextVersion, compatScore: yield getScore(dependency['dependency-name'], lastVersion, nextVersion, chunks[1]) }, yield lookup(dependency['dependency-name'], lastVersion, dirname));
+                    return Object.assign({ dependencyName: dependency['dependency-name'], dependencyType: dependency['dependency-type'], updateType: dependency['update-type'], directory: dirname, packageEcosystem: chunks[1], targetBranch: mainBranch, prevVersion: lastVersion, newVersion: nextVersion, compatScore: yield scoreFn(dependency['dependency-name'], lastVersion, nextVersion, chunks[1]) }, yield lookupFn(dependency['dependency-name'], lastVersion, dirname));
                 })));
             }
         }
@@ -9296,7 +9298,10 @@ function run() {
             // Validate the job
             const commitMessage = yield verifiedCommits.getMessage(githubClient, github.context);
             const branchNames = util.getBranchNames(github.context);
-            const alertLookup = (name, version, directory) => verifiedCommits.getAlert(name, version, directory, githubClient, github.context);
+            let alertLookup;
+            if (core.getInput('alert-lookup')) {
+                alertLookup = (name, version, directory) => verifiedCommits.getAlert(name, version, directory, githubClient, github.context);
+            }
             if (commitMessage) {
                 // Parse metadata
                 core.info('Parsing Dependabot metadata');
