@@ -24,6 +24,11 @@ export function set (updatedDependencies: Array<updatedDependency>): void {
   const directory = firstDependency?.directory
   const ecosystem = firstDependency?.packageEcosystem
   const target = firstDependency?.targetBranch
+  const prevVersion = firstDependency?.prevVersion
+  const newVersion = firstDependency?.newVersion
+  const alertState = firstDependency?.alertState
+  const ghsaId = firstDependency?.ghsaId
+  const cvss = firstDependency?.cvss
 
   core.startGroup(`Outputting metadata for ${Pluralize('updated dependency', updatedDependencies.length, true)}`)
   core.info(`outputs.dependency-names: ${dependencyNames}`)
@@ -32,6 +37,11 @@ export function set (updatedDependencies: Array<updatedDependency>): void {
   core.info(`outputs.directory: ${directory}`)
   core.info(`outputs.package-ecosystem: ${ecosystem}`)
   core.info(`outputs.target-branch: ${target}`)
+  core.info(`outputs.previous-version: ${prevVersion}`)
+  core.info(`outputs.new-version: ${newVersion}`)
+  core.info(`outputs.alert-state: ${alertState}`)
+  core.info(`outputs.ghsa-id: ${ghsaId}`)
+  core.info(`outputs.cvss: ${cvss}`)
   core.endGroup()
 
   core.setOutput('updated-dependencies-json', updatedDependencies)
@@ -41,6 +51,11 @@ export function set (updatedDependencies: Array<updatedDependency>): void {
   core.setOutput('directory', directory)
   core.setOutput('package-ecosystem', ecosystem)
   core.setOutput('target-branch', target)
+  core.setOutput('previous-version', prevVersion)
+  core.setOutput('new-version', newVersion)
+  core.setOutput('alert-state', alertState)
+  core.setOutput('ghsa-id', ghsaId)
+  core.setOutput('cvss', cvss)
 }
 
 function maxDependencyTypes (updatedDependencies: Array<updatedDependency>): string {

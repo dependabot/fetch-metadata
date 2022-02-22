@@ -8956,6 +8956,11 @@ function set(updatedDependencies) {
     const directory = firstDependency === null || firstDependency === void 0 ? void 0 : firstDependency.directory;
     const ecosystem = firstDependency === null || firstDependency === void 0 ? void 0 : firstDependency.packageEcosystem;
     const target = firstDependency === null || firstDependency === void 0 ? void 0 : firstDependency.targetBranch;
+    const prevVersion = firstDependency === null || firstDependency === void 0 ? void 0 : firstDependency.prevVersion;
+    const newVersion = firstDependency === null || firstDependency === void 0 ? void 0 : firstDependency.newVersion;
+    const alertState = firstDependency === null || firstDependency === void 0 ? void 0 : firstDependency.alertState;
+    const ghsaId = firstDependency === null || firstDependency === void 0 ? void 0 : firstDependency.ghsaId;
+    const cvss = firstDependency === null || firstDependency === void 0 ? void 0 : firstDependency.cvss;
     core.startGroup(`Outputting metadata for ${(0, pluralize_1.default)('updated dependency', updatedDependencies.length, true)}`);
     core.info(`outputs.dependency-names: ${dependencyNames}`);
     core.info(`outputs.dependency-type: ${dependencyType}`);
@@ -8963,6 +8968,11 @@ function set(updatedDependencies) {
     core.info(`outputs.directory: ${directory}`);
     core.info(`outputs.package-ecosystem: ${ecosystem}`);
     core.info(`outputs.target-branch: ${target}`);
+    core.info(`outputs.previous-version: ${prevVersion}`);
+    core.info(`outputs.new-version: ${newVersion}`);
+    core.info(`outputs.alert-state: ${alertState}`);
+    core.info(`outputs.ghsa-id: ${ghsaId}`);
+    core.info(`outputs.cvss: ${cvss}`);
     core.endGroup();
     core.setOutput('updated-dependencies-json', updatedDependencies);
     core.setOutput('dependency-names', dependencyNames);
@@ -8971,6 +8981,11 @@ function set(updatedDependencies) {
     core.setOutput('directory', directory);
     core.setOutput('package-ecosystem', ecosystem);
     core.setOutput('target-branch', target);
+    core.setOutput('previous-version', prevVersion);
+    core.setOutput('new-version', newVersion);
+    core.setOutput('alert-state', alertState);
+    core.setOutput('ghsa-id', ghsaId);
+    core.setOutput('cvss', cvss);
 }
 exports.set = set;
 function maxDependencyTypes(updatedDependencies) {
@@ -9015,31 +9030,40 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.parse = void 0;
 const YAML = __importStar(__nccwpck_require__(4603));
-function parse(commitMessage, branchName, mainBranch) {
-    const yamlFragment = commitMessage.match(/^-{3}\n(?<dependencies>[\S|\s]*?)\n^\.{3}\n/m);
-    if ((yamlFragment === null || yamlFragment === void 0 ? void 0 : yamlFragment.groups) && branchName.startsWith('dependabot')) {
-        const data = YAML.parse(yamlFragment.groups.dependencies);
-        // Since we are on the `dependabot` branch (9 letters), the 10th letter in the branch name is the delimiter
-        const delim = branchName[10];
-        const chunks = branchName.split(delim);
-        const dirname = chunks.slice(2, -1).join(delim) || '/';
-        if (data['updated-dependencies']) {
-            return data['updated-dependencies'].map(dependency => {
-                return {
-                    dependencyName: dependency['dependency-name'],
-                    dependencyType: dependency['dependency-type'],
-                    updateType: dependency['update-type'],
-                    directory: dirname,
-                    packageEcosystem: chunks[1],
-                    targetBranch: mainBranch
-                };
-            });
+function parse(commitMessage, branchName, mainBranch, lookup) {
+    var _a, _b, _c, _d;
+    return __awaiter(this, void 0, void 0, function* () {
+        const bumpFragment = commitMessage.match(/^Bumps .* from (?<from>\d[^ ]*) to (?<to>\d[^ ]*)\.$/m);
+        const yamlFragment = commitMessage.match(/^-{3}\n(?<dependencies>[\S|\s]*?)\n^\.{3}\n/m);
+        const lookupFn = lookup !== null && lookup !== void 0 ? lookup : (() => Promise.resolve({ alertState: '', ghsaId: '', cvss: 0 }));
+        if ((yamlFragment === null || yamlFragment === void 0 ? void 0 : yamlFragment.groups) && branchName.startsWith('dependabot')) {
+            const data = YAML.parse(yamlFragment.groups.dependencies);
+            // Since we are on the `dependabot` branch (9 letters), the 10th letter in the branch name is the delimiter
+            const delim = branchName[10];
+            const chunks = branchName.split(delim);
+            const prev = (_b = (_a = bumpFragment === null || bumpFragment === void 0 ? void 0 : bumpFragment.groups) === null || _a === void 0 ? void 0 : _a.from) !== null && _b !== void 0 ? _b : '';
+            const next = (_d = (_c = bumpFragment === null || bumpFragment === void 0 ? void 0 : bumpFragment.groups) === null || _c === void 0 ? void 0 : _c.to) !== null && _d !== void 0 ? _d : '';
+            if (data['updated-dependencies']) {
+                return yield Promise.all(data['updated-dependencies'].map((dependency, index) => __awaiter(this, void 0, void 0, function* () {
+                    const dirname = `/${chunks.slice(2, -1 * (1 + (dependency['dependency-name'].match(/\//g) || []).length)).join(delim) || ''}`;
+                    return Object.assign({ dependencyName: dependency['dependency-name'], dependencyType: dependency['dependency-type'], updateType: dependency['update-type'], directory: dirname, packageEcosystem: chunks[1], targetBranch: mainBranch, prevVersion: index === 0 ? prev : '', newVersion: index === 0 ? next : '' }, yield lookupFn(dependency['dependency-name'], index === 0 ? prev : '', dirname));
+                })));
+            }
         }
-    }
-    return [];
+        return Promise.resolve([]);
+    });
 }
 exports.parse = parse;
 
@@ -9104,7 +9128,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getMessage = void 0;
+exports.trimSlashes = exports.getAlert = exports.getMessage = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const DEPENDABOT_LOGIN = 'dependabot[bot]';
 function getMessage(client, context) {
@@ -9151,6 +9175,45 @@ function warnOtherCommits() {
         "Try using '@dependabot rebase' to remove merge commits or '@dependabot recreate' to remove " +
         'any non-Dependabot changes.');
 }
+function getAlert(name, version, directory, client, context) {
+    var _a, _b, _c, _d, _e;
+    return __awaiter(this, void 0, void 0, function* () {
+        const alerts = yield client.graphql(`
+     {
+       repository(owner: "${context.repo.owner}", name: "${context.repo.repo}") { 
+         vulnerabilityAlerts(first: 100) {
+           nodes {
+             vulnerableManifestFilename
+             vulnerableManifestPath
+             vulnerableRequirements
+             state
+             securityVulnerability { 
+               package { name } 
+             }
+             securityAdvisory { 
+              cvss { score }
+              ghsaId 
+             }
+           }
+         }
+       }
+     }`);
+        const nodes = (_b = (_a = alerts === null || alerts === void 0 ? void 0 : alerts.repository) === null || _a === void 0 ? void 0 : _a.vulnerabilityAlerts) === null || _b === void 0 ? void 0 : _b.nodes;
+        const found = nodes.find(a => (version === '' || a.vulnerableRequirements === `= ${version}`) &&
+            trimSlashes(a.vulnerableManifestPath) === `${trimSlashes(directory)}/${a.vulnerableManifestFilename}` &&
+            a.securityVulnerability.package.name === name);
+        return {
+            alertState: (_c = found === null || found === void 0 ? void 0 : found.state) !== null && _c !== void 0 ? _c : '',
+            ghsaId: (_d = found === null || found === void 0 ? void 0 : found.securityAdvisory.ghsaId) !== null && _d !== void 0 ? _d : '',
+            cvss: (_e = found === null || found === void 0 ? void 0 : found.securityAdvisory.cvss.score) !== null && _e !== void 0 ? _e : 0.0
+        };
+    });
+}
+exports.getAlert = getAlert;
+function trimSlashes(value) {
+    return value.replace(/^\/+/, '').replace(/\/+$/, '');
+}
+exports.trimSlashes = trimSlashes;
 
 
 /***/ }),
@@ -9211,10 +9274,14 @@ function run() {
             // Validate the job
             const commitMessage = yield verifiedCommits.getMessage(githubClient, github.context);
             const branchNames = util.getBranchNames(github.context);
+            let alertLookup;
+            if (core.getInput('alert-lookup')) {
+                alertLookup = (name, version, directory) => verifiedCommits.getAlert(name, version, directory, githubClient, github.context);
+            }
             if (commitMessage) {
                 // Parse metadata
                 core.info('Parsing Dependabot metadata');
-                const updatedDependencies = updateMetadata.parse(commitMessage, branchNames.headName, branchNames.baseName);
+                const updatedDependencies = yield updateMetadata.parse(commitMessage, branchNames.headName, branchNames.baseName, alertLookup);
                 if (updatedDependencies.length > 0) {
                     output.set(updatedDependencies);
                 }

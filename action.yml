@@ -4,6 +4,9 @@ branding:
   icon: 'search'
   color: 'blue'
 inputs:
+  alert-lookup:
+    type: boolean
+    description: 'If true, then call populate the `alert-state`, `ghsa-id` and `cvss` outputs'
   github-token:
     description: 'The GITHUB_TOKEN secret'
     required: true
@@ -22,6 +25,16 @@ outputs:
     description: 'The `package-ecosystem` configuration that was used by dependabot for this updated Dependency.'
   target-branch:
     description: 'The `target-branch` configuration that was used by dependabot for this updated Dependency.'
+  previous-version:
+    description: 'The version that this PR updates the dependency from.'
+  new-version:
+    description: 'The version that this PR updates the dependency to.'
+  alert-state:
+    description: 'If this PR is associated with a security alert and `alert-lookup` is `true`, this contains the current state of that alert (OPEN, FIXED or DISMISSED).'
+  ghsa-id:
+    description: 'If this PR is associated with a security alert and `alert-lookup` is `true`, this contains the GHSA-ID of that alert.'
+  cvss:
+    description: 'If this PR is associated with a security alert and `alert-lookup` is `true`, this contains the CVSS value of that alert (otherwise it contains 0).'
 runs:
   using: 'node12'
   main: 'dist/index.js'
