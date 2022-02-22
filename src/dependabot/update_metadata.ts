@@ -21,9 +21,10 @@ export interface alertLookup {
     (dependencyName: string, dependencyVersion: string, directory: string): Promise<dependencyAlert>;
 }
 
-export async function parse (commitMessage: string, branchName: string, mainBranch: string, lookup: alertLookup): Promise<Array<updatedDependency>> {
+export async function parse (commitMessage: string, branchName: string, mainBranch: string, lookup?: alertLookup): Promise<Array<updatedDependency>> {
   const bumpFragment = commitMessage.match(/^Bumps .* from (?<from>\d[^ ]*) to (?<to>\d[^ ]*)\.$/m)
   const yamlFragment = commitMessage.match(/^-{3}\n(?<dependencies>[\S|\s]*?)\n^\.{3}\n/m)
+  const lookupFn = lookup ?? (() => Promise.resolve({ alertState: '', ghsaId: '', cvss: 0 }))
 
   if (yamlFragment?.groups && branchName.startsWith('dependabot')) {
     const data = YAML.parse(yamlFragment.groups.dependencies)
@@ -46,7 +47,7 @@ export async function parse (commitMessage: string, branchName: string, mainBran
           targetBranch: mainBranch,
           prevVersion: index === 0 ? prev : '',
           newVersion: index === 0 ? next : '',
-          ...await lookup(dependency['dependency-name'], index === 0 ? prev : '', dirname)
+          ...await lookupFn(dependency['dependency-name'], index === 0 ? prev : '', dirname)
         }
       }))
     }

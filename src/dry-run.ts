@@ -51,9 +51,9 @@ async function check (args: any): Promise<void> {
     if (commitMessage) {
       console.log('This appears to be a valid Dependabot Pull Request.')
       const branchNames = getBranchNames(newContext)
-      const alertLookup = (name, version, directory) => getAlert(name, version, directory, githubClient, actionContext)
+      const lookupFn = (name, version, directory) => getAlert(name, version, directory, githubClient, actionContext)
 
-      const updatedDependencies = await parse(commitMessage, branchNames.headName, branchNames.baseName, alertLookup)
+      const updatedDependencies = await parse(commitMessage, branchNames.headName, branchNames.baseName, lookupFn)
 
       if (updatedDependencies.length > 0) {
         console.log('Updated dependencies:')

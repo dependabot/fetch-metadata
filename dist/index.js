@@ -13457,6 +13457,7 @@ function parse(commitMessage, branchName, mainBranch, lookup) {
     return update_metadata_awaiter(this, void 0, void 0, function* () {
         const bumpFragment = commitMessage.match(/^Bumps .* from (?<from>\d[^ ]*) to (?<to>\d[^ ]*)\.$/m);
         const yamlFragment = commitMessage.match(/^-{3}\n(?<dependencies>[\S|\s]*?)\n^\.{3}\n/m);
+        const lookupFn = lookup !== null && lookup !== void 0 ? lookup : (() => Promise.resolve({ alertState: '', ghsaId: '', cvss: 0 }));
         if ((yamlFragment === null || yamlFragment === void 0 ? void 0 : yamlFragment.groups) && branchName.startsWith('dependabot')) {
             const data = yaml.parse(yamlFragment.groups.dependencies);
             // Since we are on the `dependabot` branch (9 letters), the 10th letter in the branch name is the delimiter
@@ -13467,7 +13468,7 @@ function parse(commitMessage, branchName, mainBranch, lookup) {
             if (data['updated-dependencies']) {
                 return yield Promise.all(data['updated-dependencies'].map((dependency, index) => update_metadata_awaiter(this, void 0, void 0, function* () {
                     const dirname = `/${chunks.slice(2, -1 * (1 + (dependency['dependency-name'].match(/\//g) || []).length)).join(delim) || ''}`;
-                    return Object.assign({ dependencyName: dependency['dependency-name'], dependencyType: dependency['dependency-type'], updateType: dependency['update-type'], directory: dirname, packageEcosystem: chunks[1], targetBranch: mainBranch, prevVersion: index === 0 ? prev : '', newVersion: index === 0 ? next : '' }, yield lookup(dependency['dependency-name'], index === 0 ? prev : '', dirname));
+                    return Object.assign({ dependencyName: dependency['dependency-name'], dependencyType: dependency['dependency-type'], updateType: dependency['update-type'], directory: dirname, packageEcosystem: chunks[1], targetBranch: mainBranch, prevVersion: index === 0 ? prev : '', newVersion: index === 0 ? next : '' }, yield lookupFn(dependency['dependency-name'], index === 0 ? prev : '', dirname));
                 })));
             }
         }
@@ -13591,7 +13592,10 @@ function run() {
             // Validate the job
             const commitMessage = yield getMessage(githubClient, github.context);
             const branchNames = getBranchNames(github.context);
-            const alertLookup = (name, version, directory) => getAlert(name, version, directory, githubClient, github.context);
+            let alertLookup;
+            if (core.getInput('alert-lookup')) {
+                alertLookup = (name, version, directory) => getAlert(name, version, directory, githubClient, github.context);
+            }
             if (commitMessage) {
                 // Parse metadata
                 core.info('Parsing Dependabot metadata');

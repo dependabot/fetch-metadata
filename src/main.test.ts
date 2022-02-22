@@ -78,7 +78,7 @@ test('it sets the updated dependency as an output for subsequent actions', async
     'Signed-off-by: dependabot[bot] <support@github.com>'
   const mockAlert = { alertState: 'FIXED', ghsaId: 'GSHA', cvss: 3.4 }
 
-  jest.spyOn(core, 'getInput').mockReturnValue('mock-token')
+  jest.spyOn(core, 'getInput').mockImplementation(jest.fn((name) => { return name == 'github-token' ? 'mock-token' : '' }))
   jest.spyOn(util, 'getBranchNames').mockReturnValue({ headName: 'dependabot|nuget|feature1', baseName: 'main' })
   jest.spyOn(dependabotCommits, 'getMessage').mockImplementation(jest.fn(
     () => Promise.resolve(mockCommitMessage)
@@ -106,9 +106,9 @@ test('it sets the updated dependency as an output for subsequent actions', async
         targetBranch: 'main',
         prevVersion: '4.0.1',
         newVersion: '4.2.2',
-        alertState: 'FIXED',
-        ghsaId: 'GSHA',
-        cvss: 3.4
+        alertState: '',
+        ghsaId: '',
+        cvss: 0
       }
     ]
   )
@@ -121,9 +121,9 @@ test('it sets the updated dependency as an output for subsequent actions', async
   expect(core.setOutput).toBeCalledWith('target-branch', 'main')
   expect(core.setOutput).toBeCalledWith('previous-version', '4.0.1')
   expect(core.setOutput).toBeCalledWith('new-version', '4.2.2')
-  expect(core.setOutput).toBeCalledWith('alert-state', 'FIXED')
-  expect(core.setOutput).toBeCalledWith('ghsa-id', 'GSHA')
-  expect(core.setOutput).toBeCalledWith('cvss', 3.4)
+  expect(core.setOutput).toBeCalledWith('alert-state', '')
+  expect(core.setOutput).toBeCalledWith('ghsa-id', '')
+  expect(core.setOutput).toBeCalledWith('cvss', 0)
 })
 
 test('if there are multiple dependencies, it summarizes them', async () => {
