@@ -1,6 +1,6 @@
 {
   "name": "dependabot-pull-request-action",
-  "version": "1.1.1",
+  "version": "1.2.1",
   "description": "Parse Dependabot commit metadata to automate PR handling",
   "main": "dist/index.js",
   "scripts": {
