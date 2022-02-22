@@ -23,7 +23,10 @@ async function check (args: any): Promise<void> {
     // Convert the CLI args into a stubbed Webhook payload
     actionContext.payload = {
       pull_request: {
-        number: args.prNumber
+        number: args.prNumber,
+        user: {
+          login: 'dependabot[bot]'
+        }
       },
       repository: {
         owner: {
@@ -32,8 +35,6 @@ async function check (args: any): Promise<void> {
         name: repoDetails.repo
       }
     }
-    // Bypass the actor check for purpose of a dry run
-    actionContext.actor = 'dependabot[bot]'
 
     const githubClient = github.getOctokit(githubToken)
 
@@ -65,7 +66,11 @@ async function check (args: any): Promise<void> {
       process.exit(1)
     }
   } catch (exception) {
-    console.log(exception.message)
+    if (exception instanceof Error) {
+      console.log(exception.message)
+    } else {
+      console.log('There was an unexpected error.')
+    }
     process.exit(1)
   }
 }
