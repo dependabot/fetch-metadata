@@ -49,7 +49,7 @@ test('it returns false if the commit was authored by someone other than Dependab
   expect(await getMessage(mockGitHubClient, mockGitHubPullContext())).toBe(false)
 
   expect(core.warning).toHaveBeenCalledWith(
-    expect.stringContaining("It looks like this PR was not created by Dependabot, refusing to proceed.")
+    expect.stringContaining('It looks like this PR was not created by Dependabot, refusing to proceed.')
   )
 })
 
