@@ -9152,13 +9152,10 @@ function getMessage(client, context) {
             repo: context.repo.repo,
             pull_number: pr.number
         });
-        if (commits.length > 1) {
-            warnOtherCommits();
-            return false;
-        }
         const { commit, author } = commits[0];
         if ((author === null || author === void 0 ? void 0 : author.login) !== DEPENDABOT_LOGIN) {
-            warnOtherCommits();
+            // TODO: Promote to setFailed
+            core.warning('It looks like this PR was not created by Dependabot, refusing to proceed.');
             return false;
         }
         if (!((_a = commit.verification) === null || _a === void 0 ? void 0 : _a.verified)) {
@@ -9170,11 +9167,6 @@ function getMessage(client, context) {
     });
 }
 exports.getMessage = getMessage;
-function warnOtherCommits() {
-    core.warning("It looks like this PR has contains commits that aren't part of a Dependabot update. " +
-        "Try using '@dependabot rebase' to remove merge commits or '@dependabot recreate' to remove " +
-        'any non-Dependabot changes.');
-}
 function getAlert(name, version, directory, client, context) {
     var _a, _b, _c, _d, _e;
     return __awaiter(this, void 0, void 0, function* () {
