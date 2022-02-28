@@ -2,6 +2,7 @@ import * as core from '@actions/core'
 import { GitHub } from '@actions/github/lib/utils'
 import { Context } from '@actions/github/lib/context'
 import type { dependencyAlert } from './update_metadata'
+import https from 'https'
 
 const DEPENDABOT_LOGIN = 'dependabot[bot]'
 
@@ -89,4 +90,17 @@ export async function getAlert (name: string, version: string, directory: string
 
 export function trimSlashes (value: string): string {
   return value.replace(/^\/+/, '').replace(/\/+$/, '')
+}
+
+export async function getCompatibility (name: string, oldVersion: string, newVersion: string, ecosystem: string): Promise<number> {
+  const svg = await new Promise<string>((resolve) => {
+    https.get(`https://dependabot-badges.githubapp.com/badges/compatibility_score?dependency-name=${name}&package-manager=${ecosystem}&previous-version=${oldVersion}&new-version=${newVersion}`, res => {
+      let data = ''
+      res.on('data', chunk => { data += chunk.toString('utf8') })
+      res.on('end', () => { resolve(data) })
+    }).on('error', () => { resolve('') })
+  })
+
+  const scoreChunk = svg.match(/<title>compatibility: (?<score>\d+)%<\/title>/m)
+  return scoreChunk?.groups ? parseInt(scoreChunk.groups.score) : 0
 }

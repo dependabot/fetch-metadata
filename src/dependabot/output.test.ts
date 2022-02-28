@@ -18,6 +18,7 @@ const baseDependency = {
   targetBranch: '',
   prevVersion: '',
   newVersion: '',
+  compatScore: 0,
   alertState: '',
   ghsaId: '',
   cvss: 0
@@ -34,6 +35,7 @@ test('when given a single dependency it sets its values', async () => {
       targetBranch: 'main',
       prevVersion: '1.0.2',
       newVersion: '1.1.3-beta',
+      compatScore: 43,
       alertState: 'FIXED',
       ghsaId: 'VERY_LONG_ID',
       cvss: 4.6
@@ -56,6 +58,7 @@ test('when given a single dependency it sets its values', async () => {
   expect(core.setOutput).toBeCalledWith('target-branch', 'main')
   expect(core.setOutput).toBeCalledWith('previous-version', '1.0.2')
   expect(core.setOutput).toBeCalledWith('new-version', '1.1.3-beta')
+  expect(core.setOutput).toBeCalledWith('compatibility-score', 43)
   expect(core.setOutput).toBeCalledWith('alert-state', 'FIXED')
   expect(core.setOutput).toBeCalledWith('ghsa-id', 'VERY_LONG_ID')
   expect(core.setOutput).toBeCalledWith('cvss', 4.6)
@@ -101,6 +104,7 @@ test('when given a multiple dependencies, it uses the highest values for types',
   expect(core.setOutput).toBeCalledWith('target-branch', '')
   expect(core.setOutput).toBeCalledWith('previous-version', '')
   expect(core.setOutput).toBeCalledWith('new-version', '')
+  expect(core.setOutput).toBeCalledWith('compatibility-score', 0)
   expect(core.setOutput).toBeCalledWith('alert-state', '')
   expect(core.setOutput).toBeCalledWith('ghsa-id', '')
   expect(core.setOutput).toBeCalledWith('cvss', 0)
@@ -131,6 +135,7 @@ test('when the dependency has no update type', async () => {
   expect(core.setOutput).toBeCalledWith('target-branch', '')
   expect(core.setOutput).toBeCalledWith('previous-version', '')
   expect(core.setOutput).toBeCalledWith('new-version', '')
+  expect(core.setOutput).toBeCalledWith('compatibility-score', 0)
   expect(core.setOutput).toBeCalledWith('alert-state', '')
   expect(core.setOutput).toBeCalledWith('ghsa-id', '')
   expect(core.setOutput).toBeCalledWith('cvss', 0)
@@ -174,6 +179,7 @@ test('when given a multiple dependencies, and some do not have update types', as
   expect(core.setOutput).toBeCalledWith('target-branch', '')
   expect(core.setOutput).toBeCalledWith('previous-version', '')
   expect(core.setOutput).toBeCalledWith('new-version', '')
+  expect(core.setOutput).toBeCalledWith('compatibility-score', 0)
   expect(core.setOutput).toBeCalledWith('alert-state', '')
   expect(core.setOutput).toBeCalledWith('ghsa-id', '')
   expect(core.setOutput).toBeCalledWith('cvss', 0)

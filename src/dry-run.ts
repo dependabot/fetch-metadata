@@ -5,7 +5,7 @@ import * as dotenv from 'dotenv'
 import { Argv } from 'yargs'
 import { hideBin } from 'yargs/helpers'
 
-import { getMessage, getAlert } from './dependabot/verified_commits'
+import { getMessage, getAlert, getCompatibility } from './dependabot/verified_commits'
 import { parse } from './dependabot/update_metadata'
 import { getBranchNames, parseNwo } from './dependabot/util'
 
@@ -53,7 +53,7 @@ async function check (args: any): Promise<void> {
       const branchNames = getBranchNames(newContext)
       const lookupFn = (name, version, directory) => getAlert(name, version, directory, githubClient, actionContext)
 
-      const updatedDependencies = await parse(commitMessage, branchNames.headName, branchNames.baseName, lookupFn)
+      const updatedDependencies = await parse(commitMessage, branchNames.headName, branchNames.baseName, lookupFn, getCompatibility)
 
       if (updatedDependencies.length > 0) {
         console.log('Updated dependencies:')

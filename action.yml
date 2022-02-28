@@ -6,7 +6,10 @@ branding:
 inputs:
   alert-lookup:
     type: boolean
-    description: 'If true, then call populate the `alert-state`, `ghsa-id` and `cvss` outputs'
+    description: 'If true, then populate the `alert-state`, `ghsa-id` and `cvss` outputs'
+  compat-lookup:
+    type: boolean
+    description: 'If true, then populate the `compatibility-score` output'
   github-token:
     description: 'The GITHUB_TOKEN secret'
     default: ${{ github.token }}
@@ -35,6 +38,8 @@ outputs:
     description: 'If this PR is associated with a security alert and `alert-lookup` is `true`, this contains the GHSA-ID of that alert.'
   cvss:
     description: 'If this PR is associated with a security alert and `alert-lookup` is `true`, this contains the CVSS value of that alert (otherwise it contains 0).'
+  compatibility-score:
+    description: 'If this PR has a known compatibility score and `compat-lookup` is `true`, this contains the compatibility score (otherwise it contains 0).'
 runs:
   using: 'node12'
   main: 'dist/index.js'

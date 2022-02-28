@@ -8958,6 +8958,7 @@ function set(updatedDependencies) {
     const target = firstDependency === null || firstDependency === void 0 ? void 0 : firstDependency.targetBranch;
     const prevVersion = firstDependency === null || firstDependency === void 0 ? void 0 : firstDependency.prevVersion;
     const newVersion = firstDependency === null || firstDependency === void 0 ? void 0 : firstDependency.newVersion;
+    const compatScore = firstDependency === null || firstDependency === void 0 ? void 0 : firstDependency.compatScore;
     const alertState = firstDependency === null || firstDependency === void 0 ? void 0 : firstDependency.alertState;
     const ghsaId = firstDependency === null || firstDependency === void 0 ? void 0 : firstDependency.ghsaId;
     const cvss = firstDependency === null || firstDependency === void 0 ? void 0 : firstDependency.cvss;
@@ -8970,6 +8971,7 @@ function set(updatedDependencies) {
     core.info(`outputs.target-branch: ${target}`);
     core.info(`outputs.previous-version: ${prevVersion}`);
     core.info(`outputs.new-version: ${newVersion}`);
+    core.info(`outputs.compatibility-score: ${compatScore}`);
     core.info(`outputs.alert-state: ${alertState}`);
     core.info(`outputs.ghsa-id: ${ghsaId}`);
     core.info(`outputs.cvss: ${cvss}`);
@@ -8983,6 +8985,7 @@ function set(updatedDependencies) {
     core.setOutput('target-branch', target);
     core.setOutput('previous-version', prevVersion);
     core.setOutput('new-version', newVersion);
+    core.setOutput('compatibility-score', compatScore);
     core.setOutput('alert-state', alertState);
     core.setOutput('ghsa-id', ghsaId);
     core.setOutput('cvss', cvss);
@@ -9042,12 +9045,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.parse = void 0;
 const YAML = __importStar(__nccwpck_require__(4603));
-function parse(commitMessage, branchName, mainBranch, lookup) {
+function parse(commitMessage, branchName, mainBranch, lookup, getScore) {
     var _a, _b, _c, _d;
     return __awaiter(this, void 0, void 0, function* () {
         const bumpFragment = commitMessage.match(/^Bumps .* from (?<from>\d[^ ]*) to (?<to>\d[^ ]*)\.$/m);
         const yamlFragment = commitMessage.match(/^-{3}\n(?<dependencies>[\S|\s]*?)\n^\.{3}\n/m);
         const lookupFn = lookup !== null && lookup !== void 0 ? lookup : (() => Promise.resolve({ alertState: '', ghsaId: '', cvss: 0 }));
+        const scoreFn = getScore !== null && getScore !== void 0 ? getScore : (() => Promise.resolve(0));
         if ((yamlFragment === null || yamlFragment === void 0 ? void 0 : yamlFragment.groups) && branchName.startsWith('dependabot')) {
             const data = YAML.parse(yamlFragment.groups.dependencies);
             // Since we are on the `dependabot` branch (9 letters), the 10th letter in the branch name is the delimiter
@@ -9058,7 +9062,9 @@ function parse(commitMessage, branchName, mainBranch, lookup) {
             if (data['updated-dependencies']) {
                 return yield Promise.all(data['updated-dependencies'].map((dependency, index) => __awaiter(this, void 0, void 0, function* () {
                     const dirname = `/${chunks.slice(2, -1 * (1 + (dependency['dependency-name'].match(/\//g) || []).length)).join(delim) || ''}`;
-                    return Object.assign({ dependencyName: dependency['dependency-name'], dependencyType: dependency['dependency-type'], updateType: dependency['update-type'], directory: dirname, packageEcosystem: chunks[1], targetBranch: mainBranch, prevVersion: index === 0 ? prev : '', newVersion: index === 0 ? next : '' }, yield lookupFn(dependency['dependency-name'], index === 0 ? prev : '', dirname));
+                    const lastVersion = index === 0 ? prev : '';
+                    const nextVersion = index === 0 ? next : '';
+                    return Object.assign({ dependencyName: dependency['dependency-name'], dependencyType: dependency['dependency-type'], updateType: dependency['update-type'], directory: dirname, packageEcosystem: chunks[1], targetBranch: mainBranch, prevVersion: lastVersion, newVersion: nextVersion, compatScore: yield scoreFn(dependency['dependency-name'], lastVersion, nextVersion, chunks[1]) }, yield lookupFn(dependency['dependency-name'], lastVersion, dirname));
                 })));
             }
         }
@@ -9127,9 +9133,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.trimSlashes = exports.getAlert = exports.getMessage = void 0;
+exports.getCompatibility = exports.trimSlashes = exports.getAlert = exports.getMessage = void 0;
 const core = __importStar(__nccwpck_require__(2186));
+const https_1 = __importDefault(__nccwpck_require__(5687));
 const DEPENDABOT_LOGIN = 'dependabot[bot]';
 function getMessage(client, context) {
     var _a;
@@ -9206,6 +9216,20 @@ function trimSlashes(value) {
     return value.replace(/^\/+/, '').replace(/\/+$/, '');
 }
 exports.trimSlashes = trimSlashes;
+function getCompatibility(name, oldVersion, newVersion, ecosystem) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const svg = yield new Promise((resolve) => {
+            https_1.default.get(`https://dependabot-badges.githubapp.com/badges/compatibility_score?dependency-name=${name}&package-manager=${ecosystem}&previous-version=${oldVersion}&new-version=${newVersion}`, res => {
+                let data = '';
+                res.on('data', chunk => { data += chunk.toString('utf8'); });
+                res.on('end', () => { resolve(data); });
+            }).on('error', () => { resolve(''); });
+        });
+        const scoreChunk = svg.match(/<title>compatibility: (?<score>\d+)%<\/title>/m);
+        return (scoreChunk === null || scoreChunk === void 0 ? void 0 : scoreChunk.groups) ? parseInt(scoreChunk.groups.score) : 0;
+    });
+}
+exports.getCompatibility = getCompatibility;
 
 
 /***/ }),
@@ -9270,10 +9294,11 @@ function run() {
             if (core.getInput('alert-lookup')) {
                 alertLookup = (name, version, directory) => verifiedCommits.getAlert(name, version, directory, githubClient, github.context);
             }
+            const scoreLookup = core.getInput('compat-lookup') ? verifiedCommits.getCompatibility : undefined;
             if (commitMessage) {
                 // Parse metadata
                 core.info('Parsing Dependabot metadata');
-                const updatedDependencies = yield updateMetadata.parse(commitMessage, branchNames.headName, branchNames.baseName, alertLookup);
+                const updatedDependencies = yield updateMetadata.parse(commitMessage, branchNames.headName, branchNames.baseName, alertLookup, scoreLookup);
                 if (updatedDependencies.length > 0) {
                     output.set(updatedDependencies);
                 }
