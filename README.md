@@ -24,14 +24,14 @@ jobs:
       id: dependabot-metadata
       uses: dependabot/fetch-metadata@v1.2.1
       with:
-        github-token: "${{ secrets.GITHUB_TOKEN }}"
         alert-lookup: true
 ```
 
 Supported inputs are:
 
-- `github-token` (REQUIRED string)
+- `github-token` (string)
   - The `GITHUB_TOKEN` secret
+  - Defaults to `${{ github.token }}`
 - `alert-lookup` (boolean)
   - If `true`, then call populate the `alert-state`, `ghsa-id` and `cvss` outputs.
   - Defaults to `false`
@@ -88,8 +88,6 @@ jobs:
       - name: Dependabot metadata
         id: dependabot-metadata
         uses: dependabot/fetch-metadata@v1.2.1
-        with:
-          github-token: "${{ secrets.GITHUB_TOKEN }}"
       - name: Approve a PR
         run: gh pr review --approve "$PR_URL"
         env:
@@ -118,8 +116,6 @@ jobs:
       - name: Dependabot metadata
         id: dependabot-metadata
         uses: dependabot/fetch-metadata@v1.2.1
-        with:
-          github-token: "${{ secrets.GITHUB_TOKEN }}"
       - name: Enable auto-merge for Dependabot PRs
         if: ${{contains(steps.dependabot-metadata.outputs.dependency-names, 'rails') && steps.dependabot-metadata.outputs.update-type == 'version-update:semver-patch'}}
         run: gh pr merge --auto --merge "$PR_URL"
@@ -149,8 +145,6 @@ jobs:
       - name: Dependabot metadata
         id: dependabot-metadata
         uses: dependabot/fetch-metadata@v1.2.1
-        with:
-          github-token: "${{ secrets.GITHUB_TOKEN }}"
       - name: Add a label for all production dependencies
         if: ${{ steps.dependabot-metadata.outputs.dependency-type == 'direct:production' }}
         run: gh pr edit "$PR_URL" --add-label "production"

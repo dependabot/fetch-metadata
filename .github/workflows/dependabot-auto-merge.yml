@@ -14,8 +14,6 @@ jobs:
       - name: Fetch metadata
         id: metadata
         uses: ./
-        with:
-          github-token: "${{ secrets.GITHUB_TOKEN }}"
 
       - name: Auto-merge
         run: gh pr merge --auto --merge "$PR_URL"
