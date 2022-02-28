@@ -32,15 +32,13 @@ export async function getMessage (client: InstanceType<typeof GitHub>, context: 
     pull_number: pr.number
   })
 
-  if (commits.length > 1) {
-    warnOtherCommits()
-    return false
-  }
-
   const { commit, author } = commits[0]
 
   if (author?.login !== DEPENDABOT_LOGIN) {
-    warnOtherCommits()
+    // TODO: Promote to setFailed
+    core.warning(
+      'It looks like this PR was not created by Dependabot, refusing to proceed.'
+    )
     return false
   }
 
@@ -53,14 +51,6 @@ export async function getMessage (client: InstanceType<typeof GitHub>, context: 
   }
 
   return commit.message
-}
-
-function warnOtherCommits (): void {
-  core.warning(
-    "It looks like this PR has contains commits that aren't part of a Dependabot update. " +
-      "Try using '@dependabot rebase' to remove merge commits or '@dependabot recreate' to remove " +
-        'any non-Dependabot changes.'
-  )
 }
 
 export async function getAlert (name: string, version: string, directory: string, client: InstanceType<typeof GitHub>, context: Context): Promise<dependencyAlert> {
