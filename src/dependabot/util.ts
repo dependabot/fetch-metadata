@@ -19,3 +19,8 @@ export function getBranchNames (context: Context): branchNames {
   const { pull_request: pr } = context.payload
   return { headName: pr?.head.ref || '', baseName: pr?.base.ref }
 }
+
+export function getBody (context: Context): string {
+  const { pull_request: pr } = context.payload
+  return pr?.body || ''
+}
