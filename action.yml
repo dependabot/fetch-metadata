@@ -48,6 +48,8 @@ outputs:
     description: 'If this PR is associated with a security alert and `alert-lookup` is `true`, this contains the CVSS value of that alert (otherwise it contains 0).'
   compatibility-score:
     description: 'If this PR has a known compatibility score and `compat-lookup` is `true`, this contains the compatibility score (otherwise it contains 0).'
+  maintainer-changes:
+    description: 'Whether or not the the body of this PR contains the phrase "Maintainer changes" which is an indicator of whether or not any maintainers have changed.'
 runs:
   using: 'node16'
   main: 'dist/index.js'

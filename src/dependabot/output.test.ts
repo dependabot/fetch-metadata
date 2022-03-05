@@ -19,6 +19,7 @@ const baseDependency = {
   prevVersion: '',
   newVersion: '',
   compatScore: 0,
+  maintainerChanges: false,
   alertState: '',
   ghsaId: '',
   cvss: 0
@@ -36,6 +37,7 @@ test('when given a single dependency it sets its values', async () => {
       prevVersion: '1.0.2',
       newVersion: '1.1.3-beta',
       compatScore: 43,
+      maintainerChanges: true,
       alertState: 'FIXED',
       ghsaId: 'VERY_LONG_ID',
       cvss: 4.6

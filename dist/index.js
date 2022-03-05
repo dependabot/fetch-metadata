@@ -9993,6 +9993,7 @@ function set(updatedDependencies) {
     const prevVersion = firstDependency === null || firstDependency === void 0 ? void 0 : firstDependency.prevVersion;
     const newVersion = firstDependency === null || firstDependency === void 0 ? void 0 : firstDependency.newVersion;
     const compatScore = firstDependency === null || firstDependency === void 0 ? void 0 : firstDependency.compatScore;
+    const maintainerChanges = firstDependency === null || firstDependency === void 0 ? void 0 : firstDependency.maintainerChanges;
     const alertState = firstDependency === null || firstDependency === void 0 ? void 0 : firstDependency.alertState;
     const ghsaId = firstDependency === null || firstDependency === void 0 ? void 0 : firstDependency.ghsaId;
     const cvss = firstDependency === null || firstDependency === void 0 ? void 0 : firstDependency.cvss;
@@ -10006,6 +10007,7 @@ function set(updatedDependencies) {
     core.info(`outputs.previous-version: ${prevVersion}`);
     core.info(`outputs.new-version: ${newVersion}`);
     core.info(`outputs.compatibility-score: ${compatScore}`);
+    core.info(`outputs.maintainer-changes: ${maintainerChanges}`);
     core.info(`outputs.alert-state: ${alertState}`);
     core.info(`outputs.ghsa-id: ${ghsaId}`);
     core.info(`outputs.cvss: ${cvss}`);
@@ -10020,6 +10022,7 @@ function set(updatedDependencies) {
     core.setOutput('previous-version', prevVersion);
     core.setOutput('new-version', newVersion);
     core.setOutput('compatibility-score', compatScore);
+    core.setOutput('maintainer-changes', maintainerChanges);
     core.setOutput('alert-state', alertState);
     core.setOutput('ghsa-id', ghsaId);
     core.setOutput('cvss', cvss);
@@ -10083,12 +10086,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.calculateUpdateType = exports.parse = void 0;
 const YAML = __importStar(__nccwpck_require__(4083));
-function parse(commitMessage, branchName, mainBranch, lookup, getScore) {
+function parse(commitMessage, body, branchName, mainBranch, lookup, getScore) {
     var _a, _b, _c, _d, _e, _f, _g, _h;
     return __awaiter(this, void 0, void 0, function* () {
         const bumpFragment = commitMessage.match(/^Bumps .* from (?<from>v?\d[^ ]*) to (?<to>v?\d[^ ]*)\.$/m);
         const updateFragment = commitMessage.match(/^Update .* requirement from \S*? ?(?<from>v?\d[^ ]*) to \S*? ?(?<to>v?\d[^ ]*)$/m);
         const yamlFragment = commitMessage.match(/^-{3}\n(?<dependencies>[\S|\s]*?)\n^\.{3}\n/m);
+        const newMaintainer = !!body.match(/Maintainer changes/m);
         const lookupFn = lookup !== null && lookup !== void 0 ? lookup : (() => Promise.resolve({ alertState: '', ghsaId: '', cvss: 0 }));
         const scoreFn = getScore !== null && getScore !== void 0 ? getScore : (() => Promise.resolve(0));
         if ((yamlFragment === null || yamlFragment === void 0 ? void 0 : yamlFragment.groups) && branchName.startsWith('dependabot')) {
@@ -10104,7 +10108,7 @@ function parse(commitMessage, branchName, mainBranch, lookup, getScore) {
                     const lastVersion = index === 0 ? prev : '';
                     const nextVersion = index === 0 ? next : '';
                     const updateType = dependency['update-type'] || calculateUpdateType(lastVersion, nextVersion);
-                    return Object.assign({ dependencyName: dependency['dependency-name'], dependencyType: dependency['dependency-type'], updateType, directory: dirname, packageEcosystem: chunks[1], targetBranch: mainBranch, prevVersion: lastVersion, newVersion: nextVersion, compatScore: yield scoreFn(dependency['dependency-name'], lastVersion, nextVersion, chunks[1]) }, yield lookupFn(dependency['dependency-name'], lastVersion, dirname));
+                    return Object.assign({ dependencyName: dependency['dependency-name'], dependencyType: dependency['dependency-type'], updateType, directory: dirname, packageEcosystem: chunks[1], targetBranch: mainBranch, prevVersion: lastVersion, newVersion: nextVersion, compatScore: yield scoreFn(dependency['dependency-name'], lastVersion, nextVersion, chunks[1]), maintainerChanges: newMaintainer }, yield lookupFn(dependency['dependency-name'], lastVersion, dirname));
                 })));
             }
         }
@@ -10137,7 +10141,7 @@ exports.calculateUpdateType = calculateUpdateType;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getBranchNames = exports.parseNwo = void 0;
+exports.getBody = exports.getBranchNames = exports.parseNwo = void 0;
 function parseNwo(nwo) {
     const [owner, name] = nwo.split('/');
     if (!owner || !name) {
@@ -10151,6 +10155,11 @@ function getBranchNames(context) {
     return { headName: (pr === null || pr === void 0 ? void 0 : pr.head.ref) || '', baseName: pr === null || pr === void 0 ? void 0 : pr.base.ref };
 }
 exports.getBranchNames = getBranchNames;
+function getBody(context) {
+    const { pull_request: pr } = context.payload;
+    return (pr === null || pr === void 0 ? void 0 : pr.body) || '';
+}
+exports.getBody = getBody;
 
 
 /***/ }),
@@ -10357,6 +10366,7 @@ function run() {
             // Validate the job
             const commitMessage = yield verifiedCommits.getMessage(githubClient, github.context, core.getBooleanInput('skip-commit-verification'), core.getBooleanInput('skip-verification'));
             const branchNames = util.getBranchNames(github.context);
+            const body = util.getBody(github.context);
             let alertLookup;
             if (core.getInput('alert-lookup')) {
                 alertLookup = (name, version, directory) => verifiedCommits.getAlert(name, version, directory, githubClient, github.context);
@@ -10365,7 +10375,7 @@ function run() {
             if (commitMessage) {
                 // Parse metadata
                 core.info('Parsing Dependabot metadata');
-                const updatedDependencies = yield updateMetadata.parse(commitMessage, branchNames.headName, branchNames.baseName, alertLookup, scoreLookup);
+                const updatedDependencies = yield updateMetadata.parse(commitMessage, body, branchNames.headName, branchNames.baseName, alertLookup, scoreLookup);
                 if (updatedDependencies.length > 0) {
                     output.set(updatedDependencies);
                 }

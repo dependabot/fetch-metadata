@@ -82,6 +82,8 @@ Subsequent actions will have access to the following outputs:
   - If this PR is associated with a security alert and `alert-lookup` is `true`, this contains the CVSS value of that alert (otherwise it contains 0).
 - `steps.dependabot-metadata.outputs.compatibility-score`
   - If this PR has a known compatibility score and `compat-lookup` is `true`, this contains the compatibility score (otherwise it contains 0).
+- `steps.dependabot-metadata.outputs.maintainer-changes`
+  - Whether or not the the body of this PR contains the phrase "Maintainer changes" which is an indicator of whether or not any maintainers have changed.
 
 **Note:** By default, these outputs will only be populated if the target Pull Request was opened by Dependabot and contains
 **only** Dependabot-created commits. To override, see `skip-commit-verification` / `skip-verification`.
