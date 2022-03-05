@@ -3,7 +3,7 @@ import * as updateMetadata from './update_metadata'
 test('it returns an empty array for a blank string', async () => {
   const getAlert = async () => Promise.resolve({ alertState: 'DISMISSED', ghsaId: 'GHSA-III-BBB', cvss: 4.6 })
   const getScore = async () => Promise.resolve(43)
-  expect(updateMetadata.parse('', 'dependabot/nuget/coffee-rails', 'main', getAlert, getScore)).resolves.toEqual([])
+  expect(updateMetadata.parse('', '', 'dependabot/nuget/coffee-rails', 'main', getAlert, getScore)).resolves.toEqual([])
 })
 
 test('it returns an empty array for commit message with no dependabot yaml fragment', async () => {
@@ -16,7 +16,7 @@ test('it returns an empty array for commit message with no dependabot yaml fragm
 
   const getAlert = async () => Promise.resolve({ alertState: 'DISMISSED', ghsaId: 'GHSA-III-BBB', cvss: 4.6 })
   const getScore = async () => Promise.resolve(43)
-  expect(updateMetadata.parse(commitMessage, 'dependabot/nuget/coffee-rails', 'main', getAlert, getScore)).resolves.toEqual([])
+  expect(updateMetadata.parse(commitMessage, '', 'dependabot/nuget/coffee-rails', 'main', getAlert, getScore)).resolves.toEqual([])
 })
 
 test('it returns the updated dependency information when there is a yaml fragment', async () => {
@@ -34,10 +34,18 @@ test('it returns the updated dependency information when there is a yaml fragmen
     '...\n' +
     '\n' +
     'Signed-off-by: dependabot[bot] <support@github.com>'
+  const body =
+    'Bumps [coffee-rails](https://github.com/rails/coffee-rails) from 4.0.1 to 4.2.2.\n' +
+    '- [Release notes](https://github.com/rails/coffee-rails/releases)\n' +
+    '- [Changelog](https://github.com/rails/coffee-rails/blob/master/CHANGELOG.md)\n' +
+    '- [Commits](rails/coffee-rails@v4.0.1...v4.2.2)\n' +
+    '\n' +
+    'Maintainer changes:\n' +
+    'The maintainer changed!'
 
   const getAlert = async () => Promise.resolve({ alertState: 'DISMISSED', ghsaId: 'GHSA-III-BBB', cvss: 4.6 })
   const getScore = async () => Promise.resolve(43)
-  const updatedDependencies = await updateMetadata.parse(commitMessage, 'dependabot/nuget/coffee-rails', 'main', getAlert, getScore)
+  const updatedDependencies = await updateMetadata.parse(commitMessage, body, 'dependabot/nuget/coffee-rails', 'main', getAlert, getScore)
 
   expect(updatedDependencies).toHaveLength(1)
 
@@ -50,6 +58,7 @@ test('it returns the updated dependency information when there is a yaml fragmen
   expect(updatedDependencies[0].prevVersion).toEqual('4.0.1')
   expect(updatedDependencies[0].newVersion).toEqual('4.2.2')
   expect(updatedDependencies[0].compatScore).toEqual(43)
+  expect(updatedDependencies[0].maintChange).toEqual(true)
   expect(updatedDependencies[0].alertState).toEqual('DISMISSED')
   expect(updatedDependencies[0].ghsaId).toEqual('GHSA-III-BBB')
   expect(updatedDependencies[0].cvss).toEqual(4.6)
@@ -73,6 +82,13 @@ test('it supports multiple dependencies within a single fragment', async () => {
     '...\n' +
     '\n' +
     'Signed-off-by: dependabot[bot] <support@github.com>'
+  const body =
+    'Bumps [coffee-rails](https://github.com/rails/coffee-rails) from 4.0.1 to 4.2.2.\n' +
+    '- [Release notes](https://github.com/rails/coffee-rails/releases)\n' +
+    '- [Changelog](https://github.com/rails/coffee-rails/blob/master/CHANGELOG.md)\n' +
+    '- [Commits](rails/coffee-rails@v4.0.1...v4.2.2)\n' +
+    '\n' +
+    'Has the maintainer changed?'
 
   const getAlert = async (name: string) => {
     if (name === 'coffee-rails') {
@@ -90,7 +106,7 @@ test('it supports multiple dependencies within a single fragment', async () => {
     return Promise.resolve(0)
   }
 
-  const updatedDependencies = await updateMetadata.parse(commitMessage, 'dependabot/nuget/api/main/coffee-rails', 'main', getAlert, getScore)
+  const updatedDependencies = await updateMetadata.parse(commitMessage, body, 'dependabot/nuget/api/main/coffee-rails', 'main', getAlert, getScore)
 
   expect(updatedDependencies).toHaveLength(2)
 
@@ -103,6 +119,7 @@ test('it supports multiple dependencies within a single fragment', async () => {
   expect(updatedDependencies[0].prevVersion).toEqual('4.0.1')
   expect(updatedDependencies[0].newVersion).toEqual('4.2.2')
   expect(updatedDependencies[0].compatScore).toEqual(34)
+  expect(updatedDependencies[0].maintChange).toEqual(false)
   expect(updatedDependencies[0].alertState).toEqual('DISMISSED')
   expect(updatedDependencies[0].ghsaId).toEqual('GHSA-III-BBB')
   expect(updatedDependencies[0].cvss).toEqual(4.6)
@@ -115,6 +132,7 @@ test('it supports multiple dependencies within a single fragment', async () => {
   expect(updatedDependencies[1].targetBranch).toEqual('main')
   expect(updatedDependencies[1].prevVersion).toEqual('')
   expect(updatedDependencies[1].compatScore).toEqual(0)
+  expect(updatedDependencies[1].maintChange).toEqual(false)
   expect(updatedDependencies[1].alertState).toEqual('')
   expect(updatedDependencies[1].ghsaId).toEqual('')
   expect(updatedDependencies[1].cvss).toEqual(0)
@@ -142,7 +160,7 @@ test('it only returns information within the first fragment if there are multipl
     '\n' +
     'Signed-off-by: dependabot[bot] <support@github.com>'
 
-  const updatedDependencies = await updateMetadata.parse(commitMessage, 'dependabot|nuget|coffee-rails', 'main', undefined, undefined)
+  const updatedDependencies = await updateMetadata.parse(commitMessage, '', 'dependabot|nuget|coffee-rails', 'main', undefined, undefined)
 
   expect(updatedDependencies).toHaveLength(1)
 
@@ -155,6 +173,7 @@ test('it only returns information within the first fragment if there are multipl
   expect(updatedDependencies[0].prevVersion).toEqual('')
   expect(updatedDependencies[0].newVersion).toEqual('')
   expect(updatedDependencies[0].compatScore).toEqual(0)
+  expect(updatedDependencies[0].maintChange).toEqual(false)
   expect(updatedDependencies[0].alertState).toEqual('')
   expect(updatedDependencies[0].ghsaId).toEqual('')
   expect(updatedDependencies[0].cvss).toEqual(0)
@@ -177,7 +196,7 @@ test('it properly handles dependencies which contain slashes', async () => {
 
   const getAlert = async () => Promise.resolve({ alertState: '', ghsaId: '', cvss: 0 })
   const getScore = async () => Promise.resolve(0)
-  const updatedDependencies = await updateMetadata.parse(commitMessage, 'dependabot/nuget/api/rails/coffee', 'main', getAlert, getScore)
+  const updatedDependencies = await updateMetadata.parse(commitMessage, '', 'dependabot/nuget/api/rails/coffee', 'main', getAlert, getScore)
 
   expect(updatedDependencies).toHaveLength(1)
 
@@ -190,6 +209,7 @@ test('it properly handles dependencies which contain slashes', async () => {
   expect(updatedDependencies[0].prevVersion).toEqual('')
   expect(updatedDependencies[0].newVersion).toEqual('')
   expect(updatedDependencies[0].compatScore).toEqual(0)
+  expect(updatedDependencies[0].maintChange).toEqual(false)
   expect(updatedDependencies[0].alertState).toEqual('')
   expect(updatedDependencies[0].ghsaId).toEqual('')
   expect(updatedDependencies[0].cvss).toEqual(0)

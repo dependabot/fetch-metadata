@@ -110,6 +110,7 @@ test('it sets the updated dependency as an output for subsequent actions', async
         prevVersion: '4.0.1',
         newVersion: '4.2.2',
         compatScore: 0,
+        maintChange: false,
         alertState: '',
         ghsaId: '',
         cvss: 0
@@ -184,6 +185,7 @@ test('if there are multiple dependencies, it summarizes them', async () => {
         prevVersion: '4.0.1',
         newVersion: '4.2.2',
         compatScore: 34,
+        maintChange: false,
         alertState: '',
         ghsaId: '',
         cvss: 0
@@ -198,6 +200,7 @@ test('if there are multiple dependencies, it summarizes them', async () => {
         prevVersion: '',
         newVersion: '',
         compatScore: 34,
+        maintChange: false,
         alertState: '',
         ghsaId: '',
         cvss: 0

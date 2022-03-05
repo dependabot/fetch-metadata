@@ -53,7 +53,7 @@ async function check (args: any): Promise<void> {
       const branchNames = getBranchNames(newContext)
       const lookupFn = (name, version, directory) => getAlert(name, version, directory, githubClient, actionContext)
 
-      const updatedDependencies = await parse(commitMessage, branchNames.headName, branchNames.baseName, lookupFn, getCompatibility)
+      const updatedDependencies = await parse(commitMessage, pullRequest.body, branchNames.headName, branchNames.baseName, lookupFn, getCompatibility)
 
       if (updatedDependencies.length > 0) {
         console.log('Updated dependencies:')
