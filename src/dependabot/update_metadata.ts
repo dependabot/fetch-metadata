@@ -46,10 +46,11 @@ export async function parse (commitMessage: string, branchName: string, mainBran
         const dirname = `/${chunks.slice(2, -1 * (1 + (dependency['dependency-name'].match(/\//g) || []).length)).join(delim) || ''}`
         const lastVersion = index === 0 ? prev : ''
         const nextVersion = index === 0 ? next : ''
+        const updateType = dependency['update-type'] || calculateUpdateType(lastVersion, nextVersion)
         return {
           dependencyName: dependency['dependency-name'],
           dependencyType: dependency['dependency-type'],
-          updateType: dependency['update-type'],
+          updateType: updateType,
           directory: dirname,
           packageEcosystem: chunks[1],
           targetBranch: mainBranch,
@@ -63,4 +64,23 @@ export async function parse (commitMessage: string, branchName: string, mainBran
   }
 
   return Promise.resolve([])
+}
+
+export function calculateUpdateType (lastVersion: string, nextVersion: string) {
+  if (!lastVersion || !nextVersion || lastVersion === nextVersion) {
+    return ''
+  }
+
+  const lastParts = lastVersion.split('.')
+  const nextParts = nextVersion.split('.')
+
+  if (lastParts[0] !== nextParts[0]) {
+    return 'version-update:semver-major'
+  }
+
+  if (lastParts.length < 2 || nextParts.length < 2 || lastParts[1] !== nextParts[1]) {
+    return 'version-update:semver-minor'
+  }
+
+  return 'version-update:semver-patch'
 }
