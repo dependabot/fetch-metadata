@@ -9043,7 +9043,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.parse = void 0;
+exports.calculateUpdateType = exports.parse = void 0;
 const YAML = __importStar(__nccwpck_require__(4603));
 function parse(commitMessage, branchName, mainBranch, lookup, getScore) {
     var _a, _b, _c, _d;
@@ -9064,7 +9064,8 @@ function parse(commitMessage, branchName, mainBranch, lookup, getScore) {
                     const dirname = `/${chunks.slice(2, -1 * (1 + (dependency['dependency-name'].match(/\//g) || []).length)).join(delim) || ''}`;
                     const lastVersion = index === 0 ? prev : '';
                     const nextVersion = index === 0 ? next : '';
-                    return Object.assign({ dependencyName: dependency['dependency-name'], dependencyType: dependency['dependency-type'], updateType: dependency['update-type'], directory: dirname, packageEcosystem: chunks[1], targetBranch: mainBranch, prevVersion: lastVersion, newVersion: nextVersion, compatScore: yield scoreFn(dependency['dependency-name'], lastVersion, nextVersion, chunks[1]) }, yield lookupFn(dependency['dependency-name'], lastVersion, dirname));
+                    const updateType = dependency['update-type'] || calculateUpdateType(lastVersion, nextVersion);
+                    return Object.assign({ dependencyName: dependency['dependency-name'], dependencyType: dependency['dependency-type'], updateType: updateType, directory: dirname, packageEcosystem: chunks[1], targetBranch: mainBranch, prevVersion: lastVersion, newVersion: nextVersion, compatScore: yield scoreFn(dependency['dependency-name'], lastVersion, nextVersion, chunks[1]) }, yield lookupFn(dependency['dependency-name'], lastVersion, dirname));
                 })));
             }
         }
@@ -9072,6 +9073,21 @@ function parse(commitMessage, branchName, mainBranch, lookup, getScore) {
     });
 }
 exports.parse = parse;
+function calculateUpdateType(lastVersion, nextVersion) {
+    if (!lastVersion || !nextVersion || lastVersion === nextVersion) {
+        return '';
+    }
+    const lastParts = lastVersion.split('.');
+    const nextParts = nextVersion.split('.');
+    if (lastParts[0] !== nextParts[0]) {
+        return 'version-update:semver-major';
+    }
+    if (lastParts.length < 2 || nextParts.length < 2 || lastParts[1] !== nextParts[1]) {
+        return 'version-update:semver-minor';
+    }
+    return 'version-update:semver-patch';
+}
+exports.calculateUpdateType = calculateUpdateType;
 
 
 /***/ }),

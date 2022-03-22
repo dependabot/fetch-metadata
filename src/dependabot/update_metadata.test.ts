@@ -30,7 +30,6 @@ test('it returns the updated dependency information when there is a yaml fragmen
     'updated-dependencies:\n' +
     '- dependency-name: coffee-rails\n' +
     '  dependency-type: direct:production\n' +
-    '  update-type: version-update:semver-minor\n' +
     '...\n' +
     '\n' +
     'Signed-off-by: dependabot[bot] <support@github.com>'
@@ -193,4 +192,20 @@ test('it properly handles dependencies which contain slashes', async () => {
   expect(updatedDependencies[0].alertState).toEqual('')
   expect(updatedDependencies[0].ghsaId).toEqual('')
   expect(updatedDependencies[0].cvss).toEqual(0)
+})
+
+test('calculateUpdateType should handle all paths', () => {
+  expect(updateMetadata.calculateUpdateType('', '')).toEqual('')
+  expect(updateMetadata.calculateUpdateType('', '1')).toEqual('')
+  expect(updateMetadata.calculateUpdateType('1', '')).toEqual('')
+  expect(updateMetadata.calculateUpdateType('1.1.1', '1.1.1')).toEqual('')
+  expect(updateMetadata.calculateUpdateType('1', '2')).toEqual('version-update:semver-major')
+  expect(updateMetadata.calculateUpdateType('1.2.2', '2.2.2')).toEqual('version-update:semver-major')
+  expect(updateMetadata.calculateUpdateType('1.1', '1')).toEqual('version-update:semver-minor')
+  expect(updateMetadata.calculateUpdateType('1', '1.1')).toEqual('version-update:semver-minor')
+  expect(updateMetadata.calculateUpdateType('1.2.1', '1.1.1')).toEqual('version-update:semver-minor')
+  expect(updateMetadata.calculateUpdateType('1.1.1', '1.1')).toEqual('version-update:semver-patch')
+  expect(updateMetadata.calculateUpdateType('1.1', '1.1.1')).toEqual('version-update:semver-patch')
+  expect(updateMetadata.calculateUpdateType('1.1.1', '1.1.2')).toEqual('version-update:semver-patch')
+  expect(updateMetadata.calculateUpdateType('1.1.1.1', '1.1.1.2')).toEqual('version-update:semver-patch')
 })
