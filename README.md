@@ -26,6 +26,7 @@ jobs:
       with:
         alert-lookup: true
         compat-lookup: true
+        github-token: "${{ secrets.PAT_TOKEN }}"
 ```
 
 Supported inputs are:
@@ -33,6 +34,7 @@ Supported inputs are:
 - `github-token` (string)
   - The `GITHUB_TOKEN` secret
   - Defaults to `${{ github.token }}`
+  - Note: this must be set to a [personal access token (PAT)](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token) if you enable `alert-lookup` or `compat-token`.
 - `alert-lookup` (boolean)
   - If `true`, then populate the `alert-state`, `ghsa-id` and `cvss` outputs.
   - Defaults to `false`
@@ -104,7 +106,7 @@ jobs:
 ### Enabling auto-merge
 
 If you are using [the auto-merge feature](https://docs.github.com/en/github/collaborating-with-pull-requests/incorporating-changes-from-a-pull-request/automatically-merging-a-pull-request) on your repository,
-you can set up an action that will enable Dependabot PRs to merge once CI and other [branch protection rules](https://docs.github.com/en/github/administering-a-repository/defining-the-mergeability-of-pull-requests/managing-a-branch-protection-rule) are met.
+you can set up an action that will enable Dependabot PRs to merge once CI and other [branch protection rules](https://docs.github.com/en/github/administering-a-repository/defining-the-mergeability-of-pull-requests/managing-a-branch-protection-rule) are met.  (Note that you must use a [personal access token (PAT)](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token) when executing the merge instruction.)
 
 For example, if you want to automatically merge all patch updates to Rails:
 
@@ -127,7 +129,7 @@ jobs:
         run: gh pr merge --auto --merge "$PR_URL"
         env:
           PR_URL: ${{github.event.pull_request.html_url}}
-          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+          GITHUB_TOKEN: ${{secrets.PAT_TOKEN}}
 ```
 
 ### Labelling
