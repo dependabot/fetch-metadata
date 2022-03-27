@@ -37,6 +37,7 @@ Supported inputs are:
   - Note: this must be set to a [personal access token (PAT)](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token) if you enable `alert-lookup` or `compat-token`.
 - `alert-lookup` (boolean)
   - If `true`, then populate the `alert-state`, `ghsa-id` and `cvss` outputs.
+  - Note: your repository must have **both** [Dependabot alerts](https://docs.github.com/en/code-security/dependabot/dependabot-alerts/about-dependabot-alerts) and [Dependabot security updates](https://docs.github.com/en/code-security/dependabot/dependabot-security-updates/configuring-dependabot-security-updates#managing-dependabot-security-updates-for-your-repositories) in order to use this feature
   - Defaults to `false`
 - `compat-lookup` (boolean)
   - If `true`, then populate the `compatibility-score` output.
