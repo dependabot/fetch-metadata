@@ -134,11 +134,35 @@ const response = {
   }
 }
 
+const responseWithManifestFileAtRoot = {
+  data: {
+    repository: {
+      vulnerabilityAlerts: {
+        nodes: [
+          {
+            vulnerableManifestFilename: 'package.json',
+            vulnerableManifestPath: 'package.json',
+            vulnerableRequirements: '= 4.0.1',
+            state: 'DISMISSED',
+            securityVulnerability: { package: { name: 'coffee-script' } },
+            securityAdvisory: { cvss: { score: 4.5 }, ghsaId: 'FOO' }
+          }
+        ]
+      }
+    }
+  }
+}
+
 test('it returns the alert state if it matches all 3', async () => {
   nock('https://api.github.com').post('/graphql', query)
     .reply(200, response)
 
   expect(await getAlert('coffee-script', '4.0.1', '/wwwroot', mockGitHubClient, mockGitHubPullContext())).toEqual({ alertState: 'DISMISSED', cvss: 4.5, ghsaId: 'FOO' })
+
+  nock('https://api.github.com').post('/graphql', query)
+    .reply(200, responseWithManifestFileAtRoot)
+
+  expect(await getAlert('coffee-script', '4.0.1', '/', mockGitHubClient, mockGitHubPullContext())).toEqual({ alertState: 'DISMISSED', cvss: 4.5, ghsaId: 'FOO' })
 })
 
 test('it returns the alert state if it matches 2 and the version is blank', async () => {
@@ -146,6 +170,11 @@ test('it returns the alert state if it matches 2 and the version is blank', asyn
     .reply(200, response)
 
   expect(await getAlert('coffee-script', '', '/wwwroot', mockGitHubClient, mockGitHubPullContext())).toEqual({ alertState: 'DISMISSED', cvss: 4.5, ghsaId: 'FOO' })
+
+  nock('https://api.github.com').post('/graphql', query)
+    .reply(200, responseWithManifestFileAtRoot)
+
+  expect(await getAlert('coffee-script', '', '/', mockGitHubClient, mockGitHubPullContext())).toEqual({ alertState: 'DISMISSED', cvss: 4.5, ghsaId: 'FOO' })
 })
 
 test('it returns default if it does not match the version', async () => {
@@ -153,6 +182,11 @@ test('it returns default if it does not match the version', async () => {
     .reply(200, response)
 
   expect(await getAlert('coffee-script', '4.0.2', '/wwwroot', mockGitHubClient, mockGitHubPullContext())).toEqual({ alertState: '', cvss: 0, ghsaId: '' })
+
+  nock('https://api.github.com').post('/graphql', query)
+    .reply(200, responseWithManifestFileAtRoot)
+
+  expect(await getAlert('coffee-script', '4.0.2', '/', mockGitHubClient, mockGitHubPullContext())).toEqual({ alertState: '', cvss: 0, ghsaId: '' })
 })
 
 test('it returns default if it does not match the directory', async () => {
@@ -160,6 +194,11 @@ test('it returns default if it does not match the directory', async () => {
     .reply(200, response)
 
   expect(await getAlert('coffee-script', '4.0.1', '/', mockGitHubClient, mockGitHubPullContext())).toEqual({ alertState: '', cvss: 0, ghsaId: '' })
+
+  nock('https://api.github.com').post('/graphql', query)
+    .reply(200, responseWithManifestFileAtRoot)
+
+  expect(await getAlert('coffee-script', '4.0.1', '/wwwroot', mockGitHubClient, mockGitHubPullContext())).toEqual({ alertState: '', cvss: 0, ghsaId: '' })
 })
 
 test('it returns default if it does not match the name', async () => {
@@ -167,6 +206,11 @@ test('it returns default if it does not match the name', async () => {
     .reply(200, response)
 
   expect(await getAlert('coffee', '4.0.1', '/wwwroot', mockGitHubClient, mockGitHubPullContext())).toEqual({ alertState: '', cvss: 0, ghsaId: '' })
+
+  nock('https://api.github.com').post('/graphql', query)
+    .reply(200, responseWithManifestFileAtRoot)
+
+  expect(await getAlert('coffee', '4.0.1', '/', mockGitHubClient, mockGitHubPullContext())).toEqual({ alertState: '', cvss: 0, ghsaId: '' })
 })
 
 test('trimSlashes should only trim slashes from both ends', () => {
