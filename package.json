@@ -26,7 +26,7 @@
     "@types/jest": "^27.4.1",
     "@types/node": "^17.0.23",
     "@types/yargs": "^17.0.10",
-    "@typescript-eslint/eslint-plugin": "^5.12.1",
+    "@typescript-eslint/eslint-plugin": "^5.18.0",
     "@typescript-eslint/parser": "^5.17.0",
     "@vercel/ncc": "^0.33.3",
     "dotenv": "^16.0.0",
