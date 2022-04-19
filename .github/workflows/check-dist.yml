@@ -32,4 +32,4 @@ jobs:
         run: npm run build
 
       - name: Compare the expected and actual dist/ directories
-        run: script/check-diff
+        run: bin/check-diff
