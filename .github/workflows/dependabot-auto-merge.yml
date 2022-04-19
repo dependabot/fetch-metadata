@@ -9,7 +9,7 @@ jobs:
     if: ${{ github.event.pull_request.user.login == 'dependabot[bot]' }}
     steps:
       - name: Check out code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Fetch metadata
         id: metadata
@@ -19,4 +19,4 @@ jobs:
         run: gh pr merge --auto --merge "$PR_URL"
         env:
           PR_URL: ${{ github.event.pull_request.html_url }}
-          GITHUB_TOKEN: ${{ secrets.AUTOMERGE_PAT }}
+          GITHUB_TOKEN: ${{ secrets.DEPENDABOT_AUTOMATION_PAT }}

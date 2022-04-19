@@ -33,7 +33,7 @@ jobs:
       - uses: actions/checkout@v3
         with:
           ref: ${{ github.event.pull_request.head.ref }}
-          token: ${{ secrets.DEPENDABOT_AUTOBUILD }}
+          token: ${{ secrets.DEPENDABOT_AUTOMATION_PAT }}
 
       - name: Read .nvmrc
         id: nvm
