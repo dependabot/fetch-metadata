@@ -22,7 +22,7 @@ fi
 
 new_version=$(npm version "${patch_level}" --no-git-tag-version)
 git checkout -b "${new_version}"-release-notes
-sed -i.bak "s|dependabot/fetch-metadata@v[0-9.]*|dependabot/fetch-metadata@v${new_version}|g" "README.md"
+sed -i.bak "s|dependabot/fetch-metadata@v[0-9.]*|dependabot/fetch-metadata@${new_version}|g" "README.md"
 rm README.md.bak
 git add package.json package-lock.json README.md
 git commit -m "${new_version}"
