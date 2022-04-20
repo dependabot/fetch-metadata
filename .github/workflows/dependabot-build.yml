@@ -12,7 +12,7 @@ jobs:
     # We only want to check the metadata on pull_request events from Dependabot itself,
     # any subsequent pushes to the PR should just skip this step so we don't go into
     # a loop on commits created by the `build-dependabot-changes` job
-    if: ${{ github.actor == 'dependabot[bot]' }}
+    if: ${{ github.event.pull_request.user.login == 'dependabot[bot]' }}
     # Map the step output to a job output for subsequent jobs
     outputs:
       dependency-type: ${{ steps.dependabot-metadata.outputs.dependency-type }}
