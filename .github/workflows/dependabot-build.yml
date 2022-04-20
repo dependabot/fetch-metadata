@@ -32,7 +32,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [fetch-dependabot-metadata]
     # We only need to build the dist/ folder if the PR relates a production NPM dependency, otherwise we don't expect changes.
-    if: needs.fetch-dependabot-metadata.output.package-ecosystem == 'npm_and_yarn' && needs.fetch-dependabot-metadata.outputs.dependency-type == 'direct:production'
+    if: needs.fetch-dependabot-metadata.outputs.package-ecosystem == 'npm_and_yarn' && needs.fetch-dependabot-metadata.outputs.dependency-type == 'direct:production'
     steps:
       # Check out using a PAT so any pushed changes will trigger checkruns
       - uses: actions/checkout@v3
