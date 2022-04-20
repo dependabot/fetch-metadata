@@ -13,15 +13,20 @@ jobs:
     name: CI
     runs-on: ubuntu-latest
     steps:
-    - name: Check out code
-      uses: actions/checkout@v2
-
-    - name: Setup nodejs
-      uses: actions/setup-node@v2
+    - uses: actions/checkout@v3
       with:
-        node-version: '16'
+        ref: ${{ github.event.pull_request.head.sha }}
 
-    - name: Install dependencies
+    - name: Read .nvmrc
+      id: nvm
+      run: echo ::set-output name=NVMRC::$(cat .nvmrc)
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ steps.nvm.outputs.NVMRC }}
+
+    - name: Install npm dependencies
       run: npm ci
 
     - name: Run linter
@@ -29,6 +34,3 @@ jobs:
 
     - name: Run tests
       run: npm test
-
-    - name: Verify the build artefact is updated
-      run: npm run build && git diff --quiet
