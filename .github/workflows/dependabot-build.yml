@@ -18,6 +18,11 @@ jobs:
       dependency-type: ${{ steps.dependabot-metadata.outputs.dependency-type }}
       package-ecosystem: ${{ steps.dependabot-metadata.outputs.package-ecosystem }}
     steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Fetch dependabot metadata
         id: dependabot-metadata
         uses: ./
