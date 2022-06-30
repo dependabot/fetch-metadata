@@ -9065,7 +9065,7 @@ exports.getCompatibility = exports.trimSlashes = exports.getAlert = exports.getM
 const core = __importStar(__nccwpck_require__(2186));
 const https_1 = __importDefault(__nccwpck_require__(5687));
 const DEPENDABOT_LOGIN = 'dependabot[bot]';
-function getMessage(client, context) {
+function getMessage(client, context, skipCommitVerification = false) {
     var _a;
     return __awaiter(this, void 0, void 0, function* () {
         core.debug('Verifying the job is for an authentic Dependabot Pull Request');
@@ -9092,7 +9092,7 @@ function getMessage(client, context) {
             core.warning('It looks like this PR was not created by Dependabot, refusing to proceed.');
             return false;
         }
-        if (!((_a = commit.verification) === null || _a === void 0 ? void 0 : _a.verified)) {
+        if (!skipCommitVerification && !((_a = commit.verification) === null || _a === void 0 ? void 0 : _a.verified)) {
             // TODO: Promote to setFailed
             core.warning("Dependabot's commit signature is not verified, refusing to proceed.");
             return false;
@@ -9216,7 +9216,7 @@ function run() {
         try {
             const githubClient = github.getOctokit(token);
             // Validate the job
-            const commitMessage = yield verifiedCommits.getMessage(githubClient, github.context);
+            const commitMessage = yield verifiedCommits.getMessage(githubClient, github.context, core.getBooleanInput('skip-commit-verification'));
             const branchNames = util.getBranchNames(github.context);
             let alertLookup;
             if (core.getInput('alert-lookup')) {

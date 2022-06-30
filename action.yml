@@ -13,6 +13,10 @@ inputs:
   github-token:
     description: 'The GITHUB_TOKEN secret'
     default: ${{ github.token }}
+  skip-commit-verification:
+    type: boolean
+    description: 'If true, the action will not expect Dependabot commits to be verified. This should be set as 'true' in GHES environments.'
+    default: false
 outputs:
   dependency-names:
     description: 'A comma-separated list of all package names updated.'

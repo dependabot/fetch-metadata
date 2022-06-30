@@ -41,6 +41,9 @@ Supported inputs are:
 - `compat-lookup` (boolean)
   - If `true`, then populate the `compatibility-score` output.
   - Defaults to `false`
+- `skip-commit-verification` (boolean)
+  - If `true`, then the action will not expect the commits to have a verification signature. **It is required to set this to 'true' in GitHub Enterprise Server**
+  - Defaults to `false`
 
 Subsequent actions will have access to the following outputs:
 
