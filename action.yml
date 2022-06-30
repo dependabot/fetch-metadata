@@ -15,7 +15,7 @@ inputs:
     default: ${{ github.token }}
   skip-commit-verification:
     type: boolean
-    description: 'If true, the action will not expect Dependabot commits to be verified. This should be set as 'true' in GHES environments.'
+    description: 'If true, the action will not expect Dependabot commits to be verified. This should be set as `true` in GHES environments.'
     default: false
 outputs:
   dependency-names:
