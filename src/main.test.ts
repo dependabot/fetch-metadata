@@ -10,6 +10,7 @@ beforeEach(() => {
   jest.spyOn(core, 'info').mockImplementation(jest.fn())
   jest.spyOn(core, 'setFailed').mockImplementation(jest.fn())
   jest.spyOn(core, 'startGroup').mockImplementation(jest.fn())
+  jest.spyOn(core, 'getBooleanInput').mockReturnValue(false)
 })
 
 test('it early exits with an error if github-token is not set', async () => {
