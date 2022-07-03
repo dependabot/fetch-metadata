@@ -28,6 +28,7 @@ export interface scoreLookup {
 
 export async function parse (commitMessage: string, branchName: string, mainBranch: string, lookup?: alertLookup, getScore?: scoreLookup): Promise<Array<updatedDependency>> {
   const bumpFragment = commitMessage.match(/^Bumps .* from (?<from>\d[^ ]*) to (?<to>\d[^ ]*)\.$/m)
+  const updateFragment = commitMessage.match(/^Update .* requirement from \S*? ?(?<from>\d[^ ]*) to \S*? ?(?<to>\d[^ ]*)$/m)
   const yamlFragment = commitMessage.match(/^-{3}\n(?<dependencies>[\S|\s]*?)\n^\.{3}\n/m)
   const lookupFn = lookup ?? (() => Promise.resolve({ alertState: '', ghsaId: '', cvss: 0 }))
   const scoreFn = getScore ?? (() => Promise.resolve(0))
@@ -38,8 +39,8 @@ export async function parse (commitMessage: string, branchName: string, mainBran
     // Since we are on the `dependabot` branch (9 letters), the 10th letter in the branch name is the delimiter
     const delim = branchName[10]
     const chunks = branchName.split(delim)
-    const prev = bumpFragment?.groups?.from ?? ''
-    const next = bumpFragment?.groups?.to ?? ''
+    const prev = bumpFragment?.groups?.from ?? (updateFragment?.groups?.from ?? '')
+    const next = bumpFragment?.groups?.to ?? (updateFragment?.groups?.to ?? '')
 
     if (data['updated-dependencies']) {
       return await Promise.all(data['updated-dependencies'].map(async (dependency, index) => {
