@@ -19,15 +19,15 @@ export interface updatedDependency extends dependencyAlert {
 }
 
 export interface alertLookup {
-    (dependencyName: string, dependencyVersion: string, directory: string): Promise<dependencyAlert>;
+  (dependencyName: string, dependencyVersion: string, directory: string): Promise<dependencyAlert>;
 }
 
 export interface scoreLookup {
-    (dependencyName: string, previousVersion: string, newVersion: string, ecosystem: string): Promise<number>;
+  (dependencyName: string, previousVersion: string, newVersion: string, ecosystem: string): Promise<number>;
 }
 
-export async function parse (commitMessage: string, branchName: string, mainBranch: string, lookup?: alertLookup, getScore?: scoreLookup): Promise<Array<updatedDependency>> {
-  const bumpFragment = commitMessage.match(/^Bumps .* from (?<from>\d[^ ]*) to (?<to>\d[^ ]*)\.$/m)
+export async function parse(commitMessage: string, branchName: string, mainBranch: string, lookup?: alertLookup, getScore?: scoreLookup): Promise<Array<updatedDependency>> {
+  const bumpFragment = commitMessage.match(/^Bumps .* from (?<from>v?\d[^ ]*) to (?<to>v?\d[^ ]*)\.$/m)
   const yamlFragment = commitMessage.match(/^-{3}\n(?<dependencies>[\S|\s]*?)\n^\.{3}\n/m)
   const lookupFn = lookup ?? (() => Promise.resolve({ alertState: '', ghsaId: '', cvss: 0 }))
   const scoreFn = getScore ?? (() => Promise.resolve(0))
@@ -66,7 +66,7 @@ export async function parse (commitMessage: string, branchName: string, mainBran
   return Promise.resolve([])
 }
 
-export function calculateUpdateType (lastVersion: string, nextVersion: string) {
+export function calculateUpdateType(lastVersion: string, nextVersion: string) {
   if (!lastVersion || !nextVersion || lastVersion === nextVersion) {
     return ''
   }

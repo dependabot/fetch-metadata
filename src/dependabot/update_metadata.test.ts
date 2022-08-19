@@ -54,6 +54,41 @@ test('it returns the updated dependency information when there is a yaml fragmen
   expect(updatedDependencies[0].cvss).toEqual(4.6)
 })
 
+test('it returns the updated dependency information when there is a leading v in the commit message versions', async () => {
+  const commitMessage =
+    'Bumps [coffee-rails](https://github.com/rails/coffee-rails) from v4.0.1 to v4.2.2.\n' +
+    '- [Release notes](https://github.com/rails/coffee-rails/releases)\n' +
+    '- [Changelog](https://github.com/rails/coffee-rails/blob/master/CHANGELOG.md)\n' +
+    '- [Commits](rails/coffee-rails@v4.0.1...v4.2.2)\n' +
+    '\n' +
+    '---\n' +
+    'updated-dependencies:\n' +
+    '- dependency-name: coffee-rails\n' +
+    '  dependency-type: direct:production\n' +
+    '...\n' +
+    '\n' +
+    'Signed-off-by: dependabot[bot] <support@github.com>'
+
+  const getAlert = async () => Promise.resolve({ alertState: 'DISMISSED', ghsaId: 'GHSA-III-BBB', cvss: 4.6 })
+  const getScore = async () => Promise.resolve(43)
+  const updatedDependencies = await updateMetadata.parse(commitMessage, 'dependabot/nuget/coffee-rails', 'main', getAlert, getScore)
+
+  expect(updatedDependencies).toHaveLength(1)
+
+  expect(updatedDependencies[0].dependencyName).toEqual('coffee-rails')
+  expect(updatedDependencies[0].dependencyType).toEqual('direct:production')
+  expect(updatedDependencies[0].updateType).toEqual('version-update:semver-minor')
+  expect(updatedDependencies[0].directory).toEqual('/')
+  expect(updatedDependencies[0].packageEcosystem).toEqual('nuget')
+  expect(updatedDependencies[0].targetBranch).toEqual('main')
+  expect(updatedDependencies[0].prevVersion).toEqual('v4.0.1')
+  expect(updatedDependencies[0].newVersion).toEqual('v4.2.2')
+  expect(updatedDependencies[0].compatScore).toEqual(43)
+  expect(updatedDependencies[0].alertState).toEqual('DISMISSED')
+  expect(updatedDependencies[0].ghsaId).toEqual('GHSA-III-BBB')
+  expect(updatedDependencies[0].cvss).toEqual(4.6)
+})
+
 test('it supports multiple dependencies within a single fragment', async () => {
   const commitMessage =
     'Bumps [coffee-rails](https://github.com/rails/coffee-rails) from 4.0.1 to 4.2.2.\n' +
