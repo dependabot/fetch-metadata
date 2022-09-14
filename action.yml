@@ -45,5 +45,5 @@ outputs:
   compatibility-score:
     description: 'If this PR has a known compatibility score and `compat-lookup` is `true`, this contains the compatibility score (otherwise it contains 0).'
 runs:
-  using: 'node12'
+  using: 'node16'
   main: 'dist/index.js'
