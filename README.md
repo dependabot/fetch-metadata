@@ -1,6 +1,10 @@
-<p align="center">
-  <img src="https://s3.eu-west-2.amazonaws.com/dependabot-images/logo-with-name-horizontal.svg?v5" alt="Dependabot" width="336">
-</p>
+<h1 align="center">
+    <picture>
+        <source media="(prefers-color-scheme: light)" srcset="https://user-images.githubusercontent.com/7659/174594540-5e29e523-396a-465b-9a6e-6cab5b15a568.svg">
+        <source media="(prefers-color-scheme: dark)" srcset="https://user-images.githubusercontent.com/7659/174594559-0b3ddaa7-e75b-4f10-9dee-b51431a9fd4c.svg">
+        <img src="https://user-images.githubusercontent.com/7659/174594540-5e29e523-396a-465b-9a6e-6cab5b15a568.svg" alt="Dependabot" width="336">
+    </picture>
+</h1>
 
 # Fetch Metadata Action
 
@@ -98,7 +102,7 @@ jobs:
     steps:
       - name: Dependabot metadata
         id: dependabot-metadata
-        uses: dependabot/fetch-metadata@v1.3.3
+        uses: dependabot/fetch-metadata@v1
       - uses: actions/checkout@v3
       - name: Approve a PR if not already approved
         run: |
@@ -132,7 +136,7 @@ jobs:
     steps:
       - name: Dependabot metadata
         id: dependabot-metadata
-        uses: dependabot/fetch-metadata@v1.3.3
+        uses: dependabot/fetch-metadata@v1
       - name: Enable auto-merge for Dependabot PRs
         if: ${{contains(steps.dependabot-metadata.outputs.dependency-names, 'rails') && steps.dependabot-metadata.outputs.update-type == 'version-update:semver-patch'}}
         run: gh pr merge --auto --merge "$PR_URL"
@@ -161,7 +165,7 @@ jobs:
     steps:
       - name: Dependabot metadata
         id: dependabot-metadata
-        uses: dependabot/fetch-metadata@v1.3.3
+        uses: dependabot/fetch-metadata@v1
       - name: Add a label for all production dependencies
         if: ${{ steps.dependabot-metadata.outputs.dependency-type == 'direct:production' }}
         run: gh pr edit "$PR_URL" --add-label "production"

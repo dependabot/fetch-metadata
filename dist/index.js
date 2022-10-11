@@ -140,6 +140,7 @@ const file_command_1 = __nccwpck_require__(717);
 const utils_1 = __nccwpck_require__(5278);
 const os = __importStar(__nccwpck_require__(2037));
 const path = __importStar(__nccwpck_require__(1017));
+const uuid_1 = __nccwpck_require__(5840);
 const oidc_utils_1 = __nccwpck_require__(8041);
 /**
  * The code to exit an action
@@ -169,7 +170,14 @@ function exportVariable(name, val) {
     process.env[name] = convertedVal;
     const filePath = process.env['GITHUB_ENV'] || '';
     if (filePath) {
-        const delimiter = '_GitHubActionsFileCommandDelimeter_';
+        const delimiter = `ghadelimiter_${uuid_1.v4()}`;
+        // These should realistically never happen, but just in case someone finds a way to exploit uuid generation let's not allow keys or values that contain the delimiter.
+        if (name.includes(delimiter)) {
+            throw new Error(`Unexpected input: name should not contain the delimiter "${delimiter}"`);
+        }
+        if (convertedVal.includes(delimiter)) {
+            throw new Error(`Unexpected input: value should not contain the delimiter "${delimiter}"`);
+        }
         const commandValue = `${name}<<${delimiter}${os.EOL}${convertedVal}${os.EOL}${delimiter}`;
         file_command_1.issueCommand('ENV', commandValue);
     }
@@ -415,6 +423,23 @@ function getIDToken(aud) {
     });
 }
 exports.getIDToken = getIDToken;
+/**
+ * Summary exports
+ */
+var summary_1 = __nccwpck_require__(1327);
+Object.defineProperty(exports, "summary", ({ enumerable: true, get: function () { return summary_1.summary; } }));
+/**
+ * @deprecated use core.summary
+ */
+var summary_2 = __nccwpck_require__(1327);
+Object.defineProperty(exports, "markdownSummary", ({ enumerable: true, get: function () { return summary_2.markdownSummary; } }));
+/**
+ * Path exports
+ */
+var path_utils_1 = __nccwpck_require__(2981);
+Object.defineProperty(exports, "toPosixPath", ({ enumerable: true, get: function () { return path_utils_1.toPosixPath; } }));
+Object.defineProperty(exports, "toWin32Path", ({ enumerable: true, get: function () { return path_utils_1.toWin32Path; } }));
+Object.defineProperty(exports, "toPlatformPath", ({ enumerable: true, get: function () { return path_utils_1.toPlatformPath; } }));
 //# sourceMappingURL=core.js.map
 
 /***/ }),
@@ -484,8 +509,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.OidcClient = void 0;
-const http_client_1 = __nccwpck_require__(9925);
-const auth_1 = __nccwpck_require__(3702);
+const http_client_1 = __nccwpck_require__(6255);
+const auth_1 = __nccwpck_require__(5526);
 const core_1 = __nccwpck_require__(2186);
 class OidcClient {
     static createHttpClient(allowRetry = true, maxRetry = 10) {
@@ -549,6 +574,361 @@ class OidcClient {
 }
 exports.OidcClient = OidcClient;
 //# sourceMappingURL=oidc-utils.js.map
+
+/***/ }),
+
+/***/ 2981:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.toPlatformPath = exports.toWin32Path = exports.toPosixPath = void 0;
+const path = __importStar(__nccwpck_require__(1017));
+/**
+ * toPosixPath converts the given path to the posix form. On Windows, \\ will be
+ * replaced with /.
+ *
+ * @param pth. Path to transform.
+ * @return string Posix path.
+ */
+function toPosixPath(pth) {
+    return pth.replace(/[\\]/g, '/');
+}
+exports.toPosixPath = toPosixPath;
+/**
+ * toWin32Path converts the given path to the win32 form. On Linux, / will be
+ * replaced with \\.
+ *
+ * @param pth. Path to transform.
+ * @return string Win32 path.
+ */
+function toWin32Path(pth) {
+    return pth.replace(/[/]/g, '\\');
+}
+exports.toWin32Path = toWin32Path;
+/**
+ * toPlatformPath converts the given path to a platform-specific path. It does
+ * this by replacing instances of / and \ with the platform-specific path
+ * separator.
+ *
+ * @param pth The path to platformize.
+ * @return string The platform-specific path.
+ */
+function toPlatformPath(pth) {
+    return pth.replace(/[/\\]/g, path.sep);
+}
+exports.toPlatformPath = toPlatformPath;
+//# sourceMappingURL=path-utils.js.map
+
+/***/ }),
+
+/***/ 1327:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.summary = exports.markdownSummary = exports.SUMMARY_DOCS_URL = exports.SUMMARY_ENV_VAR = void 0;
+const os_1 = __nccwpck_require__(2037);
+const fs_1 = __nccwpck_require__(7147);
+const { access, appendFile, writeFile } = fs_1.promises;
+exports.SUMMARY_ENV_VAR = 'GITHUB_STEP_SUMMARY';
+exports.SUMMARY_DOCS_URL = 'https://docs.github.com/actions/using-workflows/workflow-commands-for-github-actions#adding-a-job-summary';
+class Summary {
+    constructor() {
+        this._buffer = '';
+    }
+    /**
+     * Finds the summary file path from the environment, rejects if env var is not found or file does not exist
+     * Also checks r/w permissions.
+     *
+     * @returns step summary file path
+     */
+    filePath() {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (this._filePath) {
+                return this._filePath;
+            }
+            const pathFromEnv = process.env[exports.SUMMARY_ENV_VAR];
+            if (!pathFromEnv) {
+                throw new Error(`Unable to find environment variable for $${exports.SUMMARY_ENV_VAR}. Check if your runtime environment supports job summaries.`);
+            }
+            try {
+                yield access(pathFromEnv, fs_1.constants.R_OK | fs_1.constants.W_OK);
+            }
+            catch (_a) {
+                throw new Error(`Unable to access summary file: '${pathFromEnv}'. Check if the file has correct read/write permissions.`);
+            }
+            this._filePath = pathFromEnv;
+            return this._filePath;
+        });
+    }
+    /**
+     * Wraps content in an HTML tag, adding any HTML attributes
+     *
+     * @param {string} tag HTML tag to wrap
+     * @param {string | null} content content within the tag
+     * @param {[attribute: string]: string} attrs key-value list of HTML attributes to add
+     *
+     * @returns {string} content wrapped in HTML element
+     */
+    wrap(tag, content, attrs = {}) {
+        const htmlAttrs = Object.entries(attrs)
+            .map(([key, value]) => ` ${key}="${value}"`)
+            .join('');
+        if (!content) {
+            return `<${tag}${htmlAttrs}>`;
+        }
+        return `<${tag}${htmlAttrs}>${content}</${tag}>`;
+    }
+    /**
+     * Writes text in the buffer to the summary buffer file and empties buffer. Will append by default.
+     *
+     * @param {SummaryWriteOptions} [options] (optional) options for write operation
+     *
+     * @returns {Promise<Summary>} summary instance
+     */
+    write(options) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const overwrite = !!(options === null || options === void 0 ? void 0 : options.overwrite);
+            const filePath = yield this.filePath();
+            const writeFunc = overwrite ? writeFile : appendFile;
+            yield writeFunc(filePath, this._buffer, { encoding: 'utf8' });
+            return this.emptyBuffer();
+        });
+    }
+    /**
+     * Clears the summary buffer and wipes the summary file
+     *
+     * @returns {Summary} summary instance
+     */
+    clear() {
+        return __awaiter(this, void 0, void 0, function* () {
+            return this.emptyBuffer().write({ overwrite: true });
+        });
+    }
+    /**
+     * Returns the current summary buffer as a string
+     *
+     * @returns {string} string of summary buffer
+     */
+    stringify() {
+        return this._buffer;
+    }
+    /**
+     * If the summary buffer is empty
+     *
+     * @returns {boolen} true if the buffer is empty
+     */
+    isEmptyBuffer() {
+        return this._buffer.length === 0;
+    }
+    /**
+     * Resets the summary buffer without writing to summary file
+     *
+     * @returns {Summary} summary instance
+     */
+    emptyBuffer() {
+        this._buffer = '';
+        return this;
+    }
+    /**
+     * Adds raw text to the summary buffer
+     *
+     * @param {string} text content to add
+     * @param {boolean} [addEOL=false] (optional) append an EOL to the raw text (default: false)
+     *
+     * @returns {Summary} summary instance
+     */
+    addRaw(text, addEOL = false) {
+        this._buffer += text;
+        return addEOL ? this.addEOL() : this;
+    }
+    /**
+     * Adds the operating system-specific end-of-line marker to the buffer
+     *
+     * @returns {Summary} summary instance
+     */
+    addEOL() {
+        return this.addRaw(os_1.EOL);
+    }
+    /**
+     * Adds an HTML codeblock to the summary buffer
+     *
+     * @param {string} code content to render within fenced code block
+     * @param {string} lang (optional) language to syntax highlight code
+     *
+     * @returns {Summary} summary instance
+     */
+    addCodeBlock(code, lang) {
+        const attrs = Object.assign({}, (lang && { lang }));
+        const element = this.wrap('pre', this.wrap('code', code), attrs);
+        return this.addRaw(element).addEOL();
+    }
+    /**
+     * Adds an HTML list to the summary buffer
+     *
+     * @param {string[]} items list of items to render
+     * @param {boolean} [ordered=false] (optional) if the rendered list should be ordered or not (default: false)
+     *
+     * @returns {Summary} summary instance
+     */
+    addList(items, ordered = false) {
+        const tag = ordered ? 'ol' : 'ul';
+        const listItems = items.map(item => this.wrap('li', item)).join('');
+        const element = this.wrap(tag, listItems);
+        return this.addRaw(element).addEOL();
+    }
+    /**
+     * Adds an HTML table to the summary buffer
+     *
+     * @param {SummaryTableCell[]} rows table rows
+     *
+     * @returns {Summary} summary instance
+     */
+    addTable(rows) {
+        const tableBody = rows
+            .map(row => {
+            const cells = row
+                .map(cell => {
+                if (typeof cell === 'string') {
+                    return this.wrap('td', cell);
+                }
+                const { header, data, colspan, rowspan } = cell;
+                const tag = header ? 'th' : 'td';
+                const attrs = Object.assign(Object.assign({}, (colspan && { colspan })), (rowspan && { rowspan }));
+                return this.wrap(tag, data, attrs);
+            })
+                .join('');
+            return this.wrap('tr', cells);
+        })
+            .join('');
+        const element = this.wrap('table', tableBody);
+        return this.addRaw(element).addEOL();
+    }
+    /**
+     * Adds a collapsable HTML details element to the summary buffer
+     *
+     * @param {string} label text for the closed state
+     * @param {string} content collapsable content
+     *
+     * @returns {Summary} summary instance
+     */
+    addDetails(label, content) {
+        const element = this.wrap('details', this.wrap('summary', label) + content);
+        return this.addRaw(element).addEOL();
+    }
+    /**
+     * Adds an HTML image tag to the summary buffer
+     *
+     * @param {string} src path to the image you to embed
+     * @param {string} alt text description of the image
+     * @param {SummaryImageOptions} options (optional) addition image attributes
+     *
+     * @returns {Summary} summary instance
+     */
+    addImage(src, alt, options) {
+        const { width, height } = options || {};
+        const attrs = Object.assign(Object.assign({}, (width && { width })), (height && { height }));
+        const element = this.wrap('img', null, Object.assign({ src, alt }, attrs));
+        return this.addRaw(element).addEOL();
+    }
+    /**
+     * Adds an HTML section heading element
+     *
+     * @param {string} text heading text
+     * @param {number | string} [level=1] (optional) the heading level, default: 1
+     *
+     * @returns {Summary} summary instance
+     */
+    addHeading(text, level) {
+        const tag = `h${level}`;
+        const allowedTag = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].includes(tag)
+            ? tag
+            : 'h1';
+        const element = this.wrap(allowedTag, text);
+        return this.addRaw(element).addEOL();
+    }
+    /**
+     * Adds an HTML thematic break (<hr>) to the summary buffer
+     *
+     * @returns {Summary} summary instance
+     */
+    addSeparator() {
+        const element = this.wrap('hr', null);
+        return this.addRaw(element).addEOL();
+    }
+    /**
+     * Adds an HTML line break (<br>) to the summary buffer
+     *
+     * @returns {Summary} summary instance
+     */
+    addBreak() {
+        const element = this.wrap('br', null);
+        return this.addRaw(element).addEOL();
+    }
+    /**
+     * Adds an HTML blockquote to the summary buffer
+     *
+     * @param {string} text quote text
+     * @param {string} cite (optional) citation url
+     *
+     * @returns {Summary} summary instance
+     */
+    addQuote(text, cite) {
+        const attrs = Object.assign({}, (cite && { cite }));
+        const element = this.wrap('blockquote', text, attrs);
+        return this.addRaw(element).addEOL();
+    }
+    /**
+     * Adds an HTML anchor tag to the summary buffer
+     *
+     * @param {string} text link text/content
+     * @param {string} href hyperlink
+     *
+     * @returns {Summary} summary instance
+     */
+    addLink(text, href) {
+        const element = this.wrap('a', text, { href });
+        return this.addRaw(element).addEOL();
+    }
+}
+const _summary = new Summary();
+/**
+ * @deprecated use `core.summary`
+ */
+exports.markdownSummary = _summary;
+exports.summary = _summary;
+//# sourceMappingURL=summary.js.map
 
 /***/ }),
 
@@ -729,7 +1109,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.getApiBaseUrl = exports.getProxyAgent = exports.getAuthString = void 0;
-const httpClient = __importStar(__nccwpck_require__(9925));
+const httpClient = __importStar(__nccwpck_require__(6255));
 function getAuthString(token, options) {
     if (!token && !options.auth) {
         throw new Error('Parameter token or opts.auth is required');
@@ -814,28 +1194,41 @@ exports.getOctokitOptions = getOctokitOptions;
 
 /***/ }),
 
-/***/ 3702:
-/***/ ((__unused_webpack_module, exports) => {
+/***/ 5526:
+/***/ (function(__unused_webpack_module, exports) {
 
 "use strict";
 
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.PersonalAccessTokenCredentialHandler = exports.BearerCredentialHandler = exports.BasicCredentialHandler = void 0;
 class BasicCredentialHandler {
     constructor(username, password) {
         this.username = username;
         this.password = password;
     }
     prepareRequest(options) {
-        options.headers['Authorization'] =
-            'Basic ' +
-                Buffer.from(this.username + ':' + this.password).toString('base64');
+        if (!options.headers) {
+            throw Error('The request has no headers');
+        }
+        options.headers['Authorization'] = `Basic ${Buffer.from(`${this.username}:${this.password}`).toString('base64')}`;
     }
     // This handler cannot handle 401
-    canHandleAuthentication(response) {
+    canHandleAuthentication() {
         return false;
     }
-    handleAuthentication(httpClient, requestInfo, objs) {
-        return null;
+    handleAuthentication() {
+        return __awaiter(this, void 0, void 0, function* () {
+            throw new Error('not implemented');
+        });
     }
 }
 exports.BasicCredentialHandler = BasicCredentialHandler;
@@ -846,14 +1239,19 @@ class BearerCredentialHandler {
     // currently implements pre-authorization
     // TODO: support preAuth = false where it hooks on 401
     prepareRequest(options) {
-        options.headers['Authorization'] = 'Bearer ' + this.token;
+        if (!options.headers) {
+            throw Error('The request has no headers');
+        }
+        options.headers['Authorization'] = `Bearer ${this.token}`;
     }
     // This handler cannot handle 401
-    canHandleAuthentication(response) {
+    canHandleAuthentication() {
         return false;
     }
-    handleAuthentication(httpClient, requestInfo, objs) {
-        return null;
+    handleAuthentication() {
+        return __awaiter(this, void 0, void 0, function* () {
+            throw new Error('not implemented');
+        });
     }
 }
 exports.BearerCredentialHandler = BearerCredentialHandler;
@@ -864,32 +1262,66 @@ class PersonalAccessTokenCredentialHandler {
     // currently implements pre-authorization
     // TODO: support preAuth = false where it hooks on 401
     prepareRequest(options) {
-        options.headers['Authorization'] =
-            'Basic ' + Buffer.from('PAT:' + this.token).toString('base64');
+        if (!options.headers) {
+            throw Error('The request has no headers');
+        }
+        options.headers['Authorization'] = `Basic ${Buffer.from(`PAT:${this.token}`).toString('base64')}`;
     }
     // This handler cannot handle 401
-    canHandleAuthentication(response) {
+    canHandleAuthentication() {
         return false;
     }
-    handleAuthentication(httpClient, requestInfo, objs) {
-        return null;
+    handleAuthentication() {
+        return __awaiter(this, void 0, void 0, function* () {
+            throw new Error('not implemented');
+        });
     }
 }
 exports.PersonalAccessTokenCredentialHandler = PersonalAccessTokenCredentialHandler;
-
+//# sourceMappingURL=auth.js.map
 
 /***/ }),
 
-/***/ 9925:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+/***/ 6255:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-const http = __nccwpck_require__(3685);
-const https = __nccwpck_require__(5687);
-const pm = __nccwpck_require__(6443);
-let tunnel;
+exports.HttpClient = exports.isHttps = exports.HttpClientResponse = exports.HttpClientError = exports.getProxyUrl = exports.MediaTypes = exports.Headers = exports.HttpCodes = void 0;
+const http = __importStar(__nccwpck_require__(3685));
+const https = __importStar(__nccwpck_require__(5687));
+const pm = __importStar(__nccwpck_require__(9835));
+const tunnel = __importStar(__nccwpck_require__(4294));
 var HttpCodes;
 (function (HttpCodes) {
     HttpCodes[HttpCodes["OK"] = 200] = "OK";
@@ -934,7 +1366,7 @@ var MediaTypes;
  * @param serverUrl  The server URL where the request will be sent. For example, https://api.github.com
  */
 function getProxyUrl(serverUrl) {
-    let proxyUrl = pm.getProxyUrl(new URL(serverUrl));
+    const proxyUrl = pm.getProxyUrl(new URL(serverUrl));
     return proxyUrl ? proxyUrl.href : '';
 }
 exports.getProxyUrl = getProxyUrl;
@@ -967,20 +1399,22 @@ class HttpClientResponse {
         this.message = message;
     }
     readBody() {
-        return new Promise(async (resolve, reject) => {
-            let output = Buffer.alloc(0);
-            this.message.on('data', (chunk) => {
-                output = Buffer.concat([output, chunk]);
-            });
-            this.message.on('end', () => {
-                resolve(output.toString());
-            });
+        return __awaiter(this, void 0, void 0, function* () {
+            return new Promise((resolve) => __awaiter(this, void 0, void 0, function* () {
+                let output = Buffer.alloc(0);
+                this.message.on('data', (chunk) => {
+                    output = Buffer.concat([output, chunk]);
+                });
+                this.message.on('end', () => {
+                    resolve(output.toString());
+                });
+            }));
         });
     }
 }
 exports.HttpClientResponse = HttpClientResponse;
 function isHttps(requestUrl) {
-    let parsedUrl = new URL(requestUrl);
+    const parsedUrl = new URL(requestUrl);
     return parsedUrl.protocol === 'https:';
 }
 exports.isHttps = isHttps;
@@ -1023,141 +1457,169 @@ class HttpClient {
         }
     }
     options(requestUrl, additionalHeaders) {
-        return this.request('OPTIONS', requestUrl, null, additionalHeaders || {});
+        return __awaiter(this, void 0, void 0, function* () {
+            return this.request('OPTIONS', requestUrl, null, additionalHeaders || {});
+        });
     }
     get(requestUrl, additionalHeaders) {
-        return this.request('GET', requestUrl, null, additionalHeaders || {});
+        return __awaiter(this, void 0, void 0, function* () {
+            return this.request('GET', requestUrl, null, additionalHeaders || {});
+        });
     }
     del(requestUrl, additionalHeaders) {
-        return this.request('DELETE', requestUrl, null, additionalHeaders || {});
+        return __awaiter(this, void 0, void 0, function* () {
+            return this.request('DELETE', requestUrl, null, additionalHeaders || {});
+        });
     }
     post(requestUrl, data, additionalHeaders) {
-        return this.request('POST', requestUrl, data, additionalHeaders || {});
+        return __awaiter(this, void 0, void 0, function* () {
+            return this.request('POST', requestUrl, data, additionalHeaders || {});
+        });
     }
     patch(requestUrl, data, additionalHeaders) {
-        return this.request('PATCH', requestUrl, data, additionalHeaders || {});
+        return __awaiter(this, void 0, void 0, function* () {
+            return this.request('PATCH', requestUrl, data, additionalHeaders || {});
+        });
     }
     put(requestUrl, data, additionalHeaders) {
-        return this.request('PUT', requestUrl, data, additionalHeaders || {});
+        return __awaiter(this, void 0, void 0, function* () {
+            return this.request('PUT', requestUrl, data, additionalHeaders || {});
+        });
     }
     head(requestUrl, additionalHeaders) {
-        return this.request('HEAD', requestUrl, null, additionalHeaders || {});
+        return __awaiter(this, void 0, void 0, function* () {
+            return this.request('HEAD', requestUrl, null, additionalHeaders || {});
+        });
     }
     sendStream(verb, requestUrl, stream, additionalHeaders) {
-        return this.request(verb, requestUrl, stream, additionalHeaders);
+        return __awaiter(this, void 0, void 0, function* () {
+            return this.request(verb, requestUrl, stream, additionalHeaders);
+        });
     }
     /**
      * Gets a typed object from an endpoint
      * Be aware that not found returns a null.  Other errors (4xx, 5xx) reject the promise
      */
-    async getJson(requestUrl, additionalHeaders = {}) {
-        additionalHeaders[Headers.Accept] = this._getExistingOrDefaultHeader(additionalHeaders, Headers.Accept, MediaTypes.ApplicationJson);
-        let res = await this.get(requestUrl, additionalHeaders);
-        return this._processResponse(res, this.requestOptions);
+    getJson(requestUrl, additionalHeaders = {}) {
+        return __awaiter(this, void 0, void 0, function* () {
+            additionalHeaders[Headers.Accept] = this._getExistingOrDefaultHeader(additionalHeaders, Headers.Accept, MediaTypes.ApplicationJson);
+            const res = yield this.get(requestUrl, additionalHeaders);
+            return this._processResponse(res, this.requestOptions);
+        });
     }
-    async postJson(requestUrl, obj, additionalHeaders = {}) {
-        let data = JSON.stringify(obj, null, 2);
-        additionalHeaders[Headers.Accept] = this._getExistingOrDefaultHeader(additionalHeaders, Headers.Accept, MediaTypes.ApplicationJson);
-        additionalHeaders[Headers.ContentType] = this._getExistingOrDefaultHeader(additionalHeaders, Headers.ContentType, MediaTypes.ApplicationJson);
-        let res = await this.post(requestUrl, data, additionalHeaders);
-        return this._processResponse(res, this.requestOptions);
+    postJson(requestUrl, obj, additionalHeaders = {}) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const data = JSON.stringify(obj, null, 2);
+            additionalHeaders[Headers.Accept] = this._getExistingOrDefaultHeader(additionalHeaders, Headers.Accept, MediaTypes.ApplicationJson);
+            additionalHeaders[Headers.ContentType] = this._getExistingOrDefaultHeader(additionalHeaders, Headers.ContentType, MediaTypes.ApplicationJson);
+            const res = yield this.post(requestUrl, data, additionalHeaders);
+            return this._processResponse(res, this.requestOptions);
+        });
     }
-    async putJson(requestUrl, obj, additionalHeaders = {}) {
-        let data = JSON.stringify(obj, null, 2);
-        additionalHeaders[Headers.Accept] = this._getExistingOrDefaultHeader(additionalHeaders, Headers.Accept, MediaTypes.ApplicationJson);
-        additionalHeaders[Headers.ContentType] = this._getExistingOrDefaultHeader(additionalHeaders, Headers.ContentType, MediaTypes.ApplicationJson);
-        let res = await this.put(requestUrl, data, additionalHeaders);
-        return this._processResponse(res, this.requestOptions);
+    putJson(requestUrl, obj, additionalHeaders = {}) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const data = JSON.stringify(obj, null, 2);
+            additionalHeaders[Headers.Accept] = this._getExistingOrDefaultHeader(additionalHeaders, Headers.Accept, MediaTypes.ApplicationJson);
+            additionalHeaders[Headers.ContentType] = this._getExistingOrDefaultHeader(additionalHeaders, Headers.ContentType, MediaTypes.ApplicationJson);
+            const res = yield this.put(requestUrl, data, additionalHeaders);
+            return this._processResponse(res, this.requestOptions);
+        });
     }
-    async patchJson(requestUrl, obj, additionalHeaders = {}) {
-        let data = JSON.stringify(obj, null, 2);
-        additionalHeaders[Headers.Accept] = this._getExistingOrDefaultHeader(additionalHeaders, Headers.Accept, MediaTypes.ApplicationJson);
-        additionalHeaders[Headers.ContentType] = this._getExistingOrDefaultHeader(additionalHeaders, Headers.ContentType, MediaTypes.ApplicationJson);
-        let res = await this.patch(requestUrl, data, additionalHeaders);
-        return this._processResponse(res, this.requestOptions);
+    patchJson(requestUrl, obj, additionalHeaders = {}) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const data = JSON.stringify(obj, null, 2);
+            additionalHeaders[Headers.Accept] = this._getExistingOrDefaultHeader(additionalHeaders, Headers.Accept, MediaTypes.ApplicationJson);
+            additionalHeaders[Headers.ContentType] = this._getExistingOrDefaultHeader(additionalHeaders, Headers.ContentType, MediaTypes.ApplicationJson);
+            const res = yield this.patch(requestUrl, data, additionalHeaders);
+            return this._processResponse(res, this.requestOptions);
+        });
     }
     /**
      * Makes a raw http request.
      * All other methods such as get, post, patch, and request ultimately call this.
      * Prefer get, del, post and patch
      */
-    async request(verb, requestUrl, data, headers) {
-        if (this._disposed) {
-            throw new Error('Client has already been disposed.');
-        }
-        let parsedUrl = new URL(requestUrl);
-        let info = this._prepareRequest(verb, parsedUrl, headers);
-        // Only perform retries on reads since writes may not be idempotent.
-        let maxTries = this._allowRetries && RetryableHttpVerbs.indexOf(verb) != -1
-            ? this._maxRetries + 1
-            : 1;
-        let numTries = 0;
-        let response;
-        while (numTries < maxTries) {
-            response = await this.requestRaw(info, data);
-            // Check if it's an authentication challenge
-            if (response &&
-                response.message &&
-                response.message.statusCode === HttpCodes.Unauthorized) {
-                let authenticationHandler;
-                for (let i = 0; i < this.handlers.length; i++) {
-                    if (this.handlers[i].canHandleAuthentication(response)) {
-                        authenticationHandler = this.handlers[i];
-                        break;
-                    }
-                }
-                if (authenticationHandler) {
-                    return authenticationHandler.handleAuthentication(this, info, data);
-                }
-                else {
-                    // We have received an unauthorized response but have no handlers to handle it.
-                    // Let the response return to the caller.
-                    return response;
-                }
+    request(verb, requestUrl, data, headers) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (this._disposed) {
+                throw new Error('Client has already been disposed.');
             }
-            let redirectsRemaining = this._maxRedirects;
-            while (HttpRedirectCodes.indexOf(response.message.statusCode) != -1 &&
-                this._allowRedirects &&
-                redirectsRemaining > 0) {
-                const redirectUrl = response.message.headers['location'];
-                if (!redirectUrl) {
-                    // if there's no location to redirect to, we won't
-                    break;
-                }
-                let parsedRedirectUrl = new URL(redirectUrl);
-                if (parsedUrl.protocol == 'https:' &&
-                    parsedUrl.protocol != parsedRedirectUrl.protocol &&
-                    !this._allowRedirectDowngrade) {
-                    throw new Error('Redirect from HTTPS to HTTP protocol. This downgrade is not allowed for security reasons. If you want to allow this behavior, set the allowRedirectDowngrade option to true.');
-                }
-                // we need to finish reading the response before reassigning response
-                // which will leak the open socket.
-                await response.readBody();
-                // strip authorization header if redirected to a different hostname
-                if (parsedRedirectUrl.hostname !== parsedUrl.hostname) {
-                    for (let header in headers) {
-                        // header names are case insensitive
-                        if (header.toLowerCase() === 'authorization') {
-                            delete headers[header];
+            const parsedUrl = new URL(requestUrl);
+            let info = this._prepareRequest(verb, parsedUrl, headers);
+            // Only perform retries on reads since writes may not be idempotent.
+            const maxTries = this._allowRetries && RetryableHttpVerbs.includes(verb)
+                ? this._maxRetries + 1
+                : 1;
+            let numTries = 0;
+            let response;
+            do {
+                response = yield this.requestRaw(info, data);
+                // Check if it's an authentication challenge
+                if (response &&
+                    response.message &&
+                    response.message.statusCode === HttpCodes.Unauthorized) {
+                    let authenticationHandler;
+                    for (const handler of this.handlers) {
+                        if (handler.canHandleAuthentication(response)) {
+                            authenticationHandler = handler;
+                            break;
                         }
                     }
+                    if (authenticationHandler) {
+                        return authenticationHandler.handleAuthentication(this, info, data);
+                    }
+                    else {
+                        // We have received an unauthorized response but have no handlers to handle it.
+                        // Let the response return to the caller.
+                        return response;
+                    }
                 }
-                // let's make the request with the new redirectUrl
-                info = this._prepareRequest(verb, parsedRedirectUrl, headers);
-                response = await this.requestRaw(info, data);
-                redirectsRemaining--;
-            }
-            if (HttpResponseRetryCodes.indexOf(response.message.statusCode) == -1) {
-                // If not a retry code, return immediately instead of retrying
-                return response;
-            }
-            numTries += 1;
-            if (numTries < maxTries) {
-                await response.readBody();
-                await this._performExponentialBackoff(numTries);
-            }
-        }
-        return response;
+                let redirectsRemaining = this._maxRedirects;
+                while (response.message.statusCode &&
+                    HttpRedirectCodes.includes(response.message.statusCode) &&
+                    this._allowRedirects &&
+                    redirectsRemaining > 0) {
+                    const redirectUrl = response.message.headers['location'];
+                    if (!redirectUrl) {
+                        // if there's no location to redirect to, we won't
+                        break;
+                    }
+                    const parsedRedirectUrl = new URL(redirectUrl);
+                    if (parsedUrl.protocol === 'https:' &&
+                        parsedUrl.protocol !== parsedRedirectUrl.protocol &&
+                        !this._allowRedirectDowngrade) {
+                        throw new Error('Redirect from HTTPS to HTTP protocol. This downgrade is not allowed for security reasons. If you want to allow this behavior, set the allowRedirectDowngrade option to true.');
+                    }
+                    // we need to finish reading the response before reassigning response
+                    // which will leak the open socket.
+                    yield response.readBody();
+                    // strip authorization header if redirected to a different hostname
+                    if (parsedRedirectUrl.hostname !== parsedUrl.hostname) {
+                        for (const header in headers) {
+                            // header names are case insensitive
+                            if (header.toLowerCase() === 'authorization') {
+                                delete headers[header];
+                            }
+                        }
+                    }
+                    // let's make the request with the new redirectUrl
+                    info = this._prepareRequest(verb, parsedRedirectUrl, headers);
+                    response = yield this.requestRaw(info, data);
+                    redirectsRemaining--;
+                }
+                if (!response.message.statusCode ||
+                    !HttpResponseRetryCodes.includes(response.message.statusCode)) {
+                    // If not a retry code, return immediately instead of retrying
+                    return response;
+                }
+                numTries += 1;
+                if (numTries < maxTries) {
+                    yield response.readBody();
+                    yield this._performExponentialBackoff(numTries);
+                }
+            } while (numTries < maxTries);
+            return response;
+        });
     }
     /**
      * Needs to be called if keepAlive is set to true in request options.
@@ -1174,14 +1636,22 @@ class HttpClient {
      * @param data
      */
     requestRaw(info, data) {
-        return new Promise((resolve, reject) => {
-            let callbackForResult = function (err, res) {
-                if (err) {
-                    reject(err);
+        return __awaiter(this, void 0, void 0, function* () {
+            return new Promise((resolve, reject) => {
+                function callbackForResult(err, res) {
+                    if (err) {
+                        reject(err);
+                    }
+                    else if (!res) {
+                        // If `err` is not passed, then `res` must be passed.
+                        reject(new Error('Unknown error'));
+                    }
+                    else {
+                        resolve(res);
+                    }
                 }
-                resolve(res);
-            };
-            this.requestRawWithCallback(info, data, callbackForResult);
+                this.requestRawWithCallback(info, data, callbackForResult);
+            });
         });
     }
     /**
@@ -1191,21 +1661,24 @@ class HttpClient {
      * @param onResult
      */
     requestRawWithCallback(info, data, onResult) {
-        let socket;
         if (typeof data === 'string') {
+            if (!info.options.headers) {
+                info.options.headers = {};
+            }
             info.options.headers['Content-Length'] = Buffer.byteLength(data, 'utf8');
         }
         let callbackCalled = false;
-        let handleResult = (err, res) => {
+        function handleResult(err, res) {
             if (!callbackCalled) {
                 callbackCalled = true;
                 onResult(err, res);
             }
-        };
-        let req = info.httpModule.request(info.options, (msg) => {
-            let res = new HttpClientResponse(msg);
-            handleResult(null, res);
+        }
+        const req = info.httpModule.request(info.options, (msg) => {
+            const res = new HttpClientResponse(msg);
+            handleResult(undefined, res);
         });
+        let socket;
         req.on('socket', sock => {
             socket = sock;
         });
@@ -1214,12 +1687,12 @@ class HttpClient {
             if (socket) {
                 socket.end();
             }
-            handleResult(new Error('Request timeout: ' + info.options.path), null);
+            handleResult(new Error(`Request timeout: ${info.options.path}`));
         });
         req.on('error', function (err) {
             // err has statusCode property
             // res should have headers
-            handleResult(err, null);
+            handleResult(err);
         });
         if (data && typeof data === 'string') {
             req.write(data, 'utf8');
@@ -1240,7 +1713,7 @@ class HttpClient {
      * @param serverUrl  The server URL where the request will be sent. For example, https://api.github.com
      */
     getAgent(serverUrl) {
-        let parsedUrl = new URL(serverUrl);
+        const parsedUrl = new URL(serverUrl);
         return this._getAgent(parsedUrl);
     }
     _prepareRequest(method, requestUrl, headers) {
@@ -1264,21 +1737,19 @@ class HttpClient {
         info.options.agent = this._getAgent(info.parsedUrl);
         // gives handlers an opportunity to participate
         if (this.handlers) {
-            this.handlers.forEach(handler => {
+            for (const handler of this.handlers) {
                 handler.prepareRequest(info.options);
-            });
+            }
         }
         return info;
     }
     _mergeHeaders(headers) {
-        const lowercaseKeys = obj => Object.keys(obj).reduce((c, k) => ((c[k.toLowerCase()] = obj[k]), c), {});
         if (this.requestOptions && this.requestOptions.headers) {
-            return Object.assign({}, lowercaseKeys(this.requestOptions.headers), lowercaseKeys(headers));
+            return Object.assign({}, lowercaseKeys(this.requestOptions.headers), lowercaseKeys(headers || {}));
         }
         return lowercaseKeys(headers || {});
     }
     _getExistingOrDefaultHeader(additionalHeaders, header, _default) {
-        const lowercaseKeys = obj => Object.keys(obj).reduce((c, k) => ((c[k.toLowerCase()] = obj[k]), c), {});
         let clientHeader;
         if (this.requestOptions && this.requestOptions.headers) {
             clientHeader = lowercaseKeys(this.requestOptions.headers)[header];
@@ -1287,8 +1758,8 @@ class HttpClient {
     }
     _getAgent(parsedUrl) {
         let agent;
-        let proxyUrl = pm.getProxyUrl(parsedUrl);
-        let useProxy = proxyUrl && proxyUrl.hostname;
+        const proxyUrl = pm.getProxyUrl(parsedUrl);
+        const useProxy = proxyUrl && proxyUrl.hostname;
         if (this._keepAlive && useProxy) {
             agent = this._proxyAgent;
         }
@@ -1296,29 +1767,22 @@ class HttpClient {
             agent = this._agent;
         }
         // if agent is already assigned use that agent.
-        if (!!agent) {
+        if (agent) {
             return agent;
         }
         const usingSsl = parsedUrl.protocol === 'https:';
         let maxSockets = 100;
-        if (!!this.requestOptions) {
+        if (this.requestOptions) {
             maxSockets = this.requestOptions.maxSockets || http.globalAgent.maxSockets;
         }
-        if (useProxy) {
-            // If using proxy, need tunnel
-            if (!tunnel) {
-                tunnel = __nccwpck_require__(4294);
-            }
+        // This is `useProxy` again, but we need to check `proxyURl` directly for TypeScripts's flow analysis.
+        if (proxyUrl && proxyUrl.hostname) {
             const agentOptions = {
-                maxSockets: maxSockets,
+                maxSockets,
                 keepAlive: this._keepAlive,
-                proxy: {
-                    ...((proxyUrl.username || proxyUrl.password) && {
-                        proxyAuth: `${proxyUrl.username}:${proxyUrl.password}`
-                    }),
-                    host: proxyUrl.hostname,
-                    port: proxyUrl.port
-                }
+                proxy: Object.assign(Object.assign({}, ((proxyUrl.username || proxyUrl.password) && {
+                    proxyAuth: `${proxyUrl.username}:${proxyUrl.password}`
+                })), { host: proxyUrl.hostname, port: proxyUrl.port })
             };
             let tunnelAgent;
             const overHttps = proxyUrl.protocol === 'https:';
@@ -1333,7 +1797,7 @@ class HttpClient {
         }
         // if reusing agent across request and tunneling agent isn't assigned create a new agent
         if (this._keepAlive && !agent) {
-            const options = { keepAlive: this._keepAlive, maxSockets: maxSockets };
+            const options = { keepAlive: this._keepAlive, maxSockets };
             agent = usingSsl ? new https.Agent(options) : new http.Agent(options);
             this._agent = agent;
         }
@@ -1352,109 +1816,117 @@ class HttpClient {
         return agent;
     }
     _performExponentialBackoff(retryNumber) {
-        retryNumber = Math.min(ExponentialBackoffCeiling, retryNumber);
-        const ms = ExponentialBackoffTimeSlice * Math.pow(2, retryNumber);
-        return new Promise(resolve => setTimeout(() => resolve(), ms));
+        return __awaiter(this, void 0, void 0, function* () {
+            retryNumber = Math.min(ExponentialBackoffCeiling, retryNumber);
+            const ms = ExponentialBackoffTimeSlice * Math.pow(2, retryNumber);
+            return new Promise(resolve => setTimeout(() => resolve(), ms));
+        });
     }
-    static dateTimeDeserializer(key, value) {
-        if (typeof value === 'string') {
-            let a = new Date(value);
-            if (!isNaN(a.valueOf())) {
-                return a;
-            }
-        }
-        return value;
-    }
-    async _processResponse(res, options) {
-        return new Promise(async (resolve, reject) => {
-            const statusCode = res.message.statusCode;
-            const response = {
-                statusCode: statusCode,
-                result: null,
-                headers: {}
-            };
-            // not found leads to null obj returned
-            if (statusCode == HttpCodes.NotFound) {
-                resolve(response);
-            }
-            let obj;
-            let contents;
-            // get the result from the body
-            try {
-                contents = await res.readBody();
-                if (contents && contents.length > 0) {
-                    if (options && options.deserializeDates) {
-                        obj = JSON.parse(contents, HttpClient.dateTimeDeserializer);
+    _processResponse(res, options) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
+                const statusCode = res.message.statusCode || 0;
+                const response = {
+                    statusCode,
+                    result: null,
+                    headers: {}
+                };
+                // not found leads to null obj returned
+                if (statusCode === HttpCodes.NotFound) {
+                    resolve(response);
+                }
+                // get the result from the body
+                function dateTimeDeserializer(key, value) {
+                    if (typeof value === 'string') {
+                        const a = new Date(value);
+                        if (!isNaN(a.valueOf())) {
+                            return a;
+                        }
+                    }
+                    return value;
+                }
+                let obj;
+                let contents;
+                try {
+                    contents = yield res.readBody();
+                    if (contents && contents.length > 0) {
+                        if (options && options.deserializeDates) {
+                            obj = JSON.parse(contents, dateTimeDeserializer);
+                        }
+                        else {
+                            obj = JSON.parse(contents);
+                        }
+                        response.result = obj;
+                    }
+                    response.headers = res.message.headers;
+                }
+                catch (err) {
+                    // Invalid resource (contents not json);  leaving result obj null
+                }
+                // note that 3xx redirects are handled by the http layer.
+                if (statusCode > 299) {
+                    let msg;
+                    // if exception/error in body, attempt to get better error
+                    if (obj && obj.message) {
+                        msg = obj.message;
+                    }
+                    else if (contents && contents.length > 0) {
+                        // it may be the case that the exception is in the body message as string
+                        msg = contents;
                     }
                     else {
-                        obj = JSON.parse(contents);
+                        msg = `Failed request: (${statusCode})`;
                     }
-                    response.result = obj;
-                }
-                response.headers = res.message.headers;
-            }
-            catch (err) {
-                // Invalid resource (contents not json);  leaving result obj null
-            }
-            // note that 3xx redirects are handled by the http layer.
-            if (statusCode > 299) {
-                let msg;
-                // if exception/error in body, attempt to get better error
-                if (obj && obj.message) {
-                    msg = obj.message;
-                }
-                else if (contents && contents.length > 0) {
-                    // it may be the case that the exception is in the body message as string
-                    msg = contents;
+                    const err = new HttpClientError(msg, statusCode);
+                    err.result = response.result;
+                    reject(err);
                 }
                 else {
-                    msg = 'Failed request: (' + statusCode + ')';
+                    resolve(response);
                 }
-                let err = new HttpClientError(msg, statusCode);
-                err.result = response.result;
-                reject(err);
-            }
-            else {
-                resolve(response);
-            }
+            }));
         });
     }
 }
 exports.HttpClient = HttpClient;
-
+const lowercaseKeys = (obj) => Object.keys(obj).reduce((c, k) => ((c[k.toLowerCase()] = obj[k]), c), {});
+//# sourceMappingURL=index.js.map
 
 /***/ }),
 
-/***/ 6443:
+/***/ 9835:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.checkBypass = exports.getProxyUrl = void 0;
 function getProxyUrl(reqUrl) {
-    let usingSsl = reqUrl.protocol === 'https:';
-    let proxyUrl;
+    const usingSsl = reqUrl.protocol === 'https:';
     if (checkBypass(reqUrl)) {
-        return proxyUrl;
+        return undefined;
     }
-    let proxyVar;
-    if (usingSsl) {
-        proxyVar = process.env['https_proxy'] || process.env['HTTPS_PROXY'];
+    const proxyVar = (() => {
+        if (usingSsl) {
+            return process.env['https_proxy'] || process.env['HTTPS_PROXY'];
+        }
+        else {
+            return process.env['http_proxy'] || process.env['HTTP_PROXY'];
+        }
+    })();
+    if (proxyVar) {
+        return new URL(proxyVar);
     }
     else {
-        proxyVar = process.env['http_proxy'] || process.env['HTTP_PROXY'];
+        return undefined;
     }
-    if (proxyVar) {
-        proxyUrl = new URL(proxyVar);
-    }
-    return proxyUrl;
 }
 exports.getProxyUrl = getProxyUrl;
 function checkBypass(reqUrl) {
     if (!reqUrl.hostname) {
         return false;
     }
-    let noProxy = process.env['no_proxy'] || process.env['NO_PROXY'] || '';
+    const noProxy = process.env['no_proxy'] || process.env['NO_PROXY'] || '';
     if (!noProxy) {
         return false;
     }
@@ -1470,12 +1942,12 @@ function checkBypass(reqUrl) {
         reqPort = 443;
     }
     // Format the request hostname and hostname with port
-    let upperReqHosts = [reqUrl.hostname.toUpperCase()];
+    const upperReqHosts = [reqUrl.hostname.toUpperCase()];
     if (typeof reqPort === 'number') {
         upperReqHosts.push(`${upperReqHosts[0]}:${reqPort}`);
     }
     // Compare request host against noproxy
-    for (let upperNoProxyItem of noProxy
+    for (const upperNoProxyItem of noProxy
         .split(',')
         .map(x => x.trim().toUpperCase())
         .filter(x => x)) {
@@ -1486,7 +1958,7 @@ function checkBypass(reqUrl) {
     return false;
 }
 exports.checkBypass = checkBypass;
-
+//# sourceMappingURL=proxy.js.map
 
 /***/ }),
 
@@ -8761,6 +9233,652 @@ exports.getUserAgent = getUserAgent;
 
 /***/ }),
 
+/***/ 5840:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+Object.defineProperty(exports, "v1", ({
+  enumerable: true,
+  get: function () {
+    return _v.default;
+  }
+}));
+Object.defineProperty(exports, "v3", ({
+  enumerable: true,
+  get: function () {
+    return _v2.default;
+  }
+}));
+Object.defineProperty(exports, "v4", ({
+  enumerable: true,
+  get: function () {
+    return _v3.default;
+  }
+}));
+Object.defineProperty(exports, "v5", ({
+  enumerable: true,
+  get: function () {
+    return _v4.default;
+  }
+}));
+Object.defineProperty(exports, "NIL", ({
+  enumerable: true,
+  get: function () {
+    return _nil.default;
+  }
+}));
+Object.defineProperty(exports, "version", ({
+  enumerable: true,
+  get: function () {
+    return _version.default;
+  }
+}));
+Object.defineProperty(exports, "validate", ({
+  enumerable: true,
+  get: function () {
+    return _validate.default;
+  }
+}));
+Object.defineProperty(exports, "stringify", ({
+  enumerable: true,
+  get: function () {
+    return _stringify.default;
+  }
+}));
+Object.defineProperty(exports, "parse", ({
+  enumerable: true,
+  get: function () {
+    return _parse.default;
+  }
+}));
+
+var _v = _interopRequireDefault(__nccwpck_require__(8628));
+
+var _v2 = _interopRequireDefault(__nccwpck_require__(6409));
+
+var _v3 = _interopRequireDefault(__nccwpck_require__(5122));
+
+var _v4 = _interopRequireDefault(__nccwpck_require__(9120));
+
+var _nil = _interopRequireDefault(__nccwpck_require__(5332));
+
+var _version = _interopRequireDefault(__nccwpck_require__(1595));
+
+var _validate = _interopRequireDefault(__nccwpck_require__(6900));
+
+var _stringify = _interopRequireDefault(__nccwpck_require__(8950));
+
+var _parse = _interopRequireDefault(__nccwpck_require__(2746));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+/***/ }),
+
+/***/ 4569:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+
+var _crypto = _interopRequireDefault(__nccwpck_require__(6113));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function md5(bytes) {
+  if (Array.isArray(bytes)) {
+    bytes = Buffer.from(bytes);
+  } else if (typeof bytes === 'string') {
+    bytes = Buffer.from(bytes, 'utf8');
+  }
+
+  return _crypto.default.createHash('md5').update(bytes).digest();
+}
+
+var _default = md5;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ 5332:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var _default = '00000000-0000-0000-0000-000000000000';
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ 2746:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+
+var _validate = _interopRequireDefault(__nccwpck_require__(6900));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function parse(uuid) {
+  if (!(0, _validate.default)(uuid)) {
+    throw TypeError('Invalid UUID');
+  }
+
+  let v;
+  const arr = new Uint8Array(16); // Parse ########-....-....-....-............
+
+  arr[0] = (v = parseInt(uuid.slice(0, 8), 16)) >>> 24;
+  arr[1] = v >>> 16 & 0xff;
+  arr[2] = v >>> 8 & 0xff;
+  arr[3] = v & 0xff; // Parse ........-####-....-....-............
+
+  arr[4] = (v = parseInt(uuid.slice(9, 13), 16)) >>> 8;
+  arr[5] = v & 0xff; // Parse ........-....-####-....-............
+
+  arr[6] = (v = parseInt(uuid.slice(14, 18), 16)) >>> 8;
+  arr[7] = v & 0xff; // Parse ........-....-....-####-............
+
+  arr[8] = (v = parseInt(uuid.slice(19, 23), 16)) >>> 8;
+  arr[9] = v & 0xff; // Parse ........-....-....-....-############
+  // (Use "/" to avoid 32-bit truncation when bit-shifting high-order bytes)
+
+  arr[10] = (v = parseInt(uuid.slice(24, 36), 16)) / 0x10000000000 & 0xff;
+  arr[11] = v / 0x100000000 & 0xff;
+  arr[12] = v >>> 24 & 0xff;
+  arr[13] = v >>> 16 & 0xff;
+  arr[14] = v >>> 8 & 0xff;
+  arr[15] = v & 0xff;
+  return arr;
+}
+
+var _default = parse;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ 814:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var _default = /^(?:[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|00000000-0000-0000-0000-000000000000)$/i;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ 807:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = rng;
+
+var _crypto = _interopRequireDefault(__nccwpck_require__(6113));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+const rnds8Pool = new Uint8Array(256); // # of random values to pre-allocate
+
+let poolPtr = rnds8Pool.length;
+
+function rng() {
+  if (poolPtr > rnds8Pool.length - 16) {
+    _crypto.default.randomFillSync(rnds8Pool);
+
+    poolPtr = 0;
+  }
+
+  return rnds8Pool.slice(poolPtr, poolPtr += 16);
+}
+
+/***/ }),
+
+/***/ 5274:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+
+var _crypto = _interopRequireDefault(__nccwpck_require__(6113));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function sha1(bytes) {
+  if (Array.isArray(bytes)) {
+    bytes = Buffer.from(bytes);
+  } else if (typeof bytes === 'string') {
+    bytes = Buffer.from(bytes, 'utf8');
+  }
+
+  return _crypto.default.createHash('sha1').update(bytes).digest();
+}
+
+var _default = sha1;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ 8950:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+
+var _validate = _interopRequireDefault(__nccwpck_require__(6900));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+/**
+ * Convert array of 16 byte values to UUID string format of the form:
+ * XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
+ */
+const byteToHex = [];
+
+for (let i = 0; i < 256; ++i) {
+  byteToHex.push((i + 0x100).toString(16).substr(1));
+}
+
+function stringify(arr, offset = 0) {
+  // Note: Be careful editing this code!  It's been tuned for performance
+  // and works in ways you may not expect. See https://github.com/uuidjs/uuid/pull/434
+  const uuid = (byteToHex[arr[offset + 0]] + byteToHex[arr[offset + 1]] + byteToHex[arr[offset + 2]] + byteToHex[arr[offset + 3]] + '-' + byteToHex[arr[offset + 4]] + byteToHex[arr[offset + 5]] + '-' + byteToHex[arr[offset + 6]] + byteToHex[arr[offset + 7]] + '-' + byteToHex[arr[offset + 8]] + byteToHex[arr[offset + 9]] + '-' + byteToHex[arr[offset + 10]] + byteToHex[arr[offset + 11]] + byteToHex[arr[offset + 12]] + byteToHex[arr[offset + 13]] + byteToHex[arr[offset + 14]] + byteToHex[arr[offset + 15]]).toLowerCase(); // Consistency check for valid UUID.  If this throws, it's likely due to one
+  // of the following:
+  // - One or more input array values don't map to a hex octet (leading to
+  // "undefined" in the uuid)
+  // - Invalid input values for the RFC `version` or `variant` fields
+
+  if (!(0, _validate.default)(uuid)) {
+    throw TypeError('Stringified UUID is invalid');
+  }
+
+  return uuid;
+}
+
+var _default = stringify;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ 8628:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+
+var _rng = _interopRequireDefault(__nccwpck_require__(807));
+
+var _stringify = _interopRequireDefault(__nccwpck_require__(8950));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+// **`v1()` - Generate time-based UUID**
+//
+// Inspired by https://github.com/LiosK/UUID.js
+// and http://docs.python.org/library/uuid.html
+let _nodeId;
+
+let _clockseq; // Previous uuid creation time
+
+
+let _lastMSecs = 0;
+let _lastNSecs = 0; // See https://github.com/uuidjs/uuid for API details
+
+function v1(options, buf, offset) {
+  let i = buf && offset || 0;
+  const b = buf || new Array(16);
+  options = options || {};
+  let node = options.node || _nodeId;
+  let clockseq = options.clockseq !== undefined ? options.clockseq : _clockseq; // node and clockseq need to be initialized to random values if they're not
+  // specified.  We do this lazily to minimize issues related to insufficient
+  // system entropy.  See #189
+
+  if (node == null || clockseq == null) {
+    const seedBytes = options.random || (options.rng || _rng.default)();
+
+    if (node == null) {
+      // Per 4.5, create and 48-bit node id, (47 random bits + multicast bit = 1)
+      node = _nodeId = [seedBytes[0] | 0x01, seedBytes[1], seedBytes[2], seedBytes[3], seedBytes[4], seedBytes[5]];
+    }
+
+    if (clockseq == null) {
+      // Per 4.2.2, randomize (14 bit) clockseq
+      clockseq = _clockseq = (seedBytes[6] << 8 | seedBytes[7]) & 0x3fff;
+    }
+  } // UUID timestamps are 100 nano-second units since the Gregorian epoch,
+  // (1582-10-15 00:00).  JSNumbers aren't precise enough for this, so
+  // time is handled internally as 'msecs' (integer milliseconds) and 'nsecs'
+  // (100-nanoseconds offset from msecs) since unix epoch, 1970-01-01 00:00.
+
+
+  let msecs = options.msecs !== undefined ? options.msecs : Date.now(); // Per 4.2.1.2, use count of uuid's generated during the current clock
+  // cycle to simulate higher resolution clock
+
+  let nsecs = options.nsecs !== undefined ? options.nsecs : _lastNSecs + 1; // Time since last uuid creation (in msecs)
+
+  const dt = msecs - _lastMSecs + (nsecs - _lastNSecs) / 10000; // Per 4.2.1.2, Bump clockseq on clock regression
+
+  if (dt < 0 && options.clockseq === undefined) {
+    clockseq = clockseq + 1 & 0x3fff;
+  } // Reset nsecs if clock regresses (new clockseq) or we've moved onto a new
+  // time interval
+
+
+  if ((dt < 0 || msecs > _lastMSecs) && options.nsecs === undefined) {
+    nsecs = 0;
+  } // Per 4.2.1.2 Throw error if too many uuids are requested
+
+
+  if (nsecs >= 10000) {
+    throw new Error("uuid.v1(): Can't create more than 10M uuids/sec");
+  }
+
+  _lastMSecs = msecs;
+  _lastNSecs = nsecs;
+  _clockseq = clockseq; // Per 4.1.4 - Convert from unix epoch to Gregorian epoch
+
+  msecs += 12219292800000; // `time_low`
+
+  const tl = ((msecs & 0xfffffff) * 10000 + nsecs) % 0x100000000;
+  b[i++] = tl >>> 24 & 0xff;
+  b[i++] = tl >>> 16 & 0xff;
+  b[i++] = tl >>> 8 & 0xff;
+  b[i++] = tl & 0xff; // `time_mid`
+
+  const tmh = msecs / 0x100000000 * 10000 & 0xfffffff;
+  b[i++] = tmh >>> 8 & 0xff;
+  b[i++] = tmh & 0xff; // `time_high_and_version`
+
+  b[i++] = tmh >>> 24 & 0xf | 0x10; // include version
+
+  b[i++] = tmh >>> 16 & 0xff; // `clock_seq_hi_and_reserved` (Per 4.2.2 - include variant)
+
+  b[i++] = clockseq >>> 8 | 0x80; // `clock_seq_low`
+
+  b[i++] = clockseq & 0xff; // `node`
+
+  for (let n = 0; n < 6; ++n) {
+    b[i + n] = node[n];
+  }
+
+  return buf || (0, _stringify.default)(b);
+}
+
+var _default = v1;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ 6409:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+
+var _v = _interopRequireDefault(__nccwpck_require__(5998));
+
+var _md = _interopRequireDefault(__nccwpck_require__(4569));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+const v3 = (0, _v.default)('v3', 0x30, _md.default);
+var _default = v3;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ 5998:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = _default;
+exports.URL = exports.DNS = void 0;
+
+var _stringify = _interopRequireDefault(__nccwpck_require__(8950));
+
+var _parse = _interopRequireDefault(__nccwpck_require__(2746));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function stringToBytes(str) {
+  str = unescape(encodeURIComponent(str)); // UTF8 escape
+
+  const bytes = [];
+
+  for (let i = 0; i < str.length; ++i) {
+    bytes.push(str.charCodeAt(i));
+  }
+
+  return bytes;
+}
+
+const DNS = '6ba7b810-9dad-11d1-80b4-00c04fd430c8';
+exports.DNS = DNS;
+const URL = '6ba7b811-9dad-11d1-80b4-00c04fd430c8';
+exports.URL = URL;
+
+function _default(name, version, hashfunc) {
+  function generateUUID(value, namespace, buf, offset) {
+    if (typeof value === 'string') {
+      value = stringToBytes(value);
+    }
+
+    if (typeof namespace === 'string') {
+      namespace = (0, _parse.default)(namespace);
+    }
+
+    if (namespace.length !== 16) {
+      throw TypeError('Namespace must be array-like (16 iterable integer values, 0-255)');
+    } // Compute hash of namespace and value, Per 4.3
+    // Future: Use spread syntax when supported on all platforms, e.g. `bytes =
+    // hashfunc([...namespace, ... value])`
+
+
+    let bytes = new Uint8Array(16 + value.length);
+    bytes.set(namespace);
+    bytes.set(value, namespace.length);
+    bytes = hashfunc(bytes);
+    bytes[6] = bytes[6] & 0x0f | version;
+    bytes[8] = bytes[8] & 0x3f | 0x80;
+
+    if (buf) {
+      offset = offset || 0;
+
+      for (let i = 0; i < 16; ++i) {
+        buf[offset + i] = bytes[i];
+      }
+
+      return buf;
+    }
+
+    return (0, _stringify.default)(bytes);
+  } // Function#name is not settable on some platforms (#270)
+
+
+  try {
+    generateUUID.name = name; // eslint-disable-next-line no-empty
+  } catch (err) {} // For CommonJS default export support
+
+
+  generateUUID.DNS = DNS;
+  generateUUID.URL = URL;
+  return generateUUID;
+}
+
+/***/ }),
+
+/***/ 5122:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+
+var _rng = _interopRequireDefault(__nccwpck_require__(807));
+
+var _stringify = _interopRequireDefault(__nccwpck_require__(8950));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function v4(options, buf, offset) {
+  options = options || {};
+
+  const rnds = options.random || (options.rng || _rng.default)(); // Per 4.4, set bits for version and `clock_seq_hi_and_reserved`
+
+
+  rnds[6] = rnds[6] & 0x0f | 0x40;
+  rnds[8] = rnds[8] & 0x3f | 0x80; // Copy bytes to buffer, if provided
+
+  if (buf) {
+    offset = offset || 0;
+
+    for (let i = 0; i < 16; ++i) {
+      buf[offset + i] = rnds[i];
+    }
+
+    return buf;
+  }
+
+  return (0, _stringify.default)(rnds);
+}
+
+var _default = v4;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ 9120:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+
+var _v = _interopRequireDefault(__nccwpck_require__(5998));
+
+var _sha = _interopRequireDefault(__nccwpck_require__(5274));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+const v5 = (0, _v.default)('v5', 0x50, _sha.default);
+var _default = v5;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ 6900:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+
+var _regex = _interopRequireDefault(__nccwpck_require__(814));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function validate(uuid) {
+  return typeof uuid === 'string' && _regex.default.test(uuid);
+}
+
+var _default = validate;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ 1595:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+
+var _validate = _interopRequireDefault(__nccwpck_require__(6900));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function version(uuid) {
+  if (!(0, _validate.default)(uuid)) {
+    throw TypeError('Invalid UUID');
+  }
+
+  return parseInt(uuid.substr(14, 1), 16);
+}
+
+var _default = version;
+exports["default"] = _default;
+
+/***/ }),
+
 /***/ 2940:
 /***/ ((module) => {
 
@@ -9274,6 +10392,14 @@ module.exports = require("assert");
 
 /***/ }),
 
+/***/ 6113:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("crypto");
+
+/***/ }),
+
 /***/ 2361:
 /***/ ((module) => {
 
@@ -9437,7 +10563,7 @@ function composeCollection(CN, ctx, token, tagToken, onError) {
         : new Scalar.Scalar(res);
     node.range = coll.range;
     node.tag = tagName;
-    if (tag === null || tag === void 0 ? void 0 : tag.format)
+    if (tag?.format)
         node.format = tag.format;
     return node;
 }
@@ -9459,7 +10585,7 @@ var resolveEnd = __nccwpck_require__(1250);
 var resolveProps = __nccwpck_require__(6985);
 
 function composeDoc(options, directives, { offset, start, value, end }, onError) {
-    const opts = Object.assign({ directives }, options);
+    const opts = Object.assign({ _directives: directives }, options);
     const doc = new Document.Document(undefined, opts);
     const ctx = {
         atRoot: true,
@@ -9469,7 +10595,7 @@ function composeDoc(options, directives, { offset, start, value, end }, onError)
     };
     const props = resolveProps.resolveProps(start, {
         indicator: 'doc-start',
-        next: value !== null && value !== void 0 ? value : end === null || end === void 0 ? void 0 : end[0],
+        next: value ?? end?.[0],
         offset,
         onError,
         startOnNewline: true
@@ -9623,12 +10749,12 @@ function composeScalar(ctx, token, tagToken, onError) {
             : ctx.schema[Node.SCALAR];
     let scalar;
     try {
-        const res = tag.resolve(value, msg => onError(tagToken !== null && tagToken !== void 0 ? tagToken : token, 'TAG_RESOLVE_FAILED', msg), ctx.options);
+        const res = tag.resolve(value, msg => onError(tagToken ?? token, 'TAG_RESOLVE_FAILED', msg), ctx.options);
         scalar = Node.isScalar(res) ? res : new Scalar.Scalar(res);
     }
     catch (error) {
         const msg = error instanceof Error ? error.message : String(error);
-        onError(tagToken !== null && tagToken !== void 0 ? tagToken : token, 'TAG_RESOLVE_FAILED', msg);
+        onError(tagToken ?? token, 'TAG_RESOLVE_FAILED', msg);
         scalar = new Scalar.Scalar(value);
     }
     scalar.range = range;
@@ -9644,7 +10770,6 @@ function composeScalar(ctx, token, tagToken, onError) {
     return scalar;
 }
 function findScalarTagByName(schema, value, tagName, tagToken, onError) {
-    var _a;
     if (tagName === '!')
         return schema[Node.SCALAR]; // non-specific tag
     const matchWithTest = [];
@@ -9657,7 +10782,7 @@ function findScalarTagByName(schema, value, tagName, tagToken, onError) {
         }
     }
     for (const tag of matchWithTest)
-        if ((_a = tag.test) === null || _a === void 0 ? void 0 : _a.test(value))
+        if (tag.test?.test(value))
             return tag;
     const kt = schema.knownTags[tagName];
     if (kt && !kt.collection) {
@@ -9670,10 +10795,10 @@ function findScalarTagByName(schema, value, tagName, tagToken, onError) {
     return schema[Node.SCALAR];
 }
 function findScalarTagByTest({ directives, schema }, value, token, onError) {
-    var _a;
-    const tag = schema.tags.find(tag => { var _a; return tag.default && ((_a = tag.test) === null || _a === void 0 ? void 0 : _a.test(value)); }) || schema[Node.SCALAR];
+    const tag = schema.tags.find(tag => tag.default && tag.test?.test(value)) || schema[Node.SCALAR];
     if (schema.compat) {
-        const compat = (_a = schema.compat.find(tag => { var _a; return tag.default && ((_a = tag.test) === null || _a === void 0 ? void 0 : _a.test(value)); })) !== null && _a !== void 0 ? _a : schema[Node.SCALAR];
+        const compat = schema.compat.find(tag => tag.default && tag.test?.test(value)) ??
+            schema[Node.SCALAR];
         if (tag.tag !== compat.tag) {
             const ts = directives.tagString(tag.tag);
             const cs = directives.tagString(compat.tag);
@@ -9711,7 +10836,6 @@ function getErrorPos(src) {
     return [offset, offset + (typeof source === 'string' ? source.length : 1)];
 }
 function parsePrelude(prelude) {
-    var _a;
     let comment = '';
     let atComment = false;
     let afterEmptyLine = false;
@@ -9726,7 +10850,7 @@ function parsePrelude(prelude) {
                 afterEmptyLine = false;
                 break;
             case '%':
-                if (((_a = prelude[i + 1]) === null || _a === void 0 ? void 0 : _a[0]) !== '#')
+                if (prelude[i + 1]?.[0] !== '#')
                     i += 1;
                 atComment = false;
                 break;
@@ -9903,7 +11027,7 @@ class Composer {
             this.doc = null;
         }
         else if (forceDoc) {
-            const opts = Object.assign({ directives: this.directives }, this.options);
+            const opts = Object.assign({ _directives: this.directives }, this.options);
             const doc = new Document.Document(undefined, opts);
             if (this.atDirectives)
                 this.onError(endOffset, 'MISSING_CHAR', 'Missing directives-end indicator line');
@@ -9934,7 +11058,6 @@ var utilMapIncludes = __nccwpck_require__(6899);
 
 const startColMsg = 'All mapping items must start at the same column';
 function resolveBlockMap({ composeNode, composeEmptyNode }, ctx, bm, onError) {
-    var _a;
     const map = new YAMLMap.YAMLMap(ctx.schema);
     if (ctx.atRoot)
         ctx.atRoot = false;
@@ -9944,7 +11067,7 @@ function resolveBlockMap({ composeNode, composeEmptyNode }, ctx, bm, onError) {
         // key properties
         const keyProps = resolveProps.resolveProps(start, {
             indicator: 'explicit-key-ind',
-            next: key !== null && key !== void 0 ? key : sep === null || sep === void 0 ? void 0 : sep[0],
+            next: key ?? sep?.[0],
             offset,
             onError,
             startOnNewline: true
@@ -9968,10 +11091,10 @@ function resolveBlockMap({ composeNode, composeEmptyNode }, ctx, bm, onError) {
                 continue;
             }
             if (keyProps.hasNewlineAfterProp || utilContainsNewline.containsNewline(key)) {
-                onError(key !== null && key !== void 0 ? key : start[start.length - 1], 'MULTILINE_IMPLICIT_KEY', 'Implicit keys need to be on a single line');
+                onError(key ?? start[start.length - 1], 'MULTILINE_IMPLICIT_KEY', 'Implicit keys need to be on a single line');
             }
         }
-        else if (((_a = keyProps.found) === null || _a === void 0 ? void 0 : _a.indent) !== bm.indent) {
+        else if (keyProps.found?.indent !== bm.indent) {
             onError(offset, 'BAD_INDENT', startColMsg);
         }
         // key value
@@ -9984,7 +11107,7 @@ function resolveBlockMap({ composeNode, composeEmptyNode }, ctx, bm, onError) {
         if (utilMapIncludes.mapIncludes(ctx, map.items, keyNode))
             onError(keyStart, 'DUPLICATE_KEY', 'Map keys must be unique');
         // value properties
-        const valueProps = resolveProps.resolveProps(sep !== null && sep !== void 0 ? sep : [], {
+        const valueProps = resolveProps.resolveProps(sep ?? [], {
             indicator: 'map-value-ind',
             next: value,
             offset: keyNode.range[2],
@@ -9994,7 +11117,7 @@ function resolveBlockMap({ composeNode, composeEmptyNode }, ctx, bm, onError) {
         offset = valueProps.end;
         if (valueProps.found) {
             if (implicitKey) {
-                if ((value === null || value === void 0 ? void 0 : value.type) === 'block-map' && !valueProps.hasNewline)
+                if (value?.type === 'block-map' && !valueProps.hasNewline)
                     onError(offset, 'BLOCK_AS_IMPLICIT_KEY', 'Nested mappings are not allowed in compact mappings');
                 if (ctx.options.strict &&
                     keyProps.start < valueProps.found.offset - 1024)
@@ -10227,7 +11350,7 @@ function splitLines(source) {
     const split = source.split(/\n( *)/);
     const first = split[0];
     const m = first.match(/^( *)/);
-    const line0 = (m === null || m === void 0 ? void 0 : m[1])
+    const line0 = m?.[1]
         ? [m[1], first.slice(m[1].length)]
         : ['', first];
     const lines = [line0];
@@ -10361,7 +11484,6 @@ var utilMapIncludes = __nccwpck_require__(6899);
 const blockMsg = 'Block collections are not allowed within flow collections';
 const isBlock = (token) => token && (token.type === 'block-map' || token.type === 'block-seq');
 function resolveFlowCollection({ composeNode, composeEmptyNode }, ctx, fc, onError) {
-    var _a;
     const isMap = fc.start.source === '{';
     const fcName = isMap ? 'flow map' : 'flow sequence';
     const coll = isMap
@@ -10378,7 +11500,7 @@ function resolveFlowCollection({ composeNode, composeEmptyNode }, ctx, fc, onErr
         const props = resolveProps.resolveProps(start, {
             flow: fcName,
             indicator: 'explicit-key-ind',
-            next: key !== null && key !== void 0 ? key : sep === null || sep === void 0 ? void 0 : sep[0],
+            next: key ?? sep?.[0],
             offset,
             onError,
             startOnNewline: false
@@ -10426,7 +11548,7 @@ function resolveFlowCollection({ composeNode, composeEmptyNode }, ctx, fc, onErr
                 if (prevItemComment) {
                     let prev = coll.items[coll.items.length - 1];
                     if (Node.isPair(prev))
-                        prev = (_a = prev.value) !== null && _a !== void 0 ? _a : prev.key;
+                        prev = prev.value ?? prev.key;
                     if (prev.comment)
                         prev.comment += '\n' + prevItemComment;
                     else
@@ -10456,7 +11578,7 @@ function resolveFlowCollection({ composeNode, composeEmptyNode }, ctx, fc, onErr
             if (isBlock(key))
                 onError(keyNode.range, 'BLOCK_IN_FLOW', blockMsg);
             // value properties
-            const valueProps = resolveProps.resolveProps(sep !== null && sep !== void 0 ? sep : [], {
+            const valueProps = resolveProps.resolveProps(sep ?? [], {
                 flow: fcName,
                 indicator: 'map-value-ind',
                 next: value,
@@ -10634,7 +11756,6 @@ function singleQuotedValue(source, onError) {
     return foldLines(source.slice(1, -1)).replace(/''/g, "'");
 }
 function foldLines(source) {
-    var _a;
     /**
      * The negative lookbehind here and in the `re` RegExp is to
      * prevent causing a polynomial search time in certain cases.
@@ -10674,7 +11795,7 @@ function foldLines(source) {
     const last = /[ \t]*(.*)/sy;
     last.lastIndex = pos;
     match = last.exec(source);
-    return res + sep + ((_a = match === null || match === void 0 ? void 0 : match[1]) !== null && _a !== void 0 ? _a : '');
+    return res + sep + (match?.[1] ?? '');
 }
 function doubleQuotedValue(source, onError) {
     let res = '';
@@ -10883,7 +12004,7 @@ function resolveProps(tokens, { flow, indicator, next, offset, onError, startOnN
                 if (anchor || tag)
                     onError(token, 'BAD_PROP_ORDER', `Anchors and tags must be after the ${token.source} indicator`);
                 if (found)
-                    onError(token, 'UNEXPECTED_TOKEN', `Unexpected ${token.source} in ${flow !== null && flow !== void 0 ? flow : 'collection'}`);
+                    onError(token, 'UNEXPECTED_TOKEN', `Unexpected ${token.source} in ${flow ?? 'collection'}`);
                 found = token;
                 atNewline = false;
                 hasSpace = false;
@@ -10923,7 +12044,7 @@ function resolveProps(tokens, { flow, indicator, next, offset, onError, startOnN
         anchor,
         tag,
         end,
-        start: start !== null && start !== void 0 ? start : end
+        start: start ?? end
     };
 }
 
@@ -10998,7 +12119,7 @@ function emptyScalarPosition(offset, before, pos) {
             // Technically, an empty scalar is immediately after the last non-empty
             // node, but it's more useful to place it after any whitespace.
             st = before[++i];
-            while ((st === null || st === void 0 ? void 0 : st.type) === 'space') {
+            while (st?.type === 'space') {
                 offset += st.source.length;
                 st = before[++i];
             }
@@ -11022,7 +12143,7 @@ exports.emptyScalarPosition = emptyScalarPosition;
 var utilContainsNewline = __nccwpck_require__(976);
 
 function flowIndentCheck(indent, fc, onError) {
-    if ((fc === null || fc === void 0 ? void 0 : fc.type) === 'flow-collection') {
+    if (fc?.type === 'flow-collection') {
         const end = fc.end[0];
         if (end.indent === indent &&
             (end.source === ']' || end.source === '}') &&
@@ -11114,8 +12235,8 @@ class Document {
         }, options);
         this.options = opt;
         let { version } = opt;
-        if (options === null || options === void 0 ? void 0 : options.directives) {
-            this.directives = options.directives.atDocument();
+        if (options?._directives) {
+            this.directives = options._directives.atDocument();
             if (this.directives.yaml.explicit)
                 version = this.directives.yaml.version;
         }
@@ -11197,13 +12318,13 @@ class Document {
             options = replacer;
             replacer = undefined;
         }
-        const { aliasDuplicateObjects, anchorPrefix, flow, keepUndefined, onTagObj, tag } = options !== null && options !== void 0 ? options : {};
+        const { aliasDuplicateObjects, anchorPrefix, flow, keepUndefined, onTagObj, tag } = options ?? {};
         const { onAnchor, setAnchors, sourceObjects } = anchors.createNodeAnchors(this, 
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         anchorPrefix || 'a');
         const ctx = {
-            aliasDuplicateObjects: aliasDuplicateObjects !== null && aliasDuplicateObjects !== void 0 ? aliasDuplicateObjects : true,
-            keepUndefined: keepUndefined !== null && keepUndefined !== void 0 ? keepUndefined : false,
+            aliasDuplicateObjects: aliasDuplicateObjects ?? true,
+            keepUndefined: keepUndefined ?? false,
             onAnchor,
             onTagObj,
             replacer: _replacer,
@@ -11367,7 +12488,7 @@ class Document {
             maxAliasCount: typeof maxAliasCount === 'number' ? maxAliasCount : 100,
             stringify: stringify.stringify
         };
-        const res = toJS.toJS(this.contents, jsonArg !== null && jsonArg !== void 0 ? jsonArg : '', ctx);
+        const res = toJS.toJS(this.contents, jsonArg ?? '', ctx);
         if (typeof onAnchor === 'function')
             for (const { count, res } of ctx.anchors.values())
                 onAnchor(res, count);
@@ -11568,24 +12689,22 @@ var Scalar = __nccwpck_require__(9338);
 
 const defaultTagPrefix = 'tag:yaml.org,2002:';
 function findTagObject(value, tagName, tags) {
-    var _a;
     if (tagName) {
         const match = tags.filter(t => t.tag === tagName);
-        const tagObj = (_a = match.find(t => !t.format)) !== null && _a !== void 0 ? _a : match[0];
+        const tagObj = match.find(t => !t.format) ?? match[0];
         if (!tagObj)
             throw new Error(`Tag ${tagName} not found`);
         return tagObj;
     }
-    return tags.find(t => { var _a; return ((_a = t.identify) === null || _a === void 0 ? void 0 : _a.call(t, value)) && !t.format; });
+    return tags.find(t => t.identify?.(value) && !t.format);
 }
 function createNode(value, tagName, ctx) {
-    var _a, _b;
     if (Node.isDocument(value))
         value = value.contents;
     if (Node.isNode(value))
         return value;
     if (Node.isPair(value)) {
-        const map = (_b = (_a = ctx.schema[Node.MAP]).createNode) === null || _b === void 0 ? void 0 : _b.call(_a, ctx.schema, null, ctx);
+        const map = ctx.schema[Node.MAP].createNode?.(ctx.schema, null, ctx);
         map.items.push(value);
         return map;
     }
@@ -11613,7 +12732,7 @@ function createNode(value, tagName, ctx) {
             sourceObjects.set(value, ref);
         }
     }
-    if (tagName === null || tagName === void 0 ? void 0 : tagName.startsWith('!!'))
+    if (tagName?.startsWith('!!'))
         tagName = defaultTagPrefix + tagName.slice(2);
     let tagObj = findTagObject(value, tagName, schema.tags);
     if (!tagObj) {
@@ -11638,7 +12757,7 @@ function createNode(value, tagName, ctx) {
         onTagObj(tagObj);
         delete ctx.onTagObj;
     }
-    const node = (tagObj === null || tagObj === void 0 ? void 0 : tagObj.createNode)
+    const node = tagObj?.createNode
         ? tagObj.createNode(ctx.schema, value, ctx)
         : new Scalar.Scalar(value);
     if (tagName)
@@ -12121,7 +13240,8 @@ function collectionFromPath(schema, path, value) {
         sourceObjects: new Map()
     });
 }
-// null, undefined, or an empty non-string iterable (e.g. [])
+// Type guard is intentionally a little wrong so as to be more useful,
+// as it does not cover untypable empty non-string iterables (e.g. []).
 const isEmptyPath = (path) => path == null ||
     (typeof path === 'object' && !!path[Symbol.iterator]().next().done);
 class Collection extends Node.NodeBase {
@@ -12352,11 +13472,11 @@ class Pair {
         return new Pair(key, value);
     }
     toJSON(_, ctx) {
-        const pair = (ctx === null || ctx === void 0 ? void 0 : ctx.mapAsMap) ? new Map() : {};
+        const pair = ctx?.mapAsMap ? new Map() : {};
         return addPairToJSMap.addPairToJSMap(ctx, pair, this);
     }
     toString(ctx, onComment, onChompKeep) {
-        return (ctx === null || ctx === void 0 ? void 0 : ctx.doc)
+        return ctx?.doc
             ? stringifyPair.stringifyPair(this, ctx, onComment, onChompKeep)
             : JSON.stringify(this);
     }
@@ -12384,7 +13504,7 @@ class Scalar extends Node.NodeBase {
         this.value = value;
     }
     toJSON(arg, ctx) {
-        return (ctx === null || ctx === void 0 ? void 0 : ctx.keep) ? this.value : toJS.toJS(this.value, arg, ctx);
+        return ctx?.keep ? this.value : toJS.toJS(this.value, arg, ctx);
     }
     toString() {
         return String(this.value);
@@ -12442,18 +13562,17 @@ class YAMLMap extends Collection.Collection {
      *   collection will throw. Otherwise, overwrites the previous value.
      */
     add(pair, overwrite) {
-        var _a;
         let _pair;
         if (Node.isPair(pair))
             _pair = pair;
         else if (!pair || typeof pair !== 'object' || !('key' in pair)) {
             // In TypeScript, this never happens.
-            _pair = new Pair.Pair(pair, pair.value);
+            _pair = new Pair.Pair(pair, pair?.value);
         }
         else
             _pair = new Pair.Pair(pair.key, pair.value);
         const prev = findPair(this.items, _pair.key);
-        const sortEntries = (_a = this.schema) === null || _a === void 0 ? void 0 : _a.sortMapEntries;
+        const sortEntries = this.schema?.sortMapEntries;
         if (prev) {
             if (!overwrite)
                 throw new Error(`Key ${_pair.key} already set`);
@@ -12483,8 +13602,8 @@ class YAMLMap extends Collection.Collection {
     }
     get(key, keepScalar) {
         const it = findPair(this.items, key);
-        const node = it === null || it === void 0 ? void 0 : it.value;
-        return !keepScalar && Node.isScalar(node) ? node.value : node;
+        const node = it?.value;
+        return (!keepScalar && Node.isScalar(node) ? node.value : node) ?? undefined;
     }
     has(key) {
         return !!findPair(this.items, key);
@@ -12498,8 +13617,8 @@ class YAMLMap extends Collection.Collection {
      * @returns Instance of Type, Map, or Object
      */
     toJSON(_, ctx, Type) {
-        const map = Type ? new Type() : (ctx === null || ctx === void 0 ? void 0 : ctx.mapAsMap) ? new Map() : {};
-        if (ctx === null || ctx === void 0 ? void 0 : ctx.onCreate)
+        const map = Type ? new Type() : ctx?.mapAsMap ? new Map() : {};
+        if (ctx?.onCreate)
             ctx.onCreate(map);
         for (const item of this.items)
             addPairToJSMap.addPairToJSMap(ctx, map, item);
@@ -12568,14 +13687,6 @@ class YAMLSeq extends Collection.Collection {
         const del = this.items.splice(idx, 1);
         return del.length > 0;
     }
-    /**
-     * Returns item at `key`, or `undefined` if not found. By default unwraps
-     * scalar values from their surrounding node; to disable set `keepScalar` to
-     * `true` (collections are always returned intact).
-     *
-     * `key` must contain a representation of an integer for this to succeed.
-     * It may be wrapped in a `Scalar`.
-     */
     get(key, keepScalar) {
         const idx = asItemIndex(key);
         if (typeof idx !== 'number')
@@ -12612,7 +13723,7 @@ class YAMLSeq extends Collection.Collection {
     }
     toJSON(_, ctx) {
         const seq = [];
-        if (ctx === null || ctx === void 0 ? void 0 : ctx.onCreate)
+        if (ctx?.onCreate)
             ctx.onCreate(seq);
         let i = 0;
         for (const item of this.items)
@@ -12659,7 +13770,7 @@ var toJS = __nccwpck_require__(2463);
 
 const MERGE_KEY = '<<';
 function addPairToJSMap(ctx, map, { key, value }) {
-    if ((ctx === null || ctx === void 0 ? void 0 : ctx.doc.schema.merge) && isMergeKey(key)) {
+    if (ctx?.doc.schema.merge && isMergeKey(key)) {
         value = Node.isAlias(value) ? value.resolve(ctx.doc) : value;
         if (Node.isSeq(value))
             for (const it of value.items)
@@ -12796,7 +13907,7 @@ function toJS(value, arg, ctx) {
             ctx.onCreate(res);
         return res;
     }
-    if (typeof value === 'bigint' && !(ctx === null || ctx === void 0 ? void 0 : ctx.keep))
+    if (typeof value === 'bigint' && !ctx?.keep)
         return Number(value);
     return value;
 }
@@ -12852,7 +13963,6 @@ function resolveAsScalar(token, strict = true, onError) {
  * @param context.type The preferred type of the scalar token. If undefined, the previous type of the `token` will be used, defaulting to `'PLAIN'`.
  */
 function createScalarToken(value, context) {
-    var _a;
     const { implicitKey = false, indent, inFlow = false, offset = -1, type = 'PLAIN' } = context;
     const source = stringifyString.stringifyString({ type, value }, {
         implicitKey,
@@ -12860,7 +13970,7 @@ function createScalarToken(value, context) {
         inFlow,
         options: { blockQuote: true, lineWidth: -1 }
     });
-    const end = (_a = context.end) !== null && _a !== void 0 ? _a : [
+    const end = context.end ?? [
         { type: 'newline', offset: -1, indent, source: '\n' }
     ];
     switch (source[0]) {
@@ -13159,7 +14269,7 @@ visit.REMOVE = REMOVE;
 visit.itemAtPath = (cst, path) => {
     let item = cst;
     for (const [field, index] of path) {
-        const tok = item === null || item === void 0 ? void 0 : item[field];
+        const tok = item?.[field];
         if (tok && 'items' in tok) {
             item = tok.items[index];
         }
@@ -13176,7 +14286,7 @@ visit.itemAtPath = (cst, path) => {
 visit.parentCollection = (cst, path) => {
     const parent = visit.itemAtPath(cst, path.slice(0, -1));
     const field = path[path.length - 1][0];
-    const coll = parent === null || parent === void 0 ? void 0 : parent[field];
+    const coll = parent?.[field];
     if (coll && 'items' in coll)
         return coll;
     throw new Error('Parent collection not found');
@@ -13487,13 +14597,12 @@ class Lexer {
      * @returns A generator of lexical tokens
      */
     *lex(source, incomplete = false) {
-        var _a;
         if (source) {
             this.buffer = this.buffer ? this.buffer + source : source;
             this.lineEndPos = null;
         }
         this.atEnd = !incomplete;
-        let next = (_a = this.next) !== null && _a !== void 0 ? _a : 'stream';
+        let next = this.next ?? 'stream';
         while (next && (incomplete || this.hasChars(1)))
             next = yield* this.parseNext(next);
     }
@@ -14121,7 +15230,7 @@ function findNonEmptyIndex(list) {
     return -1;
 }
 function isFlowToken(token) {
-    switch (token === null || token === void 0 ? void 0 : token.type) {
+    switch (token?.type) {
         case 'alias':
         case 'scalar':
         case 'single-quoted-scalar':
@@ -14133,13 +15242,12 @@ function isFlowToken(token) {
     }
 }
 function getPrevProps(parent) {
-    var _a;
     switch (parent.type) {
         case 'document':
             return parent.start;
         case 'block-map': {
             const it = parent.items[parent.items.length - 1];
-            return (_a = it.sep) !== null && _a !== void 0 ? _a : it.start;
+            return it.sep ?? it.start;
         }
         case 'block-seq':
             return parent.items[parent.items.length - 1].start;
@@ -14150,7 +15258,6 @@ function getPrevProps(parent) {
 }
 /** Note: May modify input array */
 function getFirstKeyStartProps(prev) {
-    var _a;
     if (prev.length === 0)
         return [];
     let i = prev.length;
@@ -14164,7 +15271,7 @@ function getFirstKeyStartProps(prev) {
                 break loop;
         }
     }
-    while (((_a = prev[++i]) === null || _a === void 0 ? void 0 : _a.type) === 'space') {
+    while (prev[++i]?.type === 'space') {
         /* loop */
     }
     return prev.splice(i, prev.length);
@@ -14368,7 +15475,7 @@ class Parser {
         return this.stack[this.stack.length - n];
     }
     *pop(error) {
-        const token = error !== null && error !== void 0 ? error : this.stack.pop();
+        const token = error ?? this.stack.pop();
         /* istanbul ignore if should not happen */
         if (!token) {
             const message = 'Tried to pop an empty stack';
@@ -14573,7 +15680,6 @@ class Parser {
         }
     }
     *blockMap(map) {
-        var _a;
         const it = map.items[map.items.length - 1];
         // it.sep is true-ish if pair already has key or : separator
         switch (this.type) {
@@ -14582,8 +15688,8 @@ class Parser {
                 if (it.value) {
                     const end = 'end' in it.value ? it.value.end : undefined;
                     const last = Array.isArray(end) ? end[end.length - 1] : undefined;
-                    if ((last === null || last === void 0 ? void 0 : last.type) === 'comment')
-                        end === null || end === void 0 ? void 0 : end.push(this.sourceToken);
+                    if (last?.type === 'comment')
+                        end?.push(this.sourceToken);
                     else
                         map.items.push({ start: [this.sourceToken] });
                 }
@@ -14605,7 +15711,7 @@ class Parser {
                 else {
                     if (this.atIndentedComment(it.start, map.indent)) {
                         const prev = map.items[map.items.length - 2];
-                        const end = (_a = prev === null || prev === void 0 ? void 0 : prev.value) === null || _a === void 0 ? void 0 : _a.end;
+                        const end = prev?.value?.end;
                         if (Array.isArray(end)) {
                             Array.prototype.push.apply(end, it.start);
                             end.push(this.sourceToken);
@@ -14782,15 +15888,14 @@ class Parser {
         yield* this.step();
     }
     *blockSequence(seq) {
-        var _a;
         const it = seq.items[seq.items.length - 1];
         switch (this.type) {
             case 'newline':
                 if (it.value) {
                     const end = 'end' in it.value ? it.value.end : undefined;
                     const last = Array.isArray(end) ? end[end.length - 1] : undefined;
-                    if ((last === null || last === void 0 ? void 0 : last.type) === 'comment')
-                        end === null || end === void 0 ? void 0 : end.push(this.sourceToken);
+                    if (last?.type === 'comment')
+                        end?.push(this.sourceToken);
                     else
                         seq.items.push({ start: [this.sourceToken] });
                 }
@@ -14804,7 +15909,7 @@ class Parser {
                 else {
                     if (this.atIndentedComment(it.start, seq.indent)) {
                         const prev = seq.items[seq.items.length - 2];
-                        const end = (_a = prev === null || prev === void 0 ? void 0 : prev.value) === null || _a === void 0 ? void 0 : _a.end;
+                        const end = prev?.value?.end;
                         if (Array.isArray(end)) {
                             Array.prototype.push.apply(end, it.start);
                             end.push(this.sourceToken);
@@ -15087,7 +16192,7 @@ function parseOptions(options) {
  */
 function parseAllDocuments(source, options = {}) {
     const { lineCounter, prettyErrors } = parseOptions(options);
-    const parser$1 = new parser.Parser(lineCounter === null || lineCounter === void 0 ? void 0 : lineCounter.addNewLine);
+    const parser$1 = new parser.Parser(lineCounter?.addNewLine);
     const composer$1 = new composer.Composer(options);
     const docs = Array.from(composer$1.compose(parser$1.parse(source)));
     if (prettyErrors && lineCounter)
@@ -15102,7 +16207,7 @@ function parseAllDocuments(source, options = {}) {
 /** Parse an input string into a single YAML.Document */
 function parseDocument(source, options = {}) {
     const { lineCounter, prettyErrors } = parseOptions(options);
-    const parser$1 = new parser.Parser(lineCounter === null || lineCounter === void 0 ? void 0 : lineCounter.addNewLine);
+    const parser$1 = new parser.Parser(lineCounter?.addNewLine);
     const composer$1 = new composer.Composer(options);
     // `doc` is always set by compose.end(true) at the very latest
     let doc = null;
@@ -15141,7 +16246,6 @@ function parse(src, reviver, options) {
     return doc.toJS(Object.assign({ reviver: _reviver }, options));
 }
 function stringify(value, replacer, options) {
-    var _a;
     let _replacer = null;
     if (typeof replacer === 'function' || Array.isArray(replacer)) {
         _replacer = replacer;
@@ -15156,7 +16260,7 @@ function stringify(value, replacer, options) {
         options = indent < 1 ? undefined : indent > 8 ? { indent: 8 } : { indent };
     }
     if (value === undefined) {
-        const { keepUndefined } = (_a = options !== null && options !== void 0 ? options : replacer) !== null && _a !== void 0 ? _a : {};
+        const { keepUndefined } = options ?? replacer ?? {};
         if (!keepUndefined)
             return undefined;
     }
@@ -15195,7 +16299,7 @@ class Schema {
         this.name = (typeof schema === 'string' && schema) || 'core';
         this.knownTags = resolveKnownTags ? tags.coreKnownTags : {};
         this.tags = tags.getTags(customTags, this.name);
-        this.toStringOptions = toStringDefaults !== null && toStringDefaults !== void 0 ? toStringDefaults : null;
+        this.toStringOptions = toStringDefaults ?? null;
         Object.defineProperty(this, Node.MAP, { value: map.map });
         Object.defineProperty(this, Node.SCALAR, { value: string.string });
         Object.defineProperty(this, Node.SEQ, { value: seq.seq });
@@ -15981,7 +17085,7 @@ class YAMLOMap extends YAMLSeq.YAMLSeq {
         if (!ctx)
             return super.toJSON(_);
         const map = new Map();
-        if (ctx === null || ctx === void 0 ? void 0 : ctx.onCreate)
+        if (ctx?.onCreate)
             ctx.onCreate(map);
         for (const pair of this.items) {
             let key, value;
@@ -16047,7 +17151,6 @@ var Scalar = __nccwpck_require__(9338);
 var YAMLSeq = __nccwpck_require__(5161);
 
 function resolvePairs(seq, onError) {
-    var _a;
     if (Node.isSeq(seq)) {
         for (let i = 0; i < seq.items.length; ++i) {
             let item = seq.items[i];
@@ -16062,7 +17165,7 @@ function resolvePairs(seq, onError) {
                         ? `${item.commentBefore}\n${pair.key.commentBefore}`
                         : item.commentBefore;
                 if (item.comment) {
-                    const cn = (_a = pair.value) !== null && _a !== void 0 ? _a : pair.key;
+                    const cn = pair.value ?? pair.key;
                     cn.comment = cn.comment
                         ? `${item.comment}\n${cn.comment}`
                         : item.comment;
@@ -16202,6 +17305,10 @@ class YAMLSet extends YAMLMap.YAMLMap {
         if (!prev)
             this.items.push(pair);
     }
+    /**
+     * If `keepPair` is `true`, returns the Pair matching `key`.
+     * Otherwise, returns the value of that Pair's key.
+     */
     get(key, keepPair) {
         const pair = YAMLMap.findPair(this.items, key);
         return !keepPair && Node.isPair(pair)
@@ -16582,26 +17689,25 @@ function createStringifyContext(doc, options) {
     };
 }
 function getTagObject(tags, item) {
-    var _a, _b, _c, _d;
     if (item.tag) {
         const match = tags.filter(t => t.tag === item.tag);
         if (match.length > 0)
-            return (_a = match.find(t => t.format === item.format)) !== null && _a !== void 0 ? _a : match[0];
+            return match.find(t => t.format === item.format) ?? match[0];
     }
     let tagObj = undefined;
     let obj;
     if (Node.isScalar(item)) {
         obj = item.value;
-        const match = tags.filter(t => { var _a; return (_a = t.identify) === null || _a === void 0 ? void 0 : _a.call(t, obj); });
+        const match = tags.filter(t => t.identify?.(obj));
         tagObj =
-            (_b = match.find(t => t.format === item.format)) !== null && _b !== void 0 ? _b : match.find(t => !t.format);
+            match.find(t => t.format === item.format) ?? match.find(t => !t.format);
     }
     else {
         obj = item;
         tagObj = tags.find(t => t.nodeClass && obj instanceof t.nodeClass);
     }
     if (!tagObj) {
-        const name = (_d = (_c = obj === null || obj === void 0 ? void 0 : obj.constructor) === null || _c === void 0 ? void 0 : _c.name) !== null && _d !== void 0 ? _d : typeof obj;
+        const name = obj?.constructor?.name ?? typeof obj;
         throw new Error(`Tag not resolved for ${name} value`);
     }
     return tagObj;
@@ -16622,13 +17728,12 @@ function stringifyProps(node, tagObj, { anchors: anchors$1, doc }) {
     return props.join(' ');
 }
 function stringify(item, ctx, onComment, onChompKeep) {
-    var _a, _b;
     if (Node.isPair(item))
         return item.toString(ctx, onComment, onChompKeep);
     if (Node.isAlias(item)) {
         if (ctx.doc.directives)
             return item.toString(ctx);
-        if ((_a = ctx.resolvedAliases) === null || _a === void 0 ? void 0 : _a.has(item)) {
+        if (ctx.resolvedAliases?.has(item)) {
             throw new TypeError(`Cannot stringify circular structure without alias nodes`);
         }
         else {
@@ -16647,7 +17752,7 @@ function stringify(item, ctx, onComment, onChompKeep) {
         tagObj = getTagObject(ctx.doc.schema.tags, node);
     const props = stringifyProps(node, tagObj, ctx);
     if (props.length > 0)
-        ctx.indentAtStart = ((_b = ctx.indentAtStart) !== null && _b !== void 0 ? _b : 0) + props.length + 1;
+        ctx.indentAtStart = (ctx.indentAtStart ?? 0) + props.length + 1;
     const str = typeof tagObj.stringify === 'function'
         ? tagObj.stringify(node, ctx, onComment, onChompKeep)
         : Node.isScalar(node)
@@ -16678,8 +17783,7 @@ var stringify = __nccwpck_require__(8409);
 var stringifyComment = __nccwpck_require__(5182);
 
 function stringifyCollection(collection, ctx, options) {
-    var _a;
-    const flow = (_a = ctx.inFlow) !== null && _a !== void 0 ? _a : collection.flow;
+    const flow = ctx.inFlow ?? collection.flow;
     const stringify = flow ? stringifyFlowCollection : stringifyBlockCollection;
     return stringify(collection, ctx, options);
 }
@@ -16871,7 +17975,6 @@ var stringify = __nccwpck_require__(8409);
 var stringifyComment = __nccwpck_require__(5182);
 
 function stringifyDocument(doc, options) {
-    var _a;
     const lines = [];
     let hasDirectives = options.directives === true;
     if (options.directives !== false && doc.directives) {
@@ -16923,7 +18026,7 @@ function stringifyDocument(doc, options) {
     else {
         lines.push(stringify.stringify(doc.contents, ctx));
     }
-    if ((_a = doc.directives) === null || _a === void 0 ? void 0 : _a.docEnd) {
+    if (doc.directives?.docEnd) {
         if (doc.comment) {
             const cs = commentString(doc.comment);
             if (cs.includes('\n')) {
@@ -17396,9 +18499,9 @@ function plainString(item, ctx, onComment, onChompKeep) {
     // booleans get parsed with those types in v1.2 (e.g. '42', 'true' & '0.9e-3'),
     // and others in v1.1.
     if (actualString) {
-        const test = (tag) => { var _a; return tag.default && tag.tag !== 'tag:yaml.org,2002:str' && ((_a = tag.test) === null || _a === void 0 ? void 0 : _a.test(str)); };
+        const test = (tag) => tag.default && tag.tag !== 'tag:yaml.org,2002:str' && tag.test?.test(str);
         const { compat, tags } = ctx.doc.schema;
-        if (tags.some(test) || (compat === null || compat === void 0 ? void 0 : compat.some(test)))
+        if (tags.some(test) || compat?.some(test))
             return quotedString(value, ctx);
     }
     return implicitKey
@@ -17653,19 +18756,18 @@ function initVisitor(visitor) {
     return visitor;
 }
 function callVisitor(key, node, visitor, path) {
-    var _a, _b, _c, _d, _e;
     if (typeof visitor === 'function')
         return visitor(key, node, path);
     if (Node.isMap(node))
-        return (_a = visitor.Map) === null || _a === void 0 ? void 0 : _a.call(visitor, key, node, path);
+        return visitor.Map?.(key, node, path);
     if (Node.isSeq(node))
-        return (_b = visitor.Seq) === null || _b === void 0 ? void 0 : _b.call(visitor, key, node, path);
+        return visitor.Seq?.(key, node, path);
     if (Node.isPair(node))
-        return (_c = visitor.Pair) === null || _c === void 0 ? void 0 : _c.call(visitor, key, node, path);
+        return visitor.Pair?.(key, node, path);
     if (Node.isScalar(node))
-        return (_d = visitor.Scalar) === null || _d === void 0 ? void 0 : _d.call(visitor, key, node, path);
+        return visitor.Scalar?.(key, node, path);
     if (Node.isAlias(node))
-        return (_e = visitor.Alias) === null || _e === void 0 ? void 0 : _e.call(visitor, key, node, path);
+        return visitor.Alias?.(key, node, path);
     return undefined;
 }
 function replaceNode(key, path, node) {
