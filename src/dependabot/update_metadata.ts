@@ -50,7 +50,7 @@ export async function parse (commitMessage: string, branchName: string, mainBran
         return {
           dependencyName: dependency['dependency-name'],
           dependencyType: dependency['dependency-type'],
-          updateType: updateType,
+          updateType,
           directory: dirname,
           packageEcosystem: chunks[1],
           targetBranch: mainBranch,
