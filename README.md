@@ -173,3 +173,37 @@ jobs:
           PR_URL: ${{github.event.pull_request.html_url}}
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
 ```
+
+## Notes for project maintainers:
+
+<details><summary>:book: Release guide</summary>
+<p>
+
+  - Dependabot PR's:
+    - We expect Dependabot PRs to be passing CI and have any changes to the `dist/` folder built for production dependencies
+    - Some development dependencies may fail the `dist/` check if they modify the Typescript compilation, these should be updated manually via `npm run build`. See the [`dependabot-build`](https://github.com/dependabot/fetch-metadata/blob/main/.github/workflows/dependabot-build.yml) action for details.
+  - Checkout and update `main` locally, then generate a patch release branch
+      ```bash
+      git checkout main
+      git pull
+      bin/bump-version -p patch
+      ```
+  - Generate a draft release for your new version
+      ```bash
+      gh release create v1.X.X --generate-notes --draft
+      > https://github.com/dependabot/fetch-metadata/releases/tag/untagged-XXXXXX
+      ```
+  - Create a PR linking to the release notes for review
+      ```bash
+      gh pr create --title "v1.X.X Release Notes" --body "https://github.com/dependabot/fetch-metadata/releases/tag/untagged-XXXXXX"
+      ```
+  - Get the PR reviewed, merge it and publish the release
+  - Update the `v1` tracking tag to point to the new version
+      ```bash
+      git pull
+      git checkout v1.x.x # Check out the release tag
+      git tag -f v1 # Force update the tracking tag
+      git push -f --tags
+      ```
+</p>
+</details>
