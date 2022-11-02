@@ -1,4 +1,4 @@
-name: Check dist
+name: Check for uncommitted files
 
 on:
   pull_request:
@@ -8,7 +8,8 @@ on:
       - 'releases/*'
 
 jobs:
-  verify-build: # make sure the checked in dist/ folder matches the output of a rebuild
+  # This ensures a rebuild matches the checked-in dist/ folder
+  verify-build:
     runs-on: ubuntu-latest
 
     steps:
@@ -28,4 +29,15 @@ jobs:
         run: npm run build
 
       - name: Compare the expected and actual dist/ directories
-        run: bin/check-diff
+        run: bin/check-build-output-in-dist-directory
+
+  check-for-uncommitted-files:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Compare the expected vs actual files
+        run: test -z "$(git status --porcelain)"
