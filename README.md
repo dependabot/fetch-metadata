@@ -14,7 +14,7 @@ Extract information about the dependencies being updated by a Dependabot-generat
 
 ## Usage instructions
 
-Create a workflow file that contains a step that uses: `dependabot/fetch-metadata@v1`, e.g.
+Create a workflow file that contains a step that uses: `dependabot/fetch-metadata@v1.3.5`, e.g.
 
 ```yaml
 -- .github/workflows/dependabot-prs.yml
@@ -26,7 +26,7 @@ jobs:
     steps:
     - name: Fetch Dependabot metadata
       id: dependabot-metadata
-      uses: dependabot/fetch-metadata@v1
+      uses: dependabot/fetch-metadata@v1.3.5
       with:
         alert-lookup: true
         compat-lookup: true
@@ -102,7 +102,7 @@ jobs:
     steps:
       - name: Dependabot metadata
         id: dependabot-metadata
-        uses: dependabot/fetch-metadata@v1
+        uses: dependabot/fetch-metadata@v1.3.5
       - uses: actions/checkout@v3
       - name: Approve a PR if not already approved
         run: |
@@ -136,7 +136,7 @@ jobs:
     steps:
       - name: Dependabot metadata
         id: dependabot-metadata
-        uses: dependabot/fetch-metadata@v1
+        uses: dependabot/fetch-metadata@v1.3.5
       - name: Enable auto-merge for Dependabot PRs
         if: ${{contains(steps.dependabot-metadata.outputs.dependency-names, 'rails') && steps.dependabot-metadata.outputs.update-type == 'version-update:semver-patch'}}
         run: gh pr merge --auto --merge "$PR_URL"
@@ -165,7 +165,7 @@ jobs:
     steps:
       - name: Dependabot metadata
         id: dependabot-metadata
-        uses: dependabot/fetch-metadata@v1
+        uses: dependabot/fetch-metadata@v1.3.5
       - name: Add a label for all production dependencies
         if: ${{ steps.dependabot-metadata.outputs.dependency-type == 'direct:production' }}
         run: gh pr edit "$PR_URL" --add-label "production"
