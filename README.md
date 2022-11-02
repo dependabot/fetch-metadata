@@ -200,7 +200,7 @@ jobs:
   - Get the PR reviewed, merge it and publish the release
   - Update the `v1` tracking tag to point to the new version
       ```bash
-      git pull
+      git fetch --all --tags
       git checkout v1.x.x # Check out the release tag
       git tag -f v1 # Force update the tracking tag
       git push -f --tags
