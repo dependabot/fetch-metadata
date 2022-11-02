@@ -181,7 +181,7 @@ jobs:
 
   - Dependabot PR's:
     - We expect Dependabot PRs to be passing CI and have any changes to the `dist/` folder built for production dependencies
-    - Some development dependencies may fail the `dist/` check if they modify the Typescript compilation, these should be updated manually
+    - Some development dependencies may fail the `dist/` check if they modify the Typescript compilation, these should be updated manually via `npm run build`. See the [`dependabot-build`](https://github.com/dependabot/fetch-metadata/blob/main/.github/workflows/dependabot-build.yml) action for details.
   - Checkout and update `main` locally, then generate a patch release branch
       ```bash
       git checkout main
