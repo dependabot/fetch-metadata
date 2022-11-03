@@ -197,7 +197,9 @@ jobs:
       ```bash
       gh pr create --title "v1.X.X Release Notes" --body "https://github.com/dependabot/fetch-metadata/releases/tag/untagged-XXXXXX"
       ```
-  - Get the PR reviewed, merge it and publish the release
+  - Copy the release notes from the draft release to the PR description. This is optional, but looks much nicer than a bare URL.
+  - Merge the PR after getting it reviewed
+  - Publish the draft release found at https://github.com/dependabot/fetch-metadata/releases/tag/untagged-XXXXXX
   - Update the `v1` tracking tag to point to the new version
       ```bash
       git fetch --all --tags
