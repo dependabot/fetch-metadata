@@ -7,7 +7,7 @@ export function parseNwo (nwo: string): {owner: string; repo: string} {
     throw new Error(`'${nwo}' does not appear to be a valid repository NWO`)
   }
 
-  return { owner: owner, repo: name }
+  return { owner, repo: name }
 }
 
 export interface branchNames {

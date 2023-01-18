@@ -1,6 +1,10 @@
-<p align="center">
-  <img src="https://s3.eu-west-2.amazonaws.com/dependabot-images/logo-with-name-horizontal.svg?v5" alt="Dependabot" width="336">
-</p>
+<h1 align="center">
+    <picture>
+        <source media="(prefers-color-scheme: light)" srcset="https://user-images.githubusercontent.com/7659/174594540-5e29e523-396a-465b-9a6e-6cab5b15a568.svg">
+        <source media="(prefers-color-scheme: dark)" srcset="https://user-images.githubusercontent.com/7659/174594559-0b3ddaa7-e75b-4f10-9dee-b51431a9fd4c.svg">
+        <img src="https://user-images.githubusercontent.com/7659/174594540-5e29e523-396a-465b-9a6e-6cab5b15a568.svg" alt="Dependabot" width="336">
+    </picture>
+</h1>
 
 # Fetch Metadata Action
 
@@ -10,7 +14,7 @@ Extract information about the dependencies being updated by a Dependabot-generat
 
 ## Usage instructions
 
-Create a workflow file that contains a step that uses: `dependabot/fetch-metadata@v1.3.1`, e.g.
+Create a workflow file that contains a step that uses: `dependabot/fetch-metadata@v1`, e.g.
 
 ```yaml
 -- .github/workflows/dependabot-prs.yml
@@ -22,7 +26,7 @@ jobs:
     steps:
     - name: Fetch Dependabot metadata
       id: dependabot-metadata
-      uses: dependabot/fetch-metadata@v1.3.1
+      uses: dependabot/fetch-metadata@v1
       with:
         alert-lookup: true
         compat-lookup: true
@@ -40,6 +44,9 @@ Supported inputs are:
   - Defaults to `false`
 - `compat-lookup` (boolean)
   - If `true`, then populate the `compatibility-score` output.
+  - Defaults to `false`
+- `skip-commit-verification` (boolean)
+  - If `true`, then the action will not expect the commits to have a verification signature. **It is required to set this to 'true' in GitHub Enterprise Server**
   - Defaults to `false`
 
 Subsequent actions will have access to the following outputs:
@@ -95,7 +102,7 @@ jobs:
     steps:
       - name: Dependabot metadata
         id: dependabot-metadata
-        uses: dependabot/fetch-metadata@v1.3.1
+        uses: dependabot/fetch-metadata@v1
       - uses: actions/checkout@v3
       - name: Approve a PR if not already approved
         run: |
@@ -129,13 +136,13 @@ jobs:
     steps:
       - name: Dependabot metadata
         id: dependabot-metadata
-        uses: dependabot/fetch-metadata@v1.3.1
+        uses: dependabot/fetch-metadata@v1
       - name: Enable auto-merge for Dependabot PRs
         if: ${{contains(steps.dependabot-metadata.outputs.dependency-names, 'rails') && steps.dependabot-metadata.outputs.update-type == 'version-update:semver-patch'}}
         run: gh pr merge --auto --merge "$PR_URL"
         env:
           PR_URL: ${{github.event.pull_request.html_url}}
-          GITHUB_TOKEN: ${{secrets.PAT_TOKEN}}
+          GH_TOKEN: ${{secrets.GITHUB_TOKEN}}
 ```
 
 ### Labelling
@@ -158,7 +165,7 @@ jobs:
     steps:
       - name: Dependabot metadata
         id: dependabot-metadata
-        uses: dependabot/fetch-metadata@v1.3.1
+        uses: dependabot/fetch-metadata@v1
       - name: Add a label for all production dependencies
         if: ${{ steps.dependabot-metadata.outputs.dependency-type == 'direct:production' }}
         run: gh pr edit "$PR_URL" --add-label "production"
@@ -166,3 +173,39 @@ jobs:
           PR_URL: ${{github.event.pull_request.html_url}}
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
 ```
+
+## Notes for project maintainers:
+
+<details><summary>:book: Release guide</summary>
+<p>
+
+  - Dependabot PR's:
+    - We expect Dependabot PRs to be passing CI and have any changes to the `dist/` folder built for production dependencies
+    - Some development dependencies may fail the `dist/` check if they modify the Typescript compilation, these should be updated manually via `npm run build`. See the [`dependabot-build`](https://github.com/dependabot/fetch-metadata/blob/main/.github/workflows/dependabot-build.yml) action for details.
+  - Checkout and update `main`, then generate a patch release branch
+      ```bash
+      git checkout main
+      git pull
+      bin/bump-version -p patch
+      ```
+  - Generate a draft release for your new version
+      ```bash
+      gh release create v1.X.X --generate-notes --draft
+      > https://github.com/dependabot/fetch-metadata/releases/tag/untagged-XXXXXX
+      ```
+  - Create a PR linking to the release notes for review
+      ```bash
+      gh pr create --title "v1.X.X Release Notes" --body "https://github.com/dependabot/fetch-metadata/releases/tag/untagged-XXXXXX"
+      ```
+  - Copy the release notes from the draft release to the PR description. This is optional, but looks much nicer than a bare URL.
+  - Merge the PR after getting it reviewed
+  - Publish the draft release found at https://github.com/dependabot/fetch-metadata/releases/tag/untagged-XXXXXX
+  - Update the `v1` tracking tag to point to the new version
+      ```bash
+      git fetch --all --tags
+      git checkout v1.x.x # Check out the release tag
+      git tag -f v1 # Force update the tracking tag
+      git push -f --tags
+      ```
+</p>
+</details>

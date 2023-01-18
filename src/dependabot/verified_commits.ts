@@ -6,7 +6,7 @@ import https from 'https'
 
 const DEPENDABOT_LOGIN = 'dependabot[bot]'
 
-export async function getMessage (client: InstanceType<typeof GitHub>, context: Context): Promise<string | false> {
+export async function getMessage (client: InstanceType<typeof GitHub>, context: Context, skipCommitVerification = false): Promise<string | false> {
   core.debug('Verifying the job is for an authentic Dependabot Pull Request')
 
   const { pull_request: pr } = context.payload
@@ -43,7 +43,7 @@ export async function getMessage (client: InstanceType<typeof GitHub>, context: 
     return false
   }
 
-  if (!commit.verification?.verified) {
+  if (!skipCommitVerification && !commit.verification?.verified) {
     // TODO: Promote to setFailed
     core.warning(
       "Dependabot's commit signature is not verified, refusing to proceed."

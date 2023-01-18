@@ -13,6 +13,10 @@ inputs:
   github-token:
     description: 'The GITHUB_TOKEN secret'
     default: ${{ github.token }}
+  skip-commit-verification:
+    type: boolean
+    description: 'If true, the action will not expect Dependabot commits to be verified. This should be set as `true` in GHES environments.'
+    default: false
 outputs:
   dependency-names:
     description: 'A comma-separated list of all package names updated.'
@@ -41,5 +45,5 @@ outputs:
   compatibility-score:
     description: 'If this PR has a known compatibility score and `compat-lookup` is `true`, this contains the compatibility score (otherwise it contains 0).'
 runs:
-  using: 'node12'
+  using: 'node16'
   main: 'dist/index.js'

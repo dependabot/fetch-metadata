@@ -70,6 +70,23 @@ test('it returns false if the commit is has no verification payload', async () =
   expect(await getMessage(mockGitHubClient, mockGitHubPullContext())).toBe(false)
 })
 
+test('it returns the message if the commit is has no verification payload but verification is skipped', async () => {
+  nock('https://api.github.com').get('/repos/dependabot/dependabot/pulls/101/commits')
+    .reply(200, [
+      {
+        author: {
+          login: 'dependabot[bot]'
+        },
+        commit: {
+          message: 'Bump lodash from 1.0.0 to 2.0.0',
+          verification: null
+        }
+      }
+    ])
+
+  expect(await getMessage(mockGitHubClient, mockGitHubPullContext(), true)).toEqual('Bump lodash from 1.0.0 to 2.0.0')
+})
+
 test('it returns false if the commit is not verified', async () => {
   nock('https://api.github.com').get('/repos/dependabot/dependabot/pulls/101/commits')
     .reply(200, [
