@@ -133,19 +133,20 @@ test('it sets the updated dependency as an output for subsequent actions when gi
 })
 
 test('it sets the updated dependency as an output for subsequent actions when given a commit message for library', async () => {
-  const mockCommitMessage = `Update rubocop requirement from ~> 1.30.1 to ~> 1.31.0
-Updates the requirements on [rubocop](https://github.com/rubocop/rubocop) to permit the latest version.
-- [Release notes](https://github.com/rubocop/rubocop/releases)
-- [Changelog](https://github.com/rubocop/rubocop/blob/master/CHANGELOG.md)
-- [Commits](rubocop/rubocop@v1.30.1...v1.31.0)
-
----
-updated-dependencies:
-- dependency-name: rubocop
-  dependency-type: direct:development
-...
-
-Signed-off-by: dependabot[bot] <support@github.com>`
+  const mockCommitMessage =
+    'Update rubocop requirement from ~> 1.30.1 to ~> 1.31.0\n' +
+    'Updates the requirements on [rubocop](https://github.com/rubocop/rubocop) to permit the latest version.\n' +
+    '- [Release notes](https://github.com/rubocop/rubocop/releases)\n' +
+    '- [Changelog](https://github.com/rubocop/rubocop/blob/master/CHANGELOG.md)\n' +
+    '- [Commits](rubocop/rubocop@v1.30.1...v1.31.0)\n' +
+    '\n' +
+    '---\n' +
+    'updated-dependencies:\n' +
+    '- dependency-name: rubocop\n' +
+    '  dependency-type: direct:development\n' +
+    '...\n' +
+    '\n' +
+    'Signed-off-by: dependabot[bot] <support@github.com>'
   const mockAlert = { alertState: 'FIXED', ghsaId: 'GSHA', cvss: 3.4 }
 
   jest.spyOn(core, 'getInput').mockImplementation(jest.fn((name) => { return name === 'github-token' ? 'mock-token' : '' }))
