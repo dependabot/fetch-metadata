@@ -10084,9 +10084,10 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.calculateUpdateType = exports.parse = void 0;
 const YAML = __importStar(__nccwpck_require__(4083));
 function parse(commitMessage, branchName, mainBranch, lookup, getScore) {
-    var _a, _b, _c, _d;
+    var _a, _b, _c, _d, _e, _f, _g, _h;
     return __awaiter(this, void 0, void 0, function* () {
         const bumpFragment = commitMessage.match(/^Bumps .* from (?<from>\d[^ ]*) to (?<to>\d[^ ]*)\.$/m);
+        const updateFragment = commitMessage.match(/^Update .* requirement from \S*? ?(?<from>\d[^ ]*) to \S*? ?(?<to>\d[^ ]*)$/m);
         const yamlFragment = commitMessage.match(/^-{3}\n(?<dependencies>[\S|\s]*?)\n^\.{3}\n/m);
         const lookupFn = lookup !== null && lookup !== void 0 ? lookup : (() => Promise.resolve({ alertState: '', ghsaId: '', cvss: 0 }));
         const scoreFn = getScore !== null && getScore !== void 0 ? getScore : (() => Promise.resolve(0));
@@ -10095,8 +10096,8 @@ function parse(commitMessage, branchName, mainBranch, lookup, getScore) {
             // Since we are on the `dependabot` branch (9 letters), the 10th letter in the branch name is the delimiter
             const delim = branchName[10];
             const chunks = branchName.split(delim);
-            const prev = (_b = (_a = bumpFragment === null || bumpFragment === void 0 ? void 0 : bumpFragment.groups) === null || _a === void 0 ? void 0 : _a.from) !== null && _b !== void 0 ? _b : '';
-            const next = (_d = (_c = bumpFragment === null || bumpFragment === void 0 ? void 0 : bumpFragment.groups) === null || _c === void 0 ? void 0 : _c.to) !== null && _d !== void 0 ? _d : '';
+            const prev = (_b = (_a = bumpFragment === null || bumpFragment === void 0 ? void 0 : bumpFragment.groups) === null || _a === void 0 ? void 0 : _a.from) !== null && _b !== void 0 ? _b : ((_d = (_c = updateFragment === null || updateFragment === void 0 ? void 0 : updateFragment.groups) === null || _c === void 0 ? void 0 : _c.from) !== null && _d !== void 0 ? _d : '');
+            const next = (_f = (_e = bumpFragment === null || bumpFragment === void 0 ? void 0 : bumpFragment.groups) === null || _e === void 0 ? void 0 : _e.to) !== null && _f !== void 0 ? _f : ((_h = (_g = updateFragment === null || updateFragment === void 0 ? void 0 : updateFragment.groups) === null || _g === void 0 ? void 0 : _g.to) !== null && _h !== void 0 ? _h : '');
             if (data['updated-dependencies']) {
                 return yield Promise.all(data['updated-dependencies'].map((dependency, index) => __awaiter(this, void 0, void 0, function* () {
                     const dirname = `/${chunks.slice(2, -1 * (1 + (dependency['dependency-name'].match(/\//g) || []).length)).join(delim) || ''}`;
