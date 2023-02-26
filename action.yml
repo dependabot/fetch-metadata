@@ -1,4 +1,6 @@
-name: 'Fetch Metadata from Dependabot PRs'
+ name: Fetch Metadata from Dependabot PRs
+  uses: dependabot/fetch-metadata@v1.3.6
+
 description: 'Extract information from about the dependency being updated by a Dependabot-generated PR'
 branding:
   icon: 'search'
