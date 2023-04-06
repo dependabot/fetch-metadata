@@ -4,10 +4,10 @@ import { Context } from '@actions/github/lib/context'
 import type { dependencyAlert } from './update_metadata'
 import https from 'https'
 
-const DEPENDABOT_LOGIN = 'dependabot[bot]'
-
 export async function getMessage (client: InstanceType<typeof GitHub>, context: Context, skipCommitVerification = false): Promise<string | false> {
   core.debug('Verifying the job is for an authentic Dependabot Pull Request')
+
+  const DEPENDABOT_LOGIN = core.getInput('dependabot-login') || 'dependabot[bot]'
 
   const { pull_request: pr } = context.payload
 
@@ -21,7 +21,7 @@ export async function getMessage (client: InstanceType<typeof GitHub>, context: 
 
   // Don't bother hitting the API if the PR author isn't Dependabot
   if (pr.user.login !== DEPENDABOT_LOGIN) {
-    core.debug(`PR author '${pr.user.login}' is not Dependabot.`)
+    core.debug(`PR author '${pr.user.login}' is not ${DEPENDABOT_LOGIN}.`)
     return false
   }
 
@@ -38,7 +38,7 @@ export async function getMessage (client: InstanceType<typeof GitHub>, context: 
   if (author?.login !== DEPENDABOT_LOGIN) {
     // TODO: Promote to setFailed
     core.warning(
-      'It looks like this PR was not created by Dependabot, refusing to proceed.'
+      `It looks like this PR was not created by ${DEPENDABOT_LOGIN}, refusing to proceed.`
     )
     return false
   }

@@ -26,6 +26,7 @@ jobs:
     steps:
     - name: Fetch Dependabot metadata
       id: dependabot-metadata
+      if: ${{ github.event.pull_request.user.login == 'dependabot[bot]' }}
       uses: dependabot/fetch-metadata@v1
       with:
         alert-lookup: true
@@ -48,6 +49,9 @@ Supported inputs are:
 - `skip-commit-verification` (boolean)
   - If `true`, then the action will not expect the commits to have a verification signature. **It is required to set this to 'true' in GitHub Enterprise Server**
   - Defaults to `false`
+- `dependabot-login` (string)
+    - Defines the user that is allowed to create the pull request
+    - Defaults to `dependabot[bot]`
 
 Subsequent actions will have access to the following outputs:
 

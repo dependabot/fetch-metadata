@@ -29,7 +29,17 @@ test('it returns false for an event triggered by someone other than Dependabot',
   expect(await getMessage(mockGitHubClient, mockGitHubPullContext('jane-doe'))).toBe(false)
 
   expect(core.debug).toHaveBeenCalledWith(
-    expect.stringContaining("PR author 'jane-doe' is not Dependabot.")
+    expect.stringContaining("PR author 'jane-doe' is not dependabot[bot].")
+  )
+})
+
+test('it returns false for an event triggered by someone other than the custom user', async () => {
+  jest.spyOn(core, 'getInput').mockReturnValue('myCustomUser')
+
+  expect(await getMessage(mockGitHubClient, mockGitHubPullContext('jane-doe'))).toBe(false)
+
+  expect(core.debug).toHaveBeenCalledWith(
+    expect.stringContaining("PR author 'jane-doe' is not myCustomUser.")
   )
 })
 
@@ -49,7 +59,7 @@ test('it returns false if the commit was authored by someone other than Dependab
   expect(await getMessage(mockGitHubClient, mockGitHubPullContext())).toBe(false)
 
   expect(core.warning).toHaveBeenCalledWith(
-    expect.stringContaining('It looks like this PR was not created by Dependabot, refusing to proceed.')
+    expect.stringContaining('It looks like this PR was not created by dependabot[bot], refusing to proceed.')
   )
 })
 

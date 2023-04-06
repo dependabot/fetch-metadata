@@ -17,6 +17,10 @@ inputs:
     type: boolean
     description: 'If true, the action will not expect Dependabot commits to be verified. This should be set as `true` in GHES environments.'
     default: false
+  dependabot-login:
+    type: string
+    description: 'Defines the user that is allowed to create the pull request'
+    default: 'dependabot[bot]'
 outputs:
   dependency-names:
     description: 'A comma-separated list of all package names updated.'
