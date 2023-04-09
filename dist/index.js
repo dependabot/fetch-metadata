@@ -10199,11 +10199,11 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.getCompatibility = exports.trimSlashes = exports.getAlert = exports.getMessage = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const https_1 = __importDefault(__nccwpck_require__(5687));
+const DEPENDABOT_LOGIN = 'dependabot[bot]';
 function getMessage(client, context, skipCommitVerification = false) {
     var _a;
     return __awaiter(this, void 0, void 0, function* () {
         core.debug('Verifying the job is for an authentic Dependabot Pull Request');
-        const DEPENDABOT_LOGIN = core.getInput('dependabot-login') || 'dependabot[bot]';
         const { pull_request: pr } = context.payload;
         if (!pr) {
             core.warning("Event payload missing `pull_request` key. Make sure you're " +
@@ -10212,7 +10212,7 @@ function getMessage(client, context, skipCommitVerification = false) {
         }
         // Don't bother hitting the API if the PR author isn't Dependabot
         if (pr.user.login !== DEPENDABOT_LOGIN) {
-            core.debug(`PR author '${pr.user.login}' is not ${DEPENDABOT_LOGIN}.`);
+            core.debug(`PR author '${pr.user.login}' is not Dependabot.`);
             return false;
         }
         core.debug('Verifying the Pull Request contents are from Dependabot');
@@ -10224,7 +10224,7 @@ function getMessage(client, context, skipCommitVerification = false) {
         const { commit, author } = commits[0];
         if ((author === null || author === void 0 ? void 0 : author.login) !== DEPENDABOT_LOGIN) {
             // TODO: Promote to setFailed
-            core.warning(`It looks like this PR was not created by ${DEPENDABOT_LOGIN}, refusing to proceed.`);
+            core.warning('It looks like this PR was not created by Dependabot, refusing to proceed.');
             return false;
         }
         if (!skipCommitVerification && !((_a = commit.verification) === null || _a === void 0 ? void 0 : _a.verified)) {
