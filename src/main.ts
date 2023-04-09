@@ -22,7 +22,7 @@ export async function run (): Promise<void> {
     const githubClient = github.getOctokit(token)
 
     // Validate the job
-    const commitMessage = await verifiedCommits.getMessage(githubClient, github.context, core.getBooleanInput('skip-commit-verification'))
+    const commitMessage = await verifiedCommits.getMessage(githubClient, github.context, core.getBooleanInput('skip-commit-verification'), core.getBooleanInput('skip-verification'))
     const branchNames = util.getBranchNames(github.context)
     let alertLookup: updateMetadata.alertLookup | undefined
     if (core.getInput('alert-lookup')) {
