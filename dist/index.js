@@ -10086,8 +10086,8 @@ const YAML = __importStar(__nccwpck_require__(4083));
 function parse(commitMessage, branchName, mainBranch, lookup, getScore) {
     var _a, _b, _c, _d, _e, _f, _g, _h;
     return __awaiter(this, void 0, void 0, function* () {
-        const bumpFragment = commitMessage.match(/^Bumps .* from (?<from>\d[^ ]*) to (?<to>\d[^ ]*)\.$/m);
-        const updateFragment = commitMessage.match(/^Update .* requirement from \S*? ?(?<from>\d[^ ]*) to \S*? ?(?<to>\d[^ ]*)$/m);
+        const bumpFragment = commitMessage.match(/^Bumps .* from (?<from>v?\d[^ ]*) to (?<to>v?\d[^ ]*)\.$/m);
+        const updateFragment = commitMessage.match(/^Update .* requirement from \S*? ?(?<from>v?\d[^ ]*) to \S*? ?(?<to>v?\d[^ ]*)$/m);
         const yamlFragment = commitMessage.match(/^-{3}\n(?<dependencies>[\S|\s]*?)\n^\.{3}\n/m);
         const lookupFn = lookup !== null && lookup !== void 0 ? lookup : (() => Promise.resolve({ alertState: '', ghsaId: '', cvss: 0 }));
         const scoreFn = getScore !== null && getScore !== void 0 ? getScore : (() => Promise.resolve(0));
@@ -10116,8 +10116,8 @@ function calculateUpdateType(lastVersion, nextVersion) {
     if (!lastVersion || !nextVersion || lastVersion === nextVersion) {
         return '';
     }
-    const lastParts = lastVersion.split('.');
-    const nextParts = nextVersion.split('.');
+    const lastParts = lastVersion.replace('v', '').split('.');
+    const nextParts = nextVersion.replace('v', '').split('.');
     if (lastParts[0] !== nextParts[0]) {
         return 'version-update:semver-major';
     }
