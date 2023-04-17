@@ -83,8 +83,8 @@ Subsequent actions will have access to the following outputs:
 - `steps.dependabot-metadata.outputs.compatibility-score`
   - If this PR has a known compatibility score and `compat-lookup` is `true`, this contains the compatibility score (otherwise it contains 0).
 
-**Note:** These outputs will only be populated if the target Pull Request was opened by Dependabot and contains
-**only** Dependabot-created commits.
+**Note:** By default, these outputs will only be populated if the target Pull Request was opened by Dependabot and contains
+**only** Dependabot-created commits. To override, see `skip-commit-verification` / `skip-verification`.
 
 This metadata can be used along with Action's [expression syntax](https://docs.github.com/en/actions/reference/context-and-expression-syntax-for-github-actions#functions) and the [GitHub CLI](https://github.com/cli/cli) to create
 useful automation for your Dependabot PRs.
