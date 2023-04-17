@@ -22,6 +22,8 @@ name: Dependabot Pull Request
 on: pull_request_target
 jobs:
   build:
+    permissions:
+      pull-requests: read
     runs-on: ubuntu-latest
     steps:
     - name: Fetch Dependabot metadata
