@@ -6,8 +6,12 @@ import https from 'https'
 
 const DEPENDABOT_LOGIN = 'dependabot[bot]'
 
-export async function getMessage (client: InstanceType<typeof GitHub>, context: Context, skipCommitVerification = false): Promise<string | false> {
-  core.debug('Verifying the job is for an authentic Dependabot Pull Request')
+export async function getMessage (client: InstanceType<typeof GitHub>, context: Context, skipCommitVerification = false, skipVerification = false): Promise<string | false> {
+  if (skipVerification) {
+    core.debug('Skipping pull request verification')
+  } else {
+    core.debug('Verifying the job is for an authentic Dependabot Pull Request')
+  }
 
   const { pull_request: pr } = context.payload
 
@@ -19,13 +23,11 @@ export async function getMessage (client: InstanceType<typeof GitHub>, context: 
     return false
   }
 
-  // Don't bother hitting the API if the PR author isn't Dependabot
-  if (pr.user.login !== DEPENDABOT_LOGIN) {
+  // Don't bother hitting the API if the PR author isn't Dependabot unless verification is disabled
+  if (!skipVerification && pr.user.login !== DEPENDABOT_LOGIN) {
     core.debug(`PR author '${pr.user.login}' is not Dependabot.`)
     return false
   }
-
-  core.debug('Verifying the Pull Request contents are from Dependabot')
 
   const { data: commits } = await client.rest.pulls.listCommits({
     owner: context.repo.owner,
@@ -35,7 +37,7 @@ export async function getMessage (client: InstanceType<typeof GitHub>, context: 
 
   const { commit, author } = commits[0]
 
-  if (author?.login !== DEPENDABOT_LOGIN) {
+  if (!skipVerification && author?.login !== DEPENDABOT_LOGIN) {
     // TODO: Promote to setFailed
     core.warning(
       'It looks like this PR was not created by Dependabot, refusing to proceed.'
@@ -43,7 +45,7 @@ export async function getMessage (client: InstanceType<typeof GitHub>, context: 
     return false
   }
 
-  if (!skipCommitVerification && !commit.verification?.verified) {
+  if (!skipVerification && !skipCommitVerification && !commit.verification?.verified) {
     // TODO: Promote to setFailed
     core.warning(
       "Dependabot's commit signature is not verified, refusing to proceed."

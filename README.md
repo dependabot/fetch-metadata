@@ -48,6 +48,9 @@ Supported inputs are:
 - `skip-commit-verification` (boolean)
   - If `true`, then the action will not expect the commits to have a verification signature. **It is required to set this to 'true' in GitHub Enterprise Server**
   - Defaults to `false`
+- `skip-verification` (boolean)
+    - If `true`, the action will not validate the user or the commit verification status
+    - Defaults to `false`
 
 Subsequent actions will have access to the following outputs:
 
