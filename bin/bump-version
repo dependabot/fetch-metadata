@@ -23,6 +23,9 @@ fi
 new_version=$(npm version "${patch_level}" --no-git-tag-version)
 git checkout -b "${new_version}"-release-notes
 git add package.json package-lock.json
-git commit -m "${new_version}"
 
-echo "Branch prepared for ${new_version}"
+echo "Creating commit / PR linking to the releases notes URL."
+echo "This URL will 404 until the release is actually tagged, which you should do as soon as the PR is merged."
+git commit -m "${new_version}" -m "Release notes: https://github.com/dependabot/fetch-metadata/releases/tag/v${new_version}"
+gh pr create --fill # `fill` re-uses the title / body from the commit
+echo "PR created for ${new_version}"
