@@ -15,7 +15,8 @@ export interface updatedDependency extends dependencyAlert {
   targetBranch: string,
   prevVersion: string,
   newVersion: string,
-  compatScore: number
+  compatScore: number,
+  maintainerChanges: boolean
 }
 
 export interface alertLookup {
@@ -26,10 +27,11 @@ export interface scoreLookup {
     (dependencyName: string, previousVersion: string, newVersion: string, ecosystem: string): Promise<number>;
 }
 
-export async function parse (commitMessage: string, branchName: string, mainBranch: string, lookup?: alertLookup, getScore?: scoreLookup): Promise<Array<updatedDependency>> {
+export async function parse (commitMessage: string, body: string, branchName: string, mainBranch: string, lookup?: alertLookup, getScore?: scoreLookup): Promise<Array<updatedDependency>> {
   const bumpFragment = commitMessage.match(/^Bumps .* from (?<from>v?\d[^ ]*) to (?<to>v?\d[^ ]*)\.$/m)
   const updateFragment = commitMessage.match(/^Update .* requirement from \S*? ?(?<from>v?\d[^ ]*) to \S*? ?(?<to>v?\d[^ ]*)$/m)
   const yamlFragment = commitMessage.match(/^-{3}\n(?<dependencies>[\S|\s]*?)\n^\.{3}\n/m)
+  const newMaintainer = !!body.match(/Maintainer changes/m)
   const lookupFn = lookup ?? (() => Promise.resolve({ alertState: '', ghsaId: '', cvss: 0 }))
   const scoreFn = getScore ?? (() => Promise.resolve(0))
 
@@ -58,6 +60,7 @@ export async function parse (commitMessage: string, branchName: string, mainBran
           prevVersion: lastVersion,
           newVersion: nextVersion,
           compatScore: await scoreFn(dependency['dependency-name'], lastVersion, nextVersion, chunks[1]),
+          maintainerChanges: newMaintainer,
           ...await lookupFn(dependency['dependency-name'], lastVersion, dirname)
         }
       }))

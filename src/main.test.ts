@@ -111,6 +111,7 @@ test('it sets the updated dependency as an output for subsequent actions when gi
         prevVersion: '4.0.1',
         newVersion: '4.2.2',
         compatScore: 0,
+        maintainerChanges: false,
         alertState: '',
         ghsaId: '',
         cvss: 0
@@ -127,6 +128,7 @@ test('it sets the updated dependency as an output for subsequent actions when gi
   expect(core.setOutput).toBeCalledWith('previous-version', '4.0.1')
   expect(core.setOutput).toBeCalledWith('new-version', '4.2.2')
   expect(core.setOutput).toBeCalledWith('compatibility-score', 0)
+  expect(core.setOutput).toBeCalledWith('maintainer-changes', false)
   expect(core.setOutput).toBeCalledWith('alert-state', '')
   expect(core.setOutput).toBeCalledWith('ghsa-id', '')
   expect(core.setOutput).toBeCalledWith('cvss', 0)
@@ -176,6 +178,7 @@ test('it sets the updated dependency as an output for subsequent actions when th
         updateType: 'version-update:semver-minor',
         directory: '/',
         packageEcosystem: 'nuget',
+        maintainerChanges: false,
         targetBranch: 'main',
         prevVersion: 'v4.0.1',
         newVersion: 'v4.2.2',
@@ -196,6 +199,7 @@ test('it sets the updated dependency as an output for subsequent actions when th
   expect(core.setOutput).toBeCalledWith('previous-version', 'v4.0.1')
   expect(core.setOutput).toBeCalledWith('new-version', 'v4.2.2')
   expect(core.setOutput).toBeCalledWith('compatibility-score', 0)
+  expect(core.setOutput).toBeCalledWith('maintainer-changes', false)
   expect(core.setOutput).toBeCalledWith('alert-state', '')
   expect(core.setOutput).toBeCalledWith('ghsa-id', '')
   expect(core.setOutput).toBeCalledWith('cvss', 0)
@@ -247,6 +251,7 @@ test('it sets the updated dependency as an output for subsequent actions when gi
         directory: '/',
         packageEcosystem: 'bundler',
         targetBranch: 'main',
+        maintainerChanges: false,
         prevVersion: '1.30.1',
         newVersion: '1.31.0',
         compatScore: 0,
@@ -266,6 +271,7 @@ test('it sets the updated dependency as an output for subsequent actions when gi
   expect(core.setOutput).toBeCalledWith('previous-version', '1.30.1')
   expect(core.setOutput).toBeCalledWith('new-version', '1.31.0')
   expect(core.setOutput).toBeCalledWith('compatibility-score', 0)
+  expect(core.setOutput).toBeCalledWith('maintainer-changes', false)
   expect(core.setOutput).toBeCalledWith('alert-state', '')
   expect(core.setOutput).toBeCalledWith('ghsa-id', '')
   expect(core.setOutput).toBeCalledWith('cvss', 0)
@@ -324,6 +330,7 @@ test('if there are multiple dependencies, it summarizes them', async () => {
         prevVersion: '4.0.1',
         newVersion: '4.2.2',
         compatScore: 34,
+        maintainerChanges: false,
         alertState: '',
         ghsaId: '',
         cvss: 0
@@ -338,6 +345,7 @@ test('if there are multiple dependencies, it summarizes them', async () => {
         prevVersion: '',
         newVersion: '',
         compatScore: 34,
+        maintainerChanges: false,
         alertState: '',
         ghsaId: '',
         cvss: 0
@@ -354,6 +362,7 @@ test('if there are multiple dependencies, it summarizes them', async () => {
   expect(core.setOutput).toBeCalledWith('previous-version', '4.0.1')
   expect(core.setOutput).toBeCalledWith('new-version', '4.2.2')
   expect(core.setOutput).toBeCalledWith('compatibility-score', 34)
+  expect(core.setOutput).toBeCalledWith('maintainer-changes', false)
   expect(core.setOutput).toBeCalledWith('alert-state', '')
   expect(core.setOutput).toBeCalledWith('ghsa-id', '')
   expect(core.setOutput).toBeCalledWith('cvss', 0)
