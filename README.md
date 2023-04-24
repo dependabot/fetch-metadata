@@ -187,24 +187,21 @@ jobs:
   - Dependabot PR's:
     - We expect Dependabot PRs to be passing CI and have any changes to the `dist/` folder built for production dependencies
     - Some development dependencies may fail the `dist/` check if they modify the Typescript compilation, these should be updated manually via `npm run build`. See the [`dependabot-build`](https://github.com/dependabot/fetch-metadata/blob/main/.github/workflows/dependabot-build.yml) action for details.
-  - Checkout and update `main`, then generate a patch release branch
+  - Checkout and update `main`, then use the `bin/bump-version` script to create a release PR
       ```bash
       git checkout main
       git pull
-      bin/bump-version -p patch
+      bin/bump-version -p patch # patch | minor | major
       ```
-  - Generate a draft release for your new version
+  - Merge the PR after getting it reviewed
+  - Create a new release tagged as `v1.X.X` format:
+    - Either via the web UI: https://github.com/dependabot/fetch-metadata/releases/new
+    - Or via the CLI:
       ```bash
       gh release create v1.X.X --generate-notes --draft
       > https://github.com/dependabot/fetch-metadata/releases/tag/untagged-XXXXXX
+      # Use the generated URL to review/edit the release notes, and then publish it.
       ```
-  - Create a PR linking to the release notes for review
-      ```bash
-      gh pr create --title "v1.X.X Release Notes" --body "https://github.com/dependabot/fetch-metadata/releases/tag/untagged-XXXXXX"
-      ```
-  - Copy the release notes from the draft release to the PR description. This is optional, but looks much nicer than a bare URL.
-  - Merge the PR after getting it reviewed
-  - Publish the draft release found at https://github.com/dependabot/fetch-metadata/releases/tag/untagged-XXXXXX
   - Update the `v1` tracking tag to point to the new version
       ```bash
       git fetch --all --tags
