@@ -10,10 +10,6 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v3
 
-      - name: Fetch metadata
-        id: metadata
-        uses: ./
-
       - name: Auto-merge
         run: gh pr merge --auto --merge '${{ github.event.pull_request.html_url }}'
         env:
