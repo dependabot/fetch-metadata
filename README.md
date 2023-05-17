@@ -193,21 +193,13 @@ jobs:
 
  ## Tagging a new release
 
-  1. Checkout and update `main`, then use the `bin/bump-version` script to create a release PR
-      ```bash
-      git checkout main
-      git pull
-      bin/bump-version minor # major | minor | patch
-      ```
-  2. Merge the PR after getting it reviewed
-  3. Create a new release tagged as `v1.X.X` format:
-    - Either via the web UI: https://github.com/dependabot/fetch-metadata/releases/new
-    - Or via the CLI:
-      ```bash
-      gh release create v1.X.X --generate-notes --draft
-      > https://github.com/dependabot/fetch-metadata/releases/tag/untagged-XXXXXX
-      # Use the generated URL to review/edit the release notes, and then publish it.
-      ```
+  Publish a new release by running the [`Release - Bump Version`](https://github.com/dependabot/fetch-metadata/actions/workflows/release-bump-version.yml) workflow and following the instructions on the job summary.
+
+  In a nutshell the process will be:
+
+  1. Run the action to generate a version bump PR.
+  2. Merge the PR.
+  3. Tag that merge commit as a new release using the format `v1.2.3`. The job summary contains a URL pre-populated with the correct version for the title and tag.
   4. Update the `v1` tracking tag to point to the new version
       ```bash
       git fetch --all --tags
