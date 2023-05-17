@@ -200,13 +200,7 @@ jobs:
   1. Run the action to generate a version bump PR.
   2. Merge the PR.
   3. Tag that merge commit as a new release using the format `v1.2.3`. The job summary contains a URL pre-populated with the correct version for the title and tag.
-  4. Update the `v1` tracking tag to point to the new version
-      ```bash
-      git fetch --all --tags
-      git checkout v1.x.x # Check out the release tag
-      git tag -f v1 # Force update the tracking tag
-      git push -f --tags
-      ```
+  4. Once the release is tagged, another GitHub Action workflow automatically moves the `v1` tracking tag to point to the new version.
 
 </p>
 </details>

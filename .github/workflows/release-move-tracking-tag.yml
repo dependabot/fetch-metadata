@@ -1,0 +1,43 @@
+name: Release - Move Tracking Tag
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  Move-Tracking-Tag-To-Latest-Release:
+    runs-on: ubuntu-latest
+
+    # We have a choice - defensiveness vs convenience:
+    # 1. Be defensive by filtering if the release doesn't look like a normal
+    #    version, or if it's a patch release to an older version... the logic
+    #    gets tricky quickly. Easiest way to be 100% sure is stop running this
+    #    on `release` and instead require a human to manually run this workflow
+    #    after they tag a release.
+    # 2. Minimize the upfront hassle by assuming every release is a normal
+    #    version release and the latest one. Today both are resoundingly true
+    #    as this repo isn't that active/busy, so we don't worry about
+    #    multiple release branches, pre-releases, etc.
+    #
+    # For now I've gone with option 2, as it is much more convenient and if we
+    # typo something during a release it's easy to fix by immediately tagging a
+    # correct release. And if we don't notice the typo, well, in that case
+    # requiring a human to manually run the workflow wouldn't have protected us
+    # either, we'd have had to filter by only things that look like versions.
+    # Anyway, for now this is good enough, and if it gets to be a problem down
+    # the road we increase the robustness of this.
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.DEPENDABOT_AUTOMATION_PAT }}
+
+      - name: Move the tracking tag
+        run: git tag -f v1
+
+      - name: Push the new tag value back to the repo
+        run: git push -f origin refs/tags/v1
+
+      - name: Set summary
+        run: |
+          echo ":rocket: Successfully moved the \`v1\` tag to point at release: ${{ github.event.release.name }} with SHA: \`$GITHUB_SHA\`." >> $GITHUB_STEP_SUMMARY
