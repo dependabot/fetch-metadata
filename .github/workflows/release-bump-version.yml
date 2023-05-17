@@ -18,11 +18,18 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Generate token
+        id: generate_token
+        uses: tibdex/github-app-token@b62528385c34dbc9f38e5f4225ac829252d1ea92 # v1.8.0
+        with:
+          app_id: ${{ secrets.FETCH_METADATA_ACTION_AUTOMATION_APP_ID }}
+          private_key: ${{ secrets.FETCH_METADATA_ACTION_AUTOMATION_PRIVATE_KEY }}
+
       - uses: actions/checkout@v3
         with:
           # Ensure we start from main in case the workflow is run from a branch
           ref: "main"
-          token: ${{ secrets.DEPENDABOT_AUTOMATION_PAT }}
+          token: ${{ steps.generate_token.outputs.token }}
 
       - uses: actions/setup-node@v3 # bin/bump-version needs npm
         with:
@@ -66,7 +73,7 @@ jobs:
           echo "PR created at URL: $PR_URL"
           echo "PR_URL=$PR_URL" >> $GITHUB_ENV
         env:
-          GH_TOKEN: ${{ secrets.DEPENDABOT_AUTOMATION_PAT }}
+          GH_TOKEN: ${{ steps.generate_token.outputs.token }}
 
       - name: Set summary
         run: |

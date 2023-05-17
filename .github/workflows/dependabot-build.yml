@@ -31,11 +31,18 @@ jobs:
     # We only need to build the dist/ folder if the PR relates a production NPM dependency, otherwise we don't expect changes.
     if: needs.fetch-dependabot-metadata.outputs.package-ecosystem == 'npm_and_yarn' && needs.fetch-dependabot-metadata.outputs.dependency-type == 'direct:production'
     steps:
-      # Check out using a PAT so any pushed changes will trigger checkruns
+      - name: Generate token
+        id: generate_token
+        uses: tibdex/github-app-token@b62528385c34dbc9f38e5f4225ac829252d1ea92 # v1.8.0
+        with:
+          app_id: ${{ secrets.FETCH_METADATA_ACTION_AUTOMATION_APP_ID }}
+          private_key: ${{ secrets.FETCH_METADATA_ACTION_AUTOMATION_PRIVATE_KEY }}
+
       - uses: actions/checkout@v3
         with:
           ref: ${{ github.event.pull_request.head.ref }}
-          token: ${{ secrets.DEPENDABOT_AUTOMATION_PAT }}
+          # Check out using an app token so any pushed changes will trigger checkruns
+          token: ${{ steps.generate_token.outputs.token }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
