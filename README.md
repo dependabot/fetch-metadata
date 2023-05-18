@@ -186,17 +186,21 @@ jobs:
 <details><summary>:book: Release guide</summary>
 <p>
 
-  - Dependabot PR's:
-    - We expect Dependabot PRs to be passing CI and have any changes to the `dist/` folder built for production dependencies
-    - Some development dependencies may fail the `dist/` check if they modify the Typescript compilation, these should be updated manually via `npm run build`. See the [`dependabot-build`](https://github.com/dependabot/fetch-metadata/blob/main/.github/workflows/dependabot-build.yml) action for details.
-  - Checkout and update `main`, then use the `bin/bump-version` script to create a release PR
+  ## Dependabot PR's
+
+  - We expect Dependabot PRs to be passing CI and have any changes to the `dist/` folder built for production dependencies
+  - Some development dependencies may fail the `dist/` check if they modify the Typescript compilation, these should be updated manually via `npm run build`. See the [`dependabot-build`](https://github.com/dependabot/fetch-metadata/blob/main/.github/workflows/dependabot-build.yml) action for details.
+
+ ## Tagging a new release
+
+  1. Checkout and update `main`, then use the `bin/bump-version` script to create a release PR
       ```bash
       git checkout main
       git pull
       bin/bump-version minor # major | minor | patch
       ```
-  - Merge the PR after getting it reviewed
-  - Create a new release tagged as `v1.X.X` format:
+  2. Merge the PR after getting it reviewed
+  3. Create a new release tagged as `v1.X.X` format:
     - Either via the web UI: https://github.com/dependabot/fetch-metadata/releases/new
     - Or via the CLI:
       ```bash
@@ -204,12 +208,13 @@ jobs:
       > https://github.com/dependabot/fetch-metadata/releases/tag/untagged-XXXXXX
       # Use the generated URL to review/edit the release notes, and then publish it.
       ```
-  - Update the `v1` tracking tag to point to the new version
+  4. Update the `v1` tracking tag to point to the new version
       ```bash
       git fetch --all --tags
       git checkout v1.x.x # Check out the release tag
       git tag -f v1 # Force update the tracking tag
       git push -f --tags
       ```
+
 </p>
 </details>
