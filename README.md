@@ -193,7 +193,7 @@ jobs:
       ```bash
       git checkout main
       git pull
-      bin/bump-version -p patch # patch | minor | major
+      bin/bump-version minor # major | minor | patch
       ```
   - Merge the PR after getting it reviewed
   - Create a new release tagged as `v1.X.X` format:
