@@ -4,16 +4,8 @@ usage() { echo "Usage: $0 [ major | minor | patch ]" 1>&2; exit 1; }
 
 version_type=$1
 if [ "$version_type" == "major" ] || [ "$version_type" == "minor" ] || [ "$version_type" == "patch" ]; then
-  new_version=$(npm version "$version_type" --no-git-tag-version)
+  new_version=$(npm version "$version_type" --no-git-tag-version) || exit
   echo "$new_version"
-
-  git checkout -b "${new_version}"-release-notes
-  git add package.json package-lock.json
-  echo "Creating commit / PR linking to the releases notes URL."
-  echo "This URL will 404 until the release is actually tagged, which you should do as soon as the PR is merged."
-  git commit -m "${new_version}" -m "Release notes: https://github.com/dependabot/fetch-metadata/releases/tag/v${new_version}"
-  gh pr create --fill # `fill` re-uses the title / body from the commit
-  echo "PR created for ${new_version}"
 else
   usage
 fi
