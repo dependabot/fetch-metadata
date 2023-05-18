@@ -37,14 +37,10 @@ jobs:
           ref: ${{ github.event.pull_request.head.ref }}
           token: ${{ secrets.DEPENDABOT_AUTOMATION_PAT }}
 
-      - name: Read .nvmrc
-        id: nvm
-        run: echo ::set-output name=NVMRC::$(cat .nvmrc)
-
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: ${{ steps.nvm.outputs.NVMRC }}
+          node-version-file: .nvmrc
 
       - name: Install NPM dependencies
         run: npm ci
