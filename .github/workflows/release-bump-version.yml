@@ -80,4 +80,4 @@ jobs:
           echo "    > https://github.com/${{ github.repository }}/releases/tag/untagged-XXXXXX" >> $GITHUB_STEP_SUMMARY
           echo "    # Use the generated URL to review/edit the release notes." >> $GITHUB_STEP_SUMMARY
           echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-          echo "Once the release is tagged, move the floating \`v1\` tag to point at this release." >> $GITHUB_STEP_SUMMARY
+          echo "Once the release is tagged, another GitHub Action workflow automatically moves the floating \`v1\` tag to point at this release." >> $GITHUB_STEP_SUMMARY
