@@ -10209,6 +10209,15 @@ exports.getCompatibility = exports.trimSlashes = exports.getAlert = exports.getM
 const core = __importStar(__nccwpck_require__(2186));
 const https_1 = __importDefault(__nccwpck_require__(5687));
 const DEPENDABOT_LOGIN = 'dependabot[bot]';
+const compare = (a, b) => {
+    if (a.securityAdvisory.cvss.score < b.securityAdvisory.cvss.score) {
+        return -1;
+    }
+    else if (a.securityAdvisory.cvss.score > b.securityAdvisory.cvss.score) {
+        return 1;
+    }
+    return 0;
+};
 function getMessage(client, context, skipCommitVerification = false, skipVerification = false) {
     var _a;
     return __awaiter(this, void 0, void 0, function* () {
@@ -10273,9 +10282,9 @@ function getAlert(name, version, directory, client, context) {
        }
      }`);
         const nodes = (_b = (_a = alerts === null || alerts === void 0 ? void 0 : alerts.repository) === null || _a === void 0 ? void 0 : _a.vulnerabilityAlerts) === null || _b === void 0 ? void 0 : _b.nodes;
-        const found = nodes.find(a => (version === '' || a.vulnerableRequirements === `= ${version}`) &&
+        const found = nodes === null || nodes === void 0 ? void 0 : nodes.filter((a) => (version === '' || a.vulnerableRequirements === `= ${version}`) &&
             trimSlashes(a.vulnerableManifestPath) === trimSlashes(`${directory}/${a.vulnerableManifestFilename}`) &&
-            a.securityVulnerability.package.name === name);
+            a.securityVulnerability.package.name === name).sort(compare).reverse()[0];
         return {
             alertState: (_c = found === null || found === void 0 ? void 0 : found.state) !== null && _c !== void 0 ? _c : '',
             ghsaId: (_d = found === null || found === void 0 ? void 0 : found.securityAdvisory.ghsaId) !== null && _d !== void 0 ? _d : '',

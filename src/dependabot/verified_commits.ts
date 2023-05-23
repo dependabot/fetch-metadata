@@ -6,6 +6,33 @@ import https from 'https'
 
 const DEPENDABOT_LOGIN = 'dependabot[bot]'
 
+type alertResponse = {
+  vulnerableManifestFilename: string,
+  vulnerableManifestPath: string,
+  vulnerableRequirements: string,
+  state: string,
+  securityVulnerability: {
+    package: {
+      name: string
+    }
+  },
+  securityAdvisory: {
+    cvss: {
+      score: number
+    }
+    ghsaId: string
+  }
+};
+
+const compare = (a: alertResponse, b: alertResponse) => {
+  if (a.securityAdvisory.cvss.score < b.securityAdvisory.cvss.score) {
+    return -1
+  } else if (a.securityAdvisory.cvss.score > b.securityAdvisory.cvss.score) {
+    return 1
+  }
+  return 0
+}
+
 export async function getMessage (client: InstanceType<typeof GitHub>, context: Context, skipCommitVerification = false, skipVerification = false): Promise<string | false> {
   if (skipVerification) {
     core.debug('Skipping pull request verification')
@@ -79,9 +106,11 @@ export async function getAlert (name: string, version: string, directory: string
      }`)
 
   const nodes = alerts?.repository?.vulnerabilityAlerts?.nodes
-  const found = nodes.find(a => (version === '' || a.vulnerableRequirements === `= ${version}`) &&
+  const found = nodes?.filter((a: any) => (version === '' || a.vulnerableRequirements === `= ${version}`) &&
       trimSlashes(a.vulnerableManifestPath) === trimSlashes(`${directory}/${a.vulnerableManifestFilename}`) &&
       a.securityVulnerability.package.name === name)
+    .sort(compare)
+    .reverse()[0]
 
   return {
     alertState: found?.state ?? '',
