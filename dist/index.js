@@ -10090,7 +10090,7 @@ function parse(commitMessage, body, branchName, mainBranch, lookup, getScore) {
     var _a, _b, _c, _d, _e, _f, _g, _h;
     return __awaiter(this, void 0, void 0, function* () {
         const bumpFragment = commitMessage.match(/^Bumps .* from (?<from>v?\d[^ ]*) to (?<to>v?\d[^ ]*)\.$/m);
-        const updateFragment = commitMessage.match(/^Update .* requirement from \S*? ?(?<from>v?\d[^ ]*) to \S*? ?(?<to>v?\d[^ ]*)$/m);
+        const updateFragment = commitMessage.match(/^Update .* requirement from \S*? ?(?<from>v?\d\S*) to \S*? ?(?<to>v?\d\S*)$/m);
         const yamlFragment = commitMessage.match(/^-{3}\n(?<dependencies>[\S|\s]*?)\n^\.{3}\n/m);
         const newMaintainer = !!body.match(/Maintainer changes/m);
         const lookupFn = lookup !== null && lookup !== void 0 ? lookup : (() => Promise.resolve({ alertState: '', ghsaId: '', cvss: 0 }));
