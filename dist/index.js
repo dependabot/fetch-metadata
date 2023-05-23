@@ -10282,9 +10282,16 @@ function getAlert(name, version, directory, client, context) {
        }
      }`);
         const nodes = (_b = (_a = alerts === null || alerts === void 0 ? void 0 : alerts.repository) === null || _a === void 0 ? void 0 : _a.vulnerabilityAlerts) === null || _b === void 0 ? void 0 : _b.nodes;
-        const found = nodes === null || nodes === void 0 ? void 0 : nodes.filter((a) => (version === '' || a.vulnerableRequirements === `= ${version}`) &&
-            trimSlashes(a.vulnerableManifestPath) === trimSlashes(`${directory}/${a.vulnerableManifestFilename}`) &&
-            a.securityVulnerability.package.name === name).sort(compare).reverse()[0];
+        const found = nodes
+            .filter((a) => (version === '' ||
+            a.vulnerableRequirements === `= ${version}`) &&
+            [
+                trimSlashes(`${directory}/${a.vulnerableManifestFilename}`),
+                trimSlashes(a.vulnerableManifestFilename)
+            ].includes(trimSlashes(a.vulnerableManifestPath)) &&
+            a.securityVulnerability.package.name === name)
+            .sort(compare)
+            .reverse()[0];
         return {
             alertState: (_c = found === null || found === void 0 ? void 0 : found.state) !== null && _c !== void 0 ? _c : '',
             ghsaId: (_d = found === null || found === void 0 ? void 0 : found.securityAdvisory.ghsaId) !== null && _d !== void 0 ? _d : '',
