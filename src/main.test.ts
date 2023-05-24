@@ -208,6 +208,7 @@ test('it sets the updated dependency as an output for subsequent actions when th
 test('it sets the updated dependency as an output for subsequent actions when given a commit message for library', async () => {
   const mockCommitMessage =
     'Update rubocop requirement from ~> 1.30.1 to ~> 1.31.0\n' +
+    '\n' +
     'Updates the requirements on [rubocop](https://github.com/rubocop/rubocop) to permit the latest version.\n' +
     '- [Release notes](https://github.com/rubocop/rubocop/releases)\n' +
     '- [Changelog](https://github.com/rubocop/rubocop/blob/master/CHANGELOG.md)\n' +
