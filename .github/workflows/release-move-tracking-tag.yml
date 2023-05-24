@@ -28,9 +28,16 @@ jobs:
     # the road we increase the robustness of this.
 
     steps:
+      - name: Generate token
+        id: generate_token
+        uses: tibdex/github-app-token@b62528385c34dbc9f38e5f4225ac829252d1ea92 # v1.8.0
+        with:
+          app_id: ${{ secrets.FETCH_METADATA_ACTION_AUTOMATION_APP_ID }}
+          private_key: ${{ secrets.FETCH_METADATA_ACTION_AUTOMATION_PRIVATE_KEY }}
+
       - uses: actions/checkout@v3
         with:
-          token: ${{ secrets.DEPENDABOT_AUTOMATION_PAT }}
+          token: ${{ steps.generate_token.outputs.token }}
 
       - name: Move the tracking tag
         run: git tag -f v1
