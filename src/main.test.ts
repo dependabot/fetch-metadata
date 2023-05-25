@@ -4,6 +4,59 @@ import { RequestError } from '@octokit/request-error'
 import * as dependabotCommits from './dependabot/verified_commits'
 import * as util from './dependabot/util'
 
+const mockAlertResponseFull = {
+  alertState: 'FIXED',
+  alertSeverity: 'HIGH',
+  ghsaId: 'GSHA',
+  cvss: 3.4,
+  cwes: [
+    {
+      cweId: 'CWE-79',
+      name: 'Cross-site Scripting (XSS)'
+    }
+  ],
+  alertDescription: 'foo',
+  alertIdentifiers: [
+    {
+      type: 'CVE',
+      value: 'CVE-2018-3721'
+    }
+  ],
+  alertSummary: 'foo'
+}
+
+const mockAlertResponseEmpty = {
+  alertState: '',
+  alertSeverity: '',
+  ghsaId: '',
+  cvss: 0,
+  cwes: [],
+  alertDescription: '',
+  alertIdentifiers: [],
+  alertSummary: ''
+}
+
+const baseDependency = {
+  dependencyName: '',
+  dependencyType: '',
+  updateType: '',
+  directory: '',
+  packageEcosystem: '',
+  targetBranch: '',
+  prevVersion: '',
+  newVersion: '',
+  compatScore: 0,
+  maintainerChanges: false,
+  alertState: '',
+  alertSeverity: '',
+  ghsaId: '',
+  cvss: 0,
+  cwes: [],
+  alertDescription: '',
+  alertIdentifiers: [],
+  alertSummary: ''
+}
+
 beforeEach(() => {
   jest.restoreAllMocks()
 
@@ -77,7 +130,6 @@ test('it sets the updated dependency as an output for subsequent actions when gi
     '...\n' +
     '\n' +
     'Signed-off-by: dependabot[bot] <support@github.com>'
-  const mockAlert = { alertState: 'FIXED', ghsaId: 'GSHA', cvss: 3.4 }
 
   jest.spyOn(core, 'getInput').mockImplementation(jest.fn((name) => { return name === 'github-token' ? 'mock-token' : '' }))
   jest.spyOn(util, 'getBranchNames').mockReturnValue({ headName: 'dependabot|nuget|feature1', baseName: 'main' })
@@ -85,7 +137,7 @@ test('it sets the updated dependency as an output for subsequent actions when gi
     () => Promise.resolve(mockCommitMessage)
   ))
   jest.spyOn(dependabotCommits, 'getAlert').mockImplementation(jest.fn(
-    () => Promise.resolve(mockAlert)
+    () => Promise.resolve(mockAlertResponseFull)
   ))
   jest.spyOn(dependabotCommits, 'getCompatibility').mockImplementation(jest.fn(
     () => Promise.resolve(34)
@@ -102,6 +154,7 @@ test('it sets the updated dependency as an output for subsequent actions when gi
     'updated-dependencies-json',
     [
       {
+        ...baseDependency,
         dependencyName: 'coffee-rails',
         dependencyType: 'direct:production',
         updateType: 'version-update:semver-minor',
@@ -130,8 +183,13 @@ test('it sets the updated dependency as an output for subsequent actions when gi
   expect(core.setOutput).toBeCalledWith('compatibility-score', 0)
   expect(core.setOutput).toBeCalledWith('maintainer-changes', false)
   expect(core.setOutput).toBeCalledWith('alert-state', '')
+  expect(core.setOutput).toBeCalledWith('alert-severity', '')
   expect(core.setOutput).toBeCalledWith('ghsa-id', '')
   expect(core.setOutput).toBeCalledWith('cvss', 0)
+  expect(core.setOutput).toBeCalledWith('cwes', [])
+  expect(core.setOutput).toBeCalledWith('alert-description', '')
+  expect(core.setOutput).toBeCalledWith('alert-identifiers', [])
+  expect(core.setOutput).toBeCalledWith('alert-summary', '')
 })
 
 test('it sets the updated dependency as an output for subsequent actions when there is a leading v in the commit message version', async () => {
@@ -148,7 +206,6 @@ test('it sets the updated dependency as an output for subsequent actions when th
     '...\n' +
     '\n' +
     'Signed-off-by: dependabot[bot] <support@github.com>'
-  const mockAlert = { alertState: 'FIXED', ghsaId: 'GSHA', cvss: 3.4 }
 
   jest.spyOn(core, 'getInput').mockImplementation(jest.fn((name) => { return name === 'github-token' ? 'mock-token' : '' }))
   jest.spyOn(util, 'getBranchNames').mockReturnValue({ headName: 'dependabot|nuget|feature1', baseName: 'main' })
@@ -156,7 +213,7 @@ test('it sets the updated dependency as an output for subsequent actions when th
     () => Promise.resolve(mockCommitMessage)
   ))
   jest.spyOn(dependabotCommits, 'getAlert').mockImplementation(jest.fn(
-    () => Promise.resolve(mockAlert)
+    () => Promise.resolve(mockAlertResponseFull)
   ))
   jest.spyOn(dependabotCommits, 'getCompatibility').mockImplementation(jest.fn(
     () => Promise.resolve(34)
@@ -173,6 +230,7 @@ test('it sets the updated dependency as an output for subsequent actions when th
     'updated-dependencies-json',
     [
       {
+        ...baseDependency,
         dependencyName: 'coffee-rails',
         dependencyType: 'direct:production',
         updateType: 'version-update:semver-minor',
@@ -201,8 +259,13 @@ test('it sets the updated dependency as an output for subsequent actions when th
   expect(core.setOutput).toBeCalledWith('compatibility-score', 0)
   expect(core.setOutput).toBeCalledWith('maintainer-changes', false)
   expect(core.setOutput).toBeCalledWith('alert-state', '')
+  expect(core.setOutput).toBeCalledWith('alert-severity', '')
   expect(core.setOutput).toBeCalledWith('ghsa-id', '')
   expect(core.setOutput).toBeCalledWith('cvss', 0)
+  expect(core.setOutput).toBeCalledWith('cwes', [])
+  expect(core.setOutput).toBeCalledWith('alert-description', '')
+  expect(core.setOutput).toBeCalledWith('alert-identifiers', [])
+  expect(core.setOutput).toBeCalledWith('alert-summary', '')
 })
 
 test('it sets the updated dependency as an output for subsequent actions when given a commit message for library', async () => {
@@ -221,7 +284,6 @@ test('it sets the updated dependency as an output for subsequent actions when gi
     '...\n' +
     '\n' +
     'Signed-off-by: dependabot[bot] <support@github.com>'
-  const mockAlert = { alertState: 'FIXED', ghsaId: 'GSHA', cvss: 3.4 }
 
   jest.spyOn(core, 'getInput').mockImplementation(jest.fn((name) => { return name === 'github-token' ? 'mock-token' : '' }))
   jest.spyOn(util, 'getBranchNames').mockReturnValue({ headName: 'dependabot|bundler|feature1', baseName: 'main' })
@@ -229,7 +291,7 @@ test('it sets the updated dependency as an output for subsequent actions when gi
     () => Promise.resolve(mockCommitMessage)
   ))
   jest.spyOn(dependabotCommits, 'getAlert').mockImplementation(jest.fn(
-    () => Promise.resolve(mockAlert)
+    () => Promise.resolve(mockAlertResponseFull)
   ))
   jest.spyOn(dependabotCommits, 'getCompatibility').mockImplementation(jest.fn(
     () => Promise.resolve(34)
@@ -246,6 +308,7 @@ test('it sets the updated dependency as an output for subsequent actions when gi
     'updated-dependencies-json',
     [
       {
+        ...baseDependency,
         dependencyName: 'rubocop',
         dependencyType: 'direct:development',
         updateType: 'version-update:semver-minor',
@@ -274,8 +337,13 @@ test('it sets the updated dependency as an output for subsequent actions when gi
   expect(core.setOutput).toBeCalledWith('compatibility-score', 0)
   expect(core.setOutput).toBeCalledWith('maintainer-changes', false)
   expect(core.setOutput).toBeCalledWith('alert-state', '')
+  expect(core.setOutput).toBeCalledWith('alert-severity', '')
   expect(core.setOutput).toBeCalledWith('ghsa-id', '')
   expect(core.setOutput).toBeCalledWith('cvss', 0)
+  expect(core.setOutput).toBeCalledWith('cwes', [])
+  expect(core.setOutput).toBeCalledWith('alert-description', '')
+  expect(core.setOutput).toBeCalledWith('alert-identifiers', [])
+  expect(core.setOutput).toBeCalledWith('alert-summary', '')
 })
 
 test('if there are multiple dependencies, it summarizes them', async () => {
@@ -297,7 +365,6 @@ test('if there are multiple dependencies, it summarizes them', async () => {
     '...\n' +
     '\n' +
     'Signed-off-by: dependabot[bot] <support@github.com>'
-  const mockAlert = { alertState: '', ghsaId: '', cvss: 0 }
 
   jest.spyOn(core, 'getInput').mockReturnValue('mock-token')
   jest.spyOn(util, 'getBranchNames').mockReturnValue({ headName: 'dependabot/npm_and_yarn/api/main/feature1', baseName: 'trunk' })
@@ -305,7 +372,7 @@ test('if there are multiple dependencies, it summarizes them', async () => {
     () => Promise.resolve(mockCommitMessage)
   ))
   jest.spyOn(dependabotCommits, 'getAlert').mockImplementation(jest.fn(
-    () => Promise.resolve(mockAlert)
+    () => Promise.resolve(mockAlertResponseEmpty)
   ))
   jest.spyOn(dependabotCommits, 'getCompatibility').mockImplementation(jest.fn(
     () => Promise.resolve(34)
@@ -322,6 +389,7 @@ test('if there are multiple dependencies, it summarizes them', async () => {
     'updated-dependencies-json',
     [
       {
+        ...baseDependency,
         dependencyName: 'coffee-rails',
         dependencyType: 'direct:production',
         updateType: 'version-update:semver-minor',
@@ -337,6 +405,7 @@ test('if there are multiple dependencies, it summarizes them', async () => {
         cvss: 0
       },
       {
+        ...baseDependency,
         dependencyName: 'coffeescript',
         dependencyType: 'indirect',
         updateType: 'version-update:semver-major',
@@ -365,8 +434,13 @@ test('if there are multiple dependencies, it summarizes them', async () => {
   expect(core.setOutput).toBeCalledWith('compatibility-score', 34)
   expect(core.setOutput).toBeCalledWith('maintainer-changes', false)
   expect(core.setOutput).toBeCalledWith('alert-state', '')
+  expect(core.setOutput).toBeCalledWith('alert-severity', '')
   expect(core.setOutput).toBeCalledWith('ghsa-id', '')
   expect(core.setOutput).toBeCalledWith('cvss', 0)
+  expect(core.setOutput).toBeCalledWith('cwes', [])
+  expect(core.setOutput).toBeCalledWith('alert-description', '')
+  expect(core.setOutput).toBeCalledWith('alert-identifiers', [])
+  expect(core.setOutput).toBeCalledWith('alert-summary', '')
 })
 
 test('it sets the action to failed if there is an unexpected exception', async () => {

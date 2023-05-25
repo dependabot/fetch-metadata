@@ -1,7 +1,38 @@
 import * as updateMetadata from './update_metadata'
 
+const mockAlertResponseFull = {
+  alertState: 'DISMISSED',
+  alertSeverity: 'HIGH',
+  ghsaId: 'GHSA-III-BBB',
+  cvss: 4.6,
+  cwes: [
+    {
+      cweId: 'CWE-79',
+      name: 'Cross-site Scripting (XSS)'
+    }
+  ],
+  alertDescription: 'foo',
+  alertIdentifiers: [
+    {
+      type: 'CVE',
+      value: 'CVE-2018-3721'
+    }
+  ],
+  alertSummary: 'foo'
+}
+const mockAlertResponseEmpty = {
+  alertState: '',
+  alertSeverity: '',
+  ghsaId: '',
+  cvss: 0,
+  cwes: [],
+  alertDescription: '',
+  alertIdentifiers: [],
+  alertSummary: ''
+}
+
 test('it returns an empty array for a blank string', async () => {
-  const getAlert = async () => Promise.resolve({ alertState: 'DISMISSED', ghsaId: 'GHSA-III-BBB', cvss: 4.6 })
+  const getAlert = async () => Promise.resolve(mockAlertResponseFull)
   const getScore = async () => Promise.resolve(43)
   expect(updateMetadata.parse('', '', 'dependabot/nuget/coffee-rails', 'main', getAlert, getScore)).resolves.toEqual([])
 })
@@ -14,7 +45,7 @@ test('it returns an empty array for commit message with no dependabot yaml fragm
 
   Signed-off-by: dependabot[bot] <support@github.com>`
 
-  const getAlert = async () => Promise.resolve({ alertState: 'DISMISSED', ghsaId: 'GHSA-III-BBB', cvss: 4.6 })
+  const getAlert = async () => Promise.resolve(mockAlertResponseFull)
   const getScore = async () => Promise.resolve(43)
   expect(updateMetadata.parse(commitMessage, '', 'dependabot/nuget/coffee-rails', 'main', getAlert, getScore)).resolves.toEqual([])
 })
@@ -42,7 +73,7 @@ test('it returns the updated dependency information when there is a yaml fragmen
     'Maintainer changes:\n' +
     'The maintainer changed!'
 
-  const getAlert = async () => Promise.resolve({ alertState: 'DISMISSED', ghsaId: 'GHSA-III-BBB', cvss: 4.6 })
+  const getAlert = async () => Promise.resolve(mockAlertResponseFull)
   const getScore = async () => Promise.resolve(43)
   const updatedDependencies = await updateMetadata.parse(commitMessage, body, 'dependabot/nuget/coffee-rails', 'main', getAlert, getScore)
 
@@ -59,8 +90,15 @@ test('it returns the updated dependency information when there is a yaml fragmen
   expect(updatedDependencies[0].compatScore).toEqual(43)
   expect(updatedDependencies[0].maintainerChanges).toEqual(true)
   expect(updatedDependencies[0].alertState).toEqual('DISMISSED')
+  expect(updatedDependencies[0].alertSeverity).toEqual('HIGH')
   expect(updatedDependencies[0].ghsaId).toEqual('GHSA-III-BBB')
   expect(updatedDependencies[0].cvss).toEqual(4.6)
+  expect(updatedDependencies[0].cwes[0].cweId).toEqual('CWE-79')
+  expect(updatedDependencies[0].cwes[0].name).toEqual('Cross-site Scripting (XSS)')
+  expect(updatedDependencies[0].alertDescription).toEqual('foo')
+  expect(updatedDependencies[0].alertIdentifiers[0].type).toEqual('CVE')
+  expect(updatedDependencies[0].alertIdentifiers[0].value).toEqual('CVE-2018-3721')
+  expect(updatedDependencies[0].alertSummary).toEqual('foo')
 })
 
 test('it supports multiple dependencies within a single fragment', async () => {
@@ -91,10 +129,10 @@ test('it supports multiple dependencies within a single fragment', async () => {
 
   const getAlert = async (name: string) => {
     if (name === 'coffee-rails') {
-      return Promise.resolve({ alertState: 'DISMISSED', ghsaId: 'GHSA-III-BBB', cvss: 4.6 })
+      return Promise.resolve(mockAlertResponseFull)
     }
 
-    return Promise.resolve({ alertState: '', ghsaId: '', cvss: 0 })
+    return Promise.resolve(mockAlertResponseEmpty)
   }
 
   const getScore = async (name: string) => {
@@ -120,8 +158,15 @@ test('it supports multiple dependencies within a single fragment', async () => {
   expect(updatedDependencies[0].compatScore).toEqual(34)
   expect(updatedDependencies[0].maintainerChanges).toEqual(false)
   expect(updatedDependencies[0].alertState).toEqual('DISMISSED')
+  expect(updatedDependencies[0].alertSeverity).toEqual('HIGH')
   expect(updatedDependencies[0].ghsaId).toEqual('GHSA-III-BBB')
   expect(updatedDependencies[0].cvss).toEqual(4.6)
+  expect(updatedDependencies[0].cwes[0].cweId).toEqual('CWE-79')
+  expect(updatedDependencies[0].cwes[0].name).toEqual('Cross-site Scripting (XSS)')
+  expect(updatedDependencies[0].alertDescription).toEqual('foo')
+  expect(updatedDependencies[0].alertIdentifiers[0].type).toEqual('CVE')
+  expect(updatedDependencies[0].alertIdentifiers[0].value).toEqual('CVE-2018-3721')
+  expect(updatedDependencies[0].alertSummary).toEqual('foo')
 
   expect(updatedDependencies[1].dependencyName).toEqual('coffeescript')
   expect(updatedDependencies[1].dependencyType).toEqual('indirect')
@@ -133,8 +178,13 @@ test('it supports multiple dependencies within a single fragment', async () => {
   expect(updatedDependencies[1].compatScore).toEqual(0)
   expect(updatedDependencies[1].maintainerChanges).toEqual(false)
   expect(updatedDependencies[1].alertState).toEqual('')
+  expect(updatedDependencies[1].alertSeverity).toEqual('')
   expect(updatedDependencies[1].ghsaId).toEqual('')
   expect(updatedDependencies[1].cvss).toEqual(0)
+  expect(updatedDependencies[1].cwes).toEqual([])
+  expect(updatedDependencies[1].alertDescription).toEqual('')
+  expect(updatedDependencies[1].alertIdentifiers).toEqual([])
+  expect(updatedDependencies[1].alertSummary).toEqual('')
 })
 
 test('it returns the updated dependency information when there is a leading v in the commit message versions', async () => {
@@ -152,7 +202,7 @@ test('it returns the updated dependency information when there is a leading v in
     '\n' +
     'Signed-off-by: dependabot[bot] <support@github.com>'
 
-  const getAlert = async () => Promise.resolve({ alertState: 'DISMISSED', ghsaId: 'GHSA-III-BBB', cvss: 4.6 })
+  const getAlert = async () => Promise.resolve(mockAlertResponseFull)
   const getScore = async () => Promise.resolve(43)
   const updatedDependencies = await updateMetadata.parse(commitMessage, '', 'dependabot/nuget/coffee-rails', 'main', getAlert, getScore)
 
@@ -168,8 +218,15 @@ test('it returns the updated dependency information when there is a leading v in
   expect(updatedDependencies[0].newVersion).toEqual('v4.2.2')
   expect(updatedDependencies[0].compatScore).toEqual(43)
   expect(updatedDependencies[0].alertState).toEqual('DISMISSED')
+  expect(updatedDependencies[0].alertSeverity).toEqual('HIGH')
   expect(updatedDependencies[0].ghsaId).toEqual('GHSA-III-BBB')
   expect(updatedDependencies[0].cvss).toEqual(4.6)
+  expect(updatedDependencies[0].cwes[0].cweId).toEqual('CWE-79')
+  expect(updatedDependencies[0].cwes[0].name).toEqual('Cross-site Scripting (XSS)')
+  expect(updatedDependencies[0].alertDescription).toEqual('foo')
+  expect(updatedDependencies[0].alertIdentifiers[0].type).toEqual('CVE')
+  expect(updatedDependencies[0].alertIdentifiers[0].value).toEqual('CVE-2018-3721')
+  expect(updatedDependencies[0].alertSummary).toEqual('foo')
 })
 
 test('it only returns information within the first fragment if there are multiple yaml documents', async () => {
@@ -209,8 +266,13 @@ test('it only returns information within the first fragment if there are multipl
   expect(updatedDependencies[0].compatScore).toEqual(0)
   expect(updatedDependencies[0].maintainerChanges).toEqual(false)
   expect(updatedDependencies[0].alertState).toEqual('')
+  expect(updatedDependencies[0].alertSeverity).toEqual('')
   expect(updatedDependencies[0].ghsaId).toEqual('')
   expect(updatedDependencies[0].cvss).toEqual(0)
+  expect(updatedDependencies[0].cwes).toEqual([])
+  expect(updatedDependencies[0].alertDescription).toEqual('')
+  expect(updatedDependencies[0].alertIdentifiers).toEqual([])
+  expect(updatedDependencies[0].alertSummary).toEqual('')
 })
 
 test('it properly handles dependencies which contain slashes', async () => {
@@ -228,7 +290,7 @@ test('it properly handles dependencies which contain slashes', async () => {
     '\n' +
     'Signed-off-by: dependabot[bot] <support@github.com>'
 
-  const getAlert = async () => Promise.resolve({ alertState: '', ghsaId: '', cvss: 0 })
+  const getAlert = async () => Promise.resolve(mockAlertResponseEmpty)
   const getScore = async () => Promise.resolve(0)
   const updatedDependencies = await updateMetadata.parse(commitMessage, '', 'dependabot/nuget/api/rails/coffee', 'main', getAlert, getScore)
 
@@ -245,8 +307,13 @@ test('it properly handles dependencies which contain slashes', async () => {
   expect(updatedDependencies[0].compatScore).toEqual(0)
   expect(updatedDependencies[0].maintainerChanges).toEqual(false)
   expect(updatedDependencies[0].alertState).toEqual('')
+  expect(updatedDependencies[0].alertSeverity).toEqual('')
   expect(updatedDependencies[0].ghsaId).toEqual('')
   expect(updatedDependencies[0].cvss).toEqual(0)
+  expect(updatedDependencies[0].cwes).toEqual([])
+  expect(updatedDependencies[0].alertDescription).toEqual('')
+  expect(updatedDependencies[0].alertIdentifiers).toEqual([])
+  expect(updatedDependencies[0].alertSummary).toEqual('')
 })
 
 test('calculateUpdateType should handle all paths', () => {
