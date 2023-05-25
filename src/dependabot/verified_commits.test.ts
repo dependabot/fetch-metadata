@@ -303,7 +303,7 @@ test('getCompatibility handles errors', async () => {
 
 const mockGitHubClient = github.getOctokit('mock-token')
 
-function mockGitHubOtherContext(): Context {
+function mockGitHubOtherContext (): Context {
   const ctx = new Context()
   ctx.payload = {
     issue: {
@@ -313,7 +313,7 @@ function mockGitHubOtherContext(): Context {
   return ctx
 }
 
-function mockGitHubPullContext(author = 'dependabot[bot]'): Context {
+function mockGitHubPullContext (author = 'dependabot[bot]'): Context {
   const ctx = new Context()
   ctx.payload = {
     pull_request: {
