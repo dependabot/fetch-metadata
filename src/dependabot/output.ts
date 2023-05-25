@@ -29,8 +29,13 @@ export function set (updatedDependencies: Array<updatedDependency>): void {
   const compatScore = firstDependency?.compatScore
   const maintainerChanges = firstDependency?.maintainerChanges
   const alertState = firstDependency?.alertState
+  const alertSeverity = firstDependency?.alertSeverity
   const ghsaId = firstDependency?.ghsaId
   const cvss = firstDependency?.cvss
+  const cwes = firstDependency?.cwes
+  const alertDescription = firstDependency?.alertDescription
+  const alertIdentifiers = firstDependency?.alertIdentifiers
+  const alertSummary = firstDependency?.alertSummary
 
   core.startGroup(`Outputting metadata for ${Pluralize('updated dependency', updatedDependencies.length, true)}`)
   core.info(`outputs.dependency-names: ${dependencyNames}`)
@@ -44,8 +49,13 @@ export function set (updatedDependencies: Array<updatedDependency>): void {
   core.info(`outputs.compatibility-score: ${compatScore}`)
   core.info(`outputs.maintainer-changes: ${maintainerChanges}`)
   core.info(`outputs.alert-state: ${alertState}`)
+  core.info(`outputs.alert-severity: ${alertSeverity}`)
   core.info(`outputs.ghsa-id: ${ghsaId}`)
   core.info(`outputs.cvss: ${cvss}`)
+  core.info(`outputs.cwes: ${cwes}`)
+  core.info(`outputs.alert-description: ${alertDescription}`)
+  core.info(`outputs.alert-identifiers: ${alertIdentifiers}`)
+  core.info(`outputs.alert-summary: ${alertSummary}`)
   core.endGroup()
 
   core.setOutput('updated-dependencies-json', updatedDependencies)
@@ -60,8 +70,13 @@ export function set (updatedDependencies: Array<updatedDependency>): void {
   core.setOutput('compatibility-score', compatScore)
   core.setOutput('maintainer-changes', maintainerChanges)
   core.setOutput('alert-state', alertState)
+  core.setOutput('alert-severity', alertSeverity)
   core.setOutput('ghsa-id', ghsaId)
   core.setOutput('cvss', cvss)
+  core.setOutput('cwes', cwes)
+  core.setOutput('alert-description', alertDescription)
+  core.setOutput('alert-identifiers', alertIdentifiers)
+  core.setOutput('alert-summary', alertSummary)
 }
 
 function maxDependencyTypes (updatedDependencies: Array<updatedDependency>): string {

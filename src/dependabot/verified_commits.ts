@@ -1,7 +1,7 @@
 import * as core from '@actions/core'
 import { GitHub } from '@actions/github/lib/utils'
 import { Context } from '@actions/github/lib/context'
-import type { dependencyAlert } from './update_metadata'
+import type { dependencyAlert, cwesType, identifiersType } from './update_metadata'
 import https from 'https'
 
 const DEPENDABOT_LOGIN = 'dependabot[bot]'
@@ -56,37 +56,65 @@ export async function getMessage (client: InstanceType<typeof GitHub>, context: 
   return commit.message
 }
 
+export function queryForAlerts (owner: string, repo: string): string {
+  return `
+  {
+    repository(owner: "${owner}", name: "${repo}") { 
+      vulnerabilityAlerts(first: 100) {
+        nodes {
+          vulnerableManifestFilename
+          vulnerableManifestPath
+          vulnerableRequirements
+          state
+          securityVulnerability { 
+            package {
+              name
+              ecosystem
+            }
+            severity
+          }
+          securityAdvisory { 
+            cvss { score }
+            cwes(first: 100) {
+              nodes {
+                cweId
+                name
+              }
+            }
+            description
+            ghsaId
+            identifiers {
+              type
+              value
+            }
+            summary
+          }
+        }
+      }
+    }
+  }`
+}
+
 export async function getAlert (name: string, version: string, directory: string, client: InstanceType<typeof GitHub>, context: Context): Promise<dependencyAlert> {
-  const alerts: any = await client.graphql(`
-     {
-       repository(owner: "${context.repo.owner}", name: "${context.repo.repo}") { 
-         vulnerabilityAlerts(first: 100) {
-           nodes {
-             vulnerableManifestFilename
-             vulnerableManifestPath
-             vulnerableRequirements
-             state
-             securityVulnerability { 
-               package { name } 
-             }
-             securityAdvisory { 
-              cvss { score }
-              ghsaId 
-             }
-           }
-         }
-       }
-     }`)
+  const alerts: any = await client.graphql(queryForAlerts(context.repo.owner, context.repo.repo))
 
   const nodes = alerts?.repository?.vulnerabilityAlerts?.nodes
   const found = nodes.find(a => (version === '' || a.vulnerableRequirements === `= ${version}`) &&
       trimSlashes(a.vulnerableManifestPath) === trimSlashes(`${directory}/${a.vulnerableManifestFilename}`) &&
       a.securityVulnerability.package.name === name)
 
+  const cwes = found?.securityAdvisory?.cwes?.nodes?.map((a: cwesType) => { return { ...a } }) ?? []
+  const identifiers = found?.securityAdvisory?.identifiers?.map((a: identifiersType) => { return { ...a } }) ?? []
+
   return {
     alertState: found?.state ?? '',
-    ghsaId: found?.securityAdvisory.ghsaId ?? '',
-    cvss: found?.securityAdvisory.cvss.score ?? 0.0
+    alertSeverity: found?.securityVulnerability?.severity ?? '',
+    ghsaId: found?.securityAdvisory?.ghsaId ?? '',
+    cvss: found?.securityAdvisory?.cvss?.score ?? 0.0,
+    cwes,
+    alertDescription: found?.securityAdvisory?.description ?? '',
+    alertIdentifiers: identifiers,
+    alertSummary: found?.securityAdvisory?.summary ?? ''
   }
 }
 

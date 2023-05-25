@@ -21,8 +21,13 @@ const baseDependency = {
   compatScore: 0,
   maintainerChanges: false,
   alertState: '',
+  alertSeverity: '',
   ghsaId: '',
-  cvss: 0
+  cvss: 0,
+  cwes: [],
+  alertDescription: '',
+  alertIdentifiers: [],
+  alertSummary: ''
 }
 
 test('when given a single dependency it sets its values', async () => {
@@ -39,8 +44,23 @@ test('when given a single dependency it sets its values', async () => {
       compatScore: 43,
       maintainerChanges: true,
       alertState: 'FIXED',
+      alertSeverity: 'HIGH',
       ghsaId: 'VERY_LONG_ID',
-      cvss: 4.6
+      cvss: 4.6,
+      cwes: [
+        {
+          cweId: 'CWE-79',
+          name: 'Cross-site Scripting (XSS)'
+        }
+      ],
+      alertDescription: 'A description of the vulnerability',
+      alertIdentifiers: [
+        {
+          type: 'CVE',
+          value: 'CVE-2021-1234'
+        }
+      ],
+      alertSummary: 'A summary of the vulnerability'
     }
   ]
 
@@ -62,8 +82,23 @@ test('when given a single dependency it sets its values', async () => {
   expect(core.setOutput).toBeCalledWith('new-version', '1.1.3-beta')
   expect(core.setOutput).toBeCalledWith('compatibility-score', 43)
   expect(core.setOutput).toBeCalledWith('alert-state', 'FIXED')
+  expect(core.setOutput).toBeCalledWith('alert-severity', 'HIGH')
   expect(core.setOutput).toBeCalledWith('ghsa-id', 'VERY_LONG_ID')
   expect(core.setOutput).toBeCalledWith('cvss', 4.6)
+  expect(core.setOutput).toBeCalledWith('cwes', [
+    {
+      cweId: 'CWE-79',
+      name: 'Cross-site Scripting (XSS)'
+    }
+  ])
+  expect(core.setOutput).toBeCalledWith('alert-description', 'A description of the vulnerability')
+  expect(core.setOutput).toBeCalledWith('alert-identifiers', [
+    {
+      type: 'CVE',
+      value: 'CVE-2021-1234'
+    }
+  ])
+  expect(core.setOutput).toBeCalledWith('alert-summary', 'A summary of the vulnerability')
 })
 
 test('when given a multiple dependencies, it uses the highest values for types', async () => {
@@ -108,8 +143,13 @@ test('when given a multiple dependencies, it uses the highest values for types',
   expect(core.setOutput).toBeCalledWith('new-version', '')
   expect(core.setOutput).toBeCalledWith('compatibility-score', 0)
   expect(core.setOutput).toBeCalledWith('alert-state', '')
+  expect(core.setOutput).toBeCalledWith('alert-severity', '')
   expect(core.setOutput).toBeCalledWith('ghsa-id', '')
   expect(core.setOutput).toBeCalledWith('cvss', 0)
+  expect(core.setOutput).toBeCalledWith('cwes', [])
+  expect(core.setOutput).toBeCalledWith('alert-description', '')
+  expect(core.setOutput).toBeCalledWith('alert-identifiers', [])
+  expect(core.setOutput).toBeCalledWith('alert-summary', '')
 })
 
 test('when the dependency has no update type', async () => {
@@ -139,8 +179,13 @@ test('when the dependency has no update type', async () => {
   expect(core.setOutput).toBeCalledWith('new-version', '')
   expect(core.setOutput).toBeCalledWith('compatibility-score', 0)
   expect(core.setOutput).toBeCalledWith('alert-state', '')
+  expect(core.setOutput).toBeCalledWith('alert-severity', '')
   expect(core.setOutput).toBeCalledWith('ghsa-id', '')
   expect(core.setOutput).toBeCalledWith('cvss', 0)
+  expect(core.setOutput).toBeCalledWith('cwes', [])
+  expect(core.setOutput).toBeCalledWith('alert-description', '')
+  expect(core.setOutput).toBeCalledWith('alert-identifiers', [])
+  expect(core.setOutput).toBeCalledWith('alert-summary', '')
 })
 
 test('when given a multiple dependencies, and some do not have update types', async () => {
@@ -183,6 +228,11 @@ test('when given a multiple dependencies, and some do not have update types', as
   expect(core.setOutput).toBeCalledWith('new-version', '')
   expect(core.setOutput).toBeCalledWith('compatibility-score', 0)
   expect(core.setOutput).toBeCalledWith('alert-state', '')
+  expect(core.setOutput).toBeCalledWith('alert-severity', '')
   expect(core.setOutput).toBeCalledWith('ghsa-id', '')
   expect(core.setOutput).toBeCalledWith('cvss', 0)
+  expect(core.setOutput).toBeCalledWith('cwes', [])
+  expect(core.setOutput).toBeCalledWith('alert-description', '')
+  expect(core.setOutput).toBeCalledWith('alert-identifiers', [])
+  expect(core.setOutput).toBeCalledWith('alert-summary', '')
 })

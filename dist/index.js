@@ -9995,8 +9995,13 @@ function set(updatedDependencies) {
     const compatScore = firstDependency === null || firstDependency === void 0 ? void 0 : firstDependency.compatScore;
     const maintainerChanges = firstDependency === null || firstDependency === void 0 ? void 0 : firstDependency.maintainerChanges;
     const alertState = firstDependency === null || firstDependency === void 0 ? void 0 : firstDependency.alertState;
+    const alertSeverity = firstDependency === null || firstDependency === void 0 ? void 0 : firstDependency.alertSeverity;
     const ghsaId = firstDependency === null || firstDependency === void 0 ? void 0 : firstDependency.ghsaId;
     const cvss = firstDependency === null || firstDependency === void 0 ? void 0 : firstDependency.cvss;
+    const cwes = firstDependency === null || firstDependency === void 0 ? void 0 : firstDependency.cwes;
+    const alertDescription = firstDependency === null || firstDependency === void 0 ? void 0 : firstDependency.alertDescription;
+    const alertIdentifiers = firstDependency === null || firstDependency === void 0 ? void 0 : firstDependency.alertIdentifiers;
+    const alertSummary = firstDependency === null || firstDependency === void 0 ? void 0 : firstDependency.alertSummary;
     core.startGroup(`Outputting metadata for ${(0, pluralize_1.default)('updated dependency', updatedDependencies.length, true)}`);
     core.info(`outputs.dependency-names: ${dependencyNames}`);
     core.info(`outputs.dependency-type: ${dependencyType}`);
@@ -10009,8 +10014,13 @@ function set(updatedDependencies) {
     core.info(`outputs.compatibility-score: ${compatScore}`);
     core.info(`outputs.maintainer-changes: ${maintainerChanges}`);
     core.info(`outputs.alert-state: ${alertState}`);
+    core.info(`outputs.alert-severity: ${alertSeverity}`);
     core.info(`outputs.ghsa-id: ${ghsaId}`);
     core.info(`outputs.cvss: ${cvss}`);
+    core.info(`outputs.cwes: ${cwes}`);
+    core.info(`outputs.alert-description: ${alertDescription}`);
+    core.info(`outputs.alert-identifiers: ${alertIdentifiers}`);
+    core.info(`outputs.alert-summary: ${alertSummary}`);
     core.endGroup();
     core.setOutput('updated-dependencies-json', updatedDependencies);
     core.setOutput('dependency-names', dependencyNames);
@@ -10024,8 +10034,13 @@ function set(updatedDependencies) {
     core.setOutput('compatibility-score', compatScore);
     core.setOutput('maintainer-changes', maintainerChanges);
     core.setOutput('alert-state', alertState);
+    core.setOutput('alert-severity', alertSeverity);
     core.setOutput('ghsa-id', ghsaId);
     core.setOutput('cvss', cvss);
+    core.setOutput('cwes', cwes);
+    core.setOutput('alert-description', alertDescription);
+    core.setOutput('alert-identifiers', alertIdentifiers);
+    core.setOutput('alert-summary', alertSummary);
 }
 exports.set = set;
 function maxDependencyTypes(updatedDependencies) {
@@ -10086,6 +10101,16 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.calculateUpdateType = exports.parse = void 0;
 const YAML = __importStar(__nccwpck_require__(4083));
+const baseAlert = {
+    alertState: '',
+    alertSeverity: '',
+    ghsaId: '',
+    cvss: 0,
+    cwes: [],
+    alertDescription: '',
+    alertIdentifiers: [],
+    alertSummary: ''
+};
 function parse(commitMessage, body, branchName, mainBranch, lookup, getScore) {
     var _a, _b, _c, _d, _e, _f, _g, _h;
     return __awaiter(this, void 0, void 0, function* () {
@@ -10093,7 +10118,7 @@ function parse(commitMessage, body, branchName, mainBranch, lookup, getScore) {
         const updateFragment = commitMessage.match(/^Update .* requirement from \S*? ?(?<from>v?\d\S*) to \S*? ?(?<to>v?\d\S*)$/m);
         const yamlFragment = commitMessage.match(/^-{3}\n(?<dependencies>[\S|\s]*?)\n^\.{3}\n/m);
         const newMaintainer = !!body.match(/Maintainer changes/m);
-        const lookupFn = lookup !== null && lookup !== void 0 ? lookup : (() => Promise.resolve({ alertState: '', ghsaId: '', cvss: 0 }));
+        const lookupFn = lookup !== null && lookup !== void 0 ? lookup : (() => Promise.resolve(baseAlert));
         const scoreFn = getScore !== null && getScore !== void 0 ? getScore : (() => Promise.resolve(0));
         if ((yamlFragment === null || yamlFragment === void 0 ? void 0 : yamlFragment.groups) && branchName.startsWith('dependabot')) {
             const data = YAML.parse(yamlFragment.groups.dependencies);
@@ -10205,7 +10230,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getCompatibility = exports.trimSlashes = exports.getAlert = exports.getMessage = void 0;
+exports.getCompatibility = exports.trimSlashes = exports.getAlert = exports.queryForAlerts = exports.getMessage = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const https_1 = __importDefault(__nccwpck_require__(5687));
 const DEPENDABOT_LOGIN = 'dependabot[bot]';
@@ -10249,37 +10274,64 @@ function getMessage(client, context, skipCommitVerification = false, skipVerific
     });
 }
 exports.getMessage = getMessage;
+function queryForAlerts(owner, repo) {
+    return `
+  {
+    repository(owner: "${owner}", name: "${repo}") { 
+      vulnerabilityAlerts(first: 100) {
+        nodes {
+          vulnerableManifestFilename
+          vulnerableManifestPath
+          vulnerableRequirements
+          state
+          securityVulnerability { 
+            package {
+              name
+              ecosystem
+            }
+            severity
+          }
+          securityAdvisory { 
+            cvss { score }
+            cwes(first: 100) {
+              nodes {
+                cweId
+                name
+              }
+            }
+            description
+            ghsaId
+            identifiers {
+              type
+              value
+            }
+            summary
+          }
+        }
+      }
+    }
+  }`;
+}
+exports.queryForAlerts = queryForAlerts;
 function getAlert(name, version, directory, client, context) {
-    var _a, _b, _c, _d, _e;
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w;
     return __awaiter(this, void 0, void 0, function* () {
-        const alerts = yield client.graphql(`
-     {
-       repository(owner: "${context.repo.owner}", name: "${context.repo.repo}") { 
-         vulnerabilityAlerts(first: 100) {
-           nodes {
-             vulnerableManifestFilename
-             vulnerableManifestPath
-             vulnerableRequirements
-             state
-             securityVulnerability { 
-               package { name } 
-             }
-             securityAdvisory { 
-              cvss { score }
-              ghsaId 
-             }
-           }
-         }
-       }
-     }`);
+        const alerts = yield client.graphql(queryForAlerts(context.repo.owner, context.repo.repo));
         const nodes = (_b = (_a = alerts === null || alerts === void 0 ? void 0 : alerts.repository) === null || _a === void 0 ? void 0 : _a.vulnerabilityAlerts) === null || _b === void 0 ? void 0 : _b.nodes;
         const found = nodes.find(a => (version === '' || a.vulnerableRequirements === `= ${version}`) &&
             trimSlashes(a.vulnerableManifestPath) === trimSlashes(`${directory}/${a.vulnerableManifestFilename}`) &&
             a.securityVulnerability.package.name === name);
+        const cwes = (_f = (_e = (_d = (_c = found === null || found === void 0 ? void 0 : found.securityAdvisory) === null || _c === void 0 ? void 0 : _c.cwes) === null || _d === void 0 ? void 0 : _d.nodes) === null || _e === void 0 ? void 0 : _e.map((a) => { return Object.assign({}, a); })) !== null && _f !== void 0 ? _f : [];
+        const identifiers = (_j = (_h = (_g = found === null || found === void 0 ? void 0 : found.securityAdvisory) === null || _g === void 0 ? void 0 : _g.identifiers) === null || _h === void 0 ? void 0 : _h.map((a) => { return Object.assign({}, a); })) !== null && _j !== void 0 ? _j : [];
         return {
-            alertState: (_c = found === null || found === void 0 ? void 0 : found.state) !== null && _c !== void 0 ? _c : '',
-            ghsaId: (_d = found === null || found === void 0 ? void 0 : found.securityAdvisory.ghsaId) !== null && _d !== void 0 ? _d : '',
-            cvss: (_e = found === null || found === void 0 ? void 0 : found.securityAdvisory.cvss.score) !== null && _e !== void 0 ? _e : 0.0
+            alertState: (_k = found === null || found === void 0 ? void 0 : found.state) !== null && _k !== void 0 ? _k : '',
+            alertSeverity: (_m = (_l = found === null || found === void 0 ? void 0 : found.securityVulnerability) === null || _l === void 0 ? void 0 : _l.severity) !== null && _m !== void 0 ? _m : '',
+            ghsaId: (_p = (_o = found === null || found === void 0 ? void 0 : found.securityAdvisory) === null || _o === void 0 ? void 0 : _o.ghsaId) !== null && _p !== void 0 ? _p : '',
+            cvss: (_s = (_r = (_q = found === null || found === void 0 ? void 0 : found.securityAdvisory) === null || _q === void 0 ? void 0 : _q.cvss) === null || _r === void 0 ? void 0 : _r.score) !== null && _s !== void 0 ? _s : 0.0,
+            cwes,
+            alertDescription: (_u = (_t = found === null || found === void 0 ? void 0 : found.securityAdvisory) === null || _t === void 0 ? void 0 : _t.description) !== null && _u !== void 0 ? _u : '',
+            alertIdentifiers: identifiers,
+            alertSummary: (_w = (_v = found === null || found === void 0 ? void 0 : found.securityAdvisory) === null || _v === void 0 ? void 0 : _v.summary) !== null && _w !== void 0 ? _w : ''
         };
     });
 }
