@@ -112,6 +112,7 @@ test('it sets the updated dependency as an output for subsequent actions when gi
         newVersion: '4.2.2',
         compatScore: 0,
         maintainerChanges: false,
+        dependencyGroup: '',
         alertState: '',
         ghsaId: '',
         cvss: 0
@@ -129,6 +130,7 @@ test('it sets the updated dependency as an output for subsequent actions when gi
   expect(core.setOutput).toBeCalledWith('new-version', '4.2.2')
   expect(core.setOutput).toBeCalledWith('compatibility-score', 0)
   expect(core.setOutput).toBeCalledWith('maintainer-changes', false)
+  expect(core.setOutput).toBeCalledWith('dependency-group', '')
   expect(core.setOutput).toBeCalledWith('alert-state', '')
   expect(core.setOutput).toBeCalledWith('ghsa-id', '')
   expect(core.setOutput).toBeCalledWith('cvss', 0)
@@ -179,6 +181,7 @@ test('it sets the updated dependency as an output for subsequent actions when th
         directory: '/',
         packageEcosystem: 'nuget',
         maintainerChanges: false,
+        dependencyGroup: '',
         targetBranch: 'main',
         prevVersion: 'v4.0.1',
         newVersion: 'v4.2.2',
@@ -200,9 +203,116 @@ test('it sets the updated dependency as an output for subsequent actions when th
   expect(core.setOutput).toBeCalledWith('new-version', 'v4.2.2')
   expect(core.setOutput).toBeCalledWith('compatibility-score', 0)
   expect(core.setOutput).toBeCalledWith('maintainer-changes', false)
+  expect(core.setOutput).toBeCalledWith('dependency-group', '')
   expect(core.setOutput).toBeCalledWith('alert-state', '')
   expect(core.setOutput).toBeCalledWith('ghsa-id', '')
   expect(core.setOutput).toBeCalledWith('cvss', 0)
+})
+
+test('it supports returning information about grouped updates', async () => {
+  const mockCommitMessage =
+    'Bumps the docker group with 3 updates: [github.com/docker/cli](https://github.com/docker/cli), [github.com/docker/docker](https://github.com/docker/docker) and [github.com/moby/moby](https://github.com/moby/moby).\n' +
+    '\n' +
+    'Updates `github.com/docker/cli` from 24.0.1+incompatible to 24.0.2+incompatible\n' +
+    '- [Commits](docker/cli@v24.0.1...v24.0.2)\n' +
+    '\n' +
+    'Updates `github.com/docker/docker` from 24.0.1+incompatible to 24.0.2+incompatible\n' +
+    '- [Release notes](https://github.com/docker/docker/releases)\n' +
+    '- [Commits](moby/moby@v24.0.1...v24.0.2)\n' +
+    '\n' +
+    'Updates `github.com/moby/moby` from 24.0.1+incompatible to 24.0.2+incompatible\n' +
+    '- [Release notes](https://github.com/moby/moby/releases)\n' +
+    '- [Commits](moby/moby@v24.0.1...v24.0.2)\n' +
+    '\n' +
+    '---\n' +
+    'updated-dependencies:\n' +
+    '- dependency-name: github.com/docker/cli\n' +
+    '  dependency-type: direct:production\n' +
+    '  update-type: version-update:semver-patch\n' +
+    '- dependency-name: github.com/docker/docker\n' +
+    '  dependency-type: direct:production\n' +
+    '  update-type: version-update:semver-patch\n' +
+    '- dependency-name: github.com/moby/moby\n' +
+    '  dependency-type: direct:production\n' +
+    '  update-type: version-update:semver-patch\n' +
+    '...\n' +
+    '\n' +
+    'Signed-off-by: dependabot[bot] <support@github.com>\n'
+
+  const mockAlert = { alertState: '', ghsaId: '', cvss: 0 }
+
+  jest.spyOn(core, 'getInput').mockReturnValue('mock-token')
+  jest.spyOn(util, 'getBranchNames').mockReturnValue({ headName: 'dependabot/docker/gh-base-image/docker-1234566789', baseName: 'trunk' })
+  jest.spyOn(dependabotCommits, 'getMessage').mockImplementation(jest.fn(
+    () => Promise.resolve(mockCommitMessage)
+  ))
+  jest.spyOn(dependabotCommits, 'getAlert').mockImplementation(jest.fn(
+    () => Promise.resolve(mockAlert)
+  ))
+  jest.spyOn(dependabotCommits, 'getCompatibility').mockImplementation(jest.fn(
+    () => Promise.resolve(34)
+  ))
+  jest.spyOn(core, 'setOutput').mockImplementation(jest.fn())
+
+  await run()
+
+  expect(core.startGroup).toHaveBeenCalledWith(
+    expect.stringContaining('Outputting metadata for 3 updated dependencies')
+  )
+
+  expect(core.setOutput).toHaveBeenCalledWith(
+    'updated-dependencies-json',
+    [
+      {
+        dependencyName: 'github.com/docker/cli',
+        dependencyType: 'direct:production',
+        updateType: 'version-update:semver-patch',
+        directory: '/',
+        packageEcosystem: 'docker',
+        targetBranch: 'trunk',
+        prevVersion: '24.0.1',
+        newVersion: '24.0.2',
+        compatScore: 34,
+        maintainerChanges: false,
+        dependencyGroup: 'docker',
+        alertState: '',
+        ghsaId: '',
+        cvss: 0
+      },
+      {
+        dependencyName: 'github.com/docker/docker',
+        dependencyType: 'direct:production',
+        updateType: 'version-update:semver-patch',
+        directory: '/',
+        packageEcosystem: 'docker',
+        targetBranch: 'trunk',
+        prevVersion: '24.0.1',
+        newVersion: '24.0.2',
+        compatScore: 34,
+        maintainerChanges: false,
+        dependencyGroup: 'docker',
+        alertState: '',
+        ghsaId: '',
+        cvss: 0
+      },
+      {
+        dependencyName: 'github.com/moby/moby',
+        dependencyType: 'direct:production',
+        updateType: 'version-update:semver-patch',
+        directory: '/',
+        packageEcosystem: 'docker',
+        targetBranch: 'trunk',
+        prevVersion: '24.0.1',
+        newVersion: '24.0.2',
+        compatScore: 34,
+        maintainerChanges: false,
+        dependencyGroup: 'docker',
+        alertState: '',
+        ghsaId: '',
+        cvss: 0
+      }
+    ]
+  )
 })
 
 test('it sets the updated dependency as an output for subsequent actions when given a commit message for library', async () => {
@@ -253,6 +363,7 @@ test('it sets the updated dependency as an output for subsequent actions when gi
         packageEcosystem: 'bundler',
         targetBranch: 'main',
         maintainerChanges: false,
+        dependencyGroup: '',
         prevVersion: '1.30.1',
         newVersion: '1.31.0',
         compatScore: 0,
@@ -273,6 +384,7 @@ test('it sets the updated dependency as an output for subsequent actions when gi
   expect(core.setOutput).toBeCalledWith('new-version', '1.31.0')
   expect(core.setOutput).toBeCalledWith('compatibility-score', 0)
   expect(core.setOutput).toBeCalledWith('maintainer-changes', false)
+  expect(core.setOutput).toBeCalledWith('dependency-group', '')
   expect(core.setOutput).toBeCalledWith('alert-state', '')
   expect(core.setOutput).toBeCalledWith('ghsa-id', '')
   expect(core.setOutput).toBeCalledWith('cvss', 0)
@@ -332,6 +444,7 @@ test('if there are multiple dependencies, it summarizes them', async () => {
         newVersion: '4.2.2',
         compatScore: 34,
         maintainerChanges: false,
+        dependencyGroup: '',
         alertState: '',
         ghsaId: '',
         cvss: 0
@@ -347,6 +460,7 @@ test('if there are multiple dependencies, it summarizes them', async () => {
         newVersion: '',
         compatScore: 34,
         maintainerChanges: false,
+        dependencyGroup: '',
         alertState: '',
         ghsaId: '',
         cvss: 0
@@ -364,6 +478,7 @@ test('if there are multiple dependencies, it summarizes them', async () => {
   expect(core.setOutput).toBeCalledWith('new-version', '4.2.2')
   expect(core.setOutput).toBeCalledWith('compatibility-score', 34)
   expect(core.setOutput).toBeCalledWith('maintainer-changes', false)
+  expect(core.setOutput).toBeCalledWith('dependency-group', '')
   expect(core.setOutput).toBeCalledWith('alert-state', '')
   expect(core.setOutput).toBeCalledWith('ghsa-id', '')
   expect(core.setOutput).toBeCalledWith('cvss', 0)

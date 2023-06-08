@@ -45,7 +45,7 @@ export async function parse (commitMessage: string, body: string, branchName: st
     const chunks = branchName.split(delim)
     const prev = bumpFragment?.groups?.from ?? (updateFragment?.groups?.from ?? '')
     const next = bumpFragment?.groups?.to ?? (updateFragment?.groups?.to ?? '')
-        const dependencyGroup = groupName?.groups?.name ?? ''
+    const dependencyGroup = groupName?.groups?.name ?? ''
 
     if (data['updated-dependencies']) {
       return await Promise.all(data['updated-dependencies'].map(async (dependency, index) => {
