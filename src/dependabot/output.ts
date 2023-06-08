@@ -28,6 +28,7 @@ export function set (updatedDependencies: Array<updatedDependency>): void {
   const newVersion = firstDependency?.newVersion
   const compatScore = firstDependency?.compatScore
   const maintainerChanges = firstDependency?.maintainerChanges
+  const dependencyGroup = firstDependency?.dependencyGroup
   const alertState = firstDependency?.alertState
   const ghsaId = firstDependency?.ghsaId
   const cvss = firstDependency?.cvss
@@ -43,6 +44,7 @@ export function set (updatedDependencies: Array<updatedDependency>): void {
   core.info(`outputs.new-version: ${newVersion}`)
   core.info(`outputs.compatibility-score: ${compatScore}`)
   core.info(`outputs.maintainer-changes: ${maintainerChanges}`)
+  core.info(`outputs.dependency-group: ${dependencyGroup}`)
   core.info(`outputs.alert-state: ${alertState}`)
   core.info(`outputs.ghsa-id: ${ghsaId}`)
   core.info(`outputs.cvss: ${cvss}`)
@@ -59,6 +61,7 @@ export function set (updatedDependencies: Array<updatedDependency>): void {
   core.setOutput('new-version', newVersion)
   core.setOutput('compatibility-score', compatScore)
   core.setOutput('maintainer-changes', maintainerChanges)
+  core.setOutput('dependency-group', dependencyGroup)
   core.setOutput('alert-state', alertState)
   core.setOutput('ghsa-id', ghsaId)
   core.setOutput('cvss', cvss)

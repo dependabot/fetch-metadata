@@ -84,6 +84,8 @@ Subsequent actions will have access to the following outputs:
   - If this PR has a known compatibility score and `compat-lookup` is `true`, this contains the compatibility score (otherwise it contains 0).
 - `steps.dependabot-metadata.outputs.maintainer-changes`
   - Whether or not the the body of this PR contains the phrase "Maintainer changes" which is an indicator of whether or not any maintainers have changed.
+- `steps.dependabot-metadata.outputs.dependency-group`
+  - The dependency group that the PR is associated with (otherwise it is an empty string).
 
 **Note:** By default, these outputs will only be populated if the target Pull Request was opened by Dependabot and contains
 **only** Dependabot-created commits. To override, see `skip-commit-verification` / `skip-verification`.
