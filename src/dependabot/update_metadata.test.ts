@@ -197,12 +197,15 @@ test('it supports returning information about grouped updates', async () => {
     '- dependency-name: github.com/docker/cli\n' +
     '  dependency-type: direct:production\n' +
     '  update-type: version-update:semver-patch\n' +
+    '  dependency-group: docker\n' +
     '- dependency-name: github.com/docker/docker\n' +
     '  dependency-type: direct:production\n' +
     '  update-type: version-update:semver-patch\n' +
+    '  dependency-group: docker\n' +
     '- dependency-name: github.com/moby/moby\n' +
     '  dependency-type: direct:production\n' +
     '  update-type: version-update:semver-patch\n' +
+    '  dependency-group: docker\n' +
     '...\n' +
     '\n' +
     'Signed-off-by: dependabot[bot] <support@github.com>\n'
