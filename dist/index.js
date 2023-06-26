@@ -9994,6 +9994,7 @@ function set(updatedDependencies) {
     const newVersion = firstDependency === null || firstDependency === void 0 ? void 0 : firstDependency.newVersion;
     const compatScore = firstDependency === null || firstDependency === void 0 ? void 0 : firstDependency.compatScore;
     const maintainerChanges = firstDependency === null || firstDependency === void 0 ? void 0 : firstDependency.maintainerChanges;
+    const dependencyGroup = firstDependency === null || firstDependency === void 0 ? void 0 : firstDependency.dependencyGroup;
     const alertState = firstDependency === null || firstDependency === void 0 ? void 0 : firstDependency.alertState;
     const ghsaId = firstDependency === null || firstDependency === void 0 ? void 0 : firstDependency.ghsaId;
     const cvss = firstDependency === null || firstDependency === void 0 ? void 0 : firstDependency.cvss;
@@ -10008,6 +10009,7 @@ function set(updatedDependencies) {
     core.info(`outputs.new-version: ${newVersion}`);
     core.info(`outputs.compatibility-score: ${compatScore}`);
     core.info(`outputs.maintainer-changes: ${maintainerChanges}`);
+    core.info(`outputs.dependency-group: ${dependencyGroup}`);
     core.info(`outputs.alert-state: ${alertState}`);
     core.info(`outputs.ghsa-id: ${ghsaId}`);
     core.info(`outputs.cvss: ${cvss}`);
@@ -10023,6 +10025,7 @@ function set(updatedDependencies) {
     core.setOutput('new-version', newVersion);
     core.setOutput('compatibility-score', compatScore);
     core.setOutput('maintainer-changes', maintainerChanges);
+    core.setOutput('dependency-group', dependencyGroup);
     core.setOutput('alert-state', alertState);
     core.setOutput('ghsa-id', ghsaId);
     core.setOutput('cvss', cvss);
@@ -10087,11 +10090,12 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.calculateUpdateType = exports.parse = void 0;
 const YAML = __importStar(__nccwpck_require__(4083));
 function parse(commitMessage, body, branchName, mainBranch, lookup, getScore) {
-    var _a, _b, _c, _d, _e, _f, _g, _h;
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k;
     return __awaiter(this, void 0, void 0, function* () {
         const bumpFragment = commitMessage.match(/^Bumps .* from (?<from>v?\d[^ ]*) to (?<to>v?\d[^ ]*)\.$/m);
         const updateFragment = commitMessage.match(/^Update .* requirement from \S*? ?(?<from>v?\d\S*) to \S*? ?(?<to>v?\d\S*)$/m);
         const yamlFragment = commitMessage.match(/^-{3}\n(?<dependencies>[\S|\s]*?)\n^\.{3}\n/m);
+        const groupName = commitMessage.match(/dependency-group:\s(?<name>\S*)/m);
         const newMaintainer = !!body.match(/Maintainer changes/m);
         const lookupFn = lookup !== null && lookup !== void 0 ? lookup : (() => Promise.resolve({ alertState: '', ghsaId: '', cvss: 0 }));
         const scoreFn = getScore !== null && getScore !== void 0 ? getScore : (() => Promise.resolve(0));
@@ -10102,13 +10106,14 @@ function parse(commitMessage, body, branchName, mainBranch, lookup, getScore) {
             const chunks = branchName.split(delim);
             const prev = (_b = (_a = bumpFragment === null || bumpFragment === void 0 ? void 0 : bumpFragment.groups) === null || _a === void 0 ? void 0 : _a.from) !== null && _b !== void 0 ? _b : ((_d = (_c = updateFragment === null || updateFragment === void 0 ? void 0 : updateFragment.groups) === null || _c === void 0 ? void 0 : _c.from) !== null && _d !== void 0 ? _d : '');
             const next = (_f = (_e = bumpFragment === null || bumpFragment === void 0 ? void 0 : bumpFragment.groups) === null || _e === void 0 ? void 0 : _e.to) !== null && _f !== void 0 ? _f : ((_h = (_g = updateFragment === null || updateFragment === void 0 ? void 0 : updateFragment.groups) === null || _g === void 0 ? void 0 : _g.to) !== null && _h !== void 0 ? _h : '');
+            const dependencyGroup = (_k = (_j = groupName === null || groupName === void 0 ? void 0 : groupName.groups) === null || _j === void 0 ? void 0 : _j.name) !== null && _k !== void 0 ? _k : '';
             if (data['updated-dependencies']) {
                 return yield Promise.all(data['updated-dependencies'].map((dependency, index) => __awaiter(this, void 0, void 0, function* () {
                     const dirname = `/${chunks.slice(2, -1 * (1 + (dependency['dependency-name'].match(/\//g) || []).length)).join(delim) || ''}`;
                     const lastVersion = index === 0 ? prev : '';
                     const nextVersion = index === 0 ? next : '';
                     const updateType = dependency['update-type'] || calculateUpdateType(lastVersion, nextVersion);
-                    return Object.assign({ dependencyName: dependency['dependency-name'], dependencyType: dependency['dependency-type'], updateType, directory: dirname, packageEcosystem: chunks[1], targetBranch: mainBranch, prevVersion: lastVersion, newVersion: nextVersion, compatScore: yield scoreFn(dependency['dependency-name'], lastVersion, nextVersion, chunks[1]), maintainerChanges: newMaintainer }, yield lookupFn(dependency['dependency-name'], lastVersion, dirname));
+                    return Object.assign({ dependencyName: dependency['dependency-name'], dependencyType: dependency['dependency-type'], updateType, directory: dirname, packageEcosystem: chunks[1], targetBranch: mainBranch, prevVersion: lastVersion, newVersion: nextVersion, compatScore: yield scoreFn(dependency['dependency-name'], lastVersion, nextVersion, chunks[1]), maintainerChanges: newMaintainer, dependencyGroup: dependencyGroup }, yield lookupFn(dependency['dependency-name'], lastVersion, dirname));
                 })));
             }
         }
