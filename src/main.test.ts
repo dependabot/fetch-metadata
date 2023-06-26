@@ -213,14 +213,14 @@ test('it supports returning information about grouped updates', async () => {
   const mockCommitMessage =
     'Bumps the docker group with 3 updates: [github.com/docker/cli](https://github.com/docker/cli), [github.com/docker/docker](https://github.com/docker/docker) and [github.com/moby/moby](https://github.com/moby/moby).\n' +
     '\n' +
-    'Updates `github.com/docker/cli` from 24.0.1+incompatible to 24.0.2+incompatible\n' +
+    'Updates `github.com/docker/cli` from 24.0.1+incompatible to 24.0.2+incompatible.\n' +
     '- [Commits](docker/cli@v24.0.1...v24.0.2)\n' +
     '\n' +
-    'Updates `github.com/docker/docker` from 24.0.1+incompatible to 24.0.2+incompatible\n' +
+    'Updates `github.com/docker/docker` from 24.0.1+incompatible to 24.0.2+incompatible.\n' +
     '- [Release notes](https://github.com/docker/docker/releases)\n' +
     '- [Commits](moby/moby@v24.0.1...v24.0.2)\n' +
     '\n' +
-    'Updates `github.com/moby/moby` from 24.0.1+incompatible to 24.0.2+incompatible\n' +
+    'Updates `github.com/moby/moby` from 24.0.1+incompatible to 24.0.2+incompatible.\n' +
     '- [Release notes](https://github.com/moby/moby/releases)\n' +
     '- [Commits](moby/moby@v24.0.1...v24.0.2)\n' +
     '\n' +
@@ -273,8 +273,8 @@ test('it supports returning information about grouped updates', async () => {
         directory: '/',
         packageEcosystem: 'docker',
         targetBranch: 'trunk',
-        prevVersion: '24.0.1',
-        newVersion: '24.0.2',
+        prevVersion: '24.0.1+incompatible',
+        newVersion: '24.0.2+incompatible',
         compatScore: 34,
         maintainerChanges: false,
         dependencyGroup: 'docker',
@@ -289,8 +289,8 @@ test('it supports returning information about grouped updates', async () => {
         directory: '/',
         packageEcosystem: 'docker',
         targetBranch: 'trunk',
-        prevVersion: '24.0.1',
-        newVersion: '24.0.2',
+        prevVersion: '',
+        newVersion: '',
         compatScore: 34,
         maintainerChanges: false,
         dependencyGroup: 'docker',
@@ -305,8 +305,8 @@ test('it supports returning information about grouped updates', async () => {
         directory: '/',
         packageEcosystem: 'docker',
         targetBranch: 'trunk',
-        prevVersion: '24.0.1',
-        newVersion: '24.0.2',
+        prevVersion: '',
+        newVersion: '',
         compatScore: 34,
         maintainerChanges: false,
         dependencyGroup: 'docker',
