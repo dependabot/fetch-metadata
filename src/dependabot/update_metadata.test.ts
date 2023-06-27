@@ -61,6 +61,7 @@ test('it returns the updated dependency information when there is a yaml fragmen
   expect(updatedDependencies[0].alertState).toEqual('DISMISSED')
   expect(updatedDependencies[0].ghsaId).toEqual('GHSA-III-BBB')
   expect(updatedDependencies[0].cvss).toEqual(4.6)
+  expect(updatedDependencies[0].dependencyGroup).toEqual('')
 })
 
 test('it supports multiple dependencies within a single fragment', async () => {
@@ -122,6 +123,8 @@ test('it supports multiple dependencies within a single fragment', async () => {
   expect(updatedDependencies[0].alertState).toEqual('DISMISSED')
   expect(updatedDependencies[0].ghsaId).toEqual('GHSA-III-BBB')
   expect(updatedDependencies[0].cvss).toEqual(4.6)
+  expect(updatedDependencies[0].dependencyGroup).toEqual('')
+  expect(updatedDependencies[0].dependencyGroup).toEqual('')
 
   expect(updatedDependencies[1].dependencyName).toEqual('coffeescript')
   expect(updatedDependencies[1].dependencyType).toEqual('indirect')
@@ -135,6 +138,7 @@ test('it supports multiple dependencies within a single fragment', async () => {
   expect(updatedDependencies[1].alertState).toEqual('')
   expect(updatedDependencies[1].ghsaId).toEqual('')
   expect(updatedDependencies[1].cvss).toEqual(0)
+  expect(updatedDependencies[1].dependencyGroup).toEqual('')
 })
 
 test('it returns the updated dependency information when there is a leading v in the commit message versions', async () => {
@@ -170,6 +174,50 @@ test('it returns the updated dependency information when there is a leading v in
   expect(updatedDependencies[0].alertState).toEqual('DISMISSED')
   expect(updatedDependencies[0].ghsaId).toEqual('GHSA-III-BBB')
   expect(updatedDependencies[0].cvss).toEqual(4.6)
+  expect(updatedDependencies[0].dependencyGroup).toEqual('')
+})
+
+test('it supports returning information about grouped updates', async () => {
+  const commitMessage =
+    'Bumps the docker group with 3 updates: [github.com/docker/cli](https://github.com/docker/cli), [github.com/docker/docker](https://github.com/docker/docker) and [github.com/moby/moby](https://github.com/moby/moby).\n' +
+    '\n' +
+    'Updates `github.com/docker/cli` from 24.0.1+incompatible to 24.0.2+incompatible\n' +
+    '- [Commits](docker/cli@v24.0.1...v24.0.2)\n' +
+    '\n' +
+    'Updates `github.com/docker/docker` from 24.0.1+incompatible to 24.0.2+incompatible\n' +
+    '- [Release notes](https://github.com/docker/docker/releases)\n' +
+    '- [Commits](moby/moby@v24.0.1...v24.0.2)\n' +
+    '\n' +
+    'Updates `github.com/moby/moby` from 24.0.1+incompatible to 24.0.2+incompatible\n' +
+    '- [Release notes](https://github.com/moby/moby/releases)\n' +
+    '- [Commits](moby/moby@v24.0.1...v24.0.2)\n' +
+    '\n' +
+    '---\n' +
+    'updated-dependencies:\n' +
+    '- dependency-name: github.com/docker/cli\n' +
+    '  dependency-type: direct:production\n' +
+    '  update-type: version-update:semver-patch\n' +
+    '  dependency-group: docker\n' +
+    '- dependency-name: github.com/docker/docker\n' +
+    '  dependency-type: direct:production\n' +
+    '  update-type: version-update:semver-patch\n' +
+    '  dependency-group: docker\n' +
+    '- dependency-name: github.com/moby/moby\n' +
+    '  dependency-type: direct:production\n' +
+    '  update-type: version-update:semver-patch\n' +
+    '  dependency-group: docker\n' +
+    '...\n' +
+    '\n' +
+    'Signed-off-by: dependabot[bot] <support@github.com>\n'
+
+  const getAlert = async () => Promise.resolve({ alertState: 'DISMISSED', ghsaId: 'GHSA-III-BBB', cvss: 4.6 })
+  const getScore = async () => Promise.resolve(43)
+  const updatedDependencies = await updateMetadata.parse(commitMessage, '', 'dependabot/docker/gh-base-image/docker-1234566789', 'main', getAlert, getScore)
+
+  expect(updatedDependencies).toHaveLength(3)
+
+  expect(updatedDependencies[0].dependencyName).toEqual('github.com/docker/cli')
+  expect(updatedDependencies[0].dependencyGroup).toEqual('docker')
 })
 
 test('it only returns information within the first fragment if there are multiple yaml documents', async () => {
@@ -211,6 +259,7 @@ test('it only returns information within the first fragment if there are multipl
   expect(updatedDependencies[0].alertState).toEqual('')
   expect(updatedDependencies[0].ghsaId).toEqual('')
   expect(updatedDependencies[0].cvss).toEqual(0)
+  expect(updatedDependencies[0].dependencyGroup).toEqual('')
 })
 
 test('it properly handles dependencies which contain slashes', async () => {
@@ -247,6 +296,7 @@ test('it properly handles dependencies which contain slashes', async () => {
   expect(updatedDependencies[0].alertState).toEqual('')
   expect(updatedDependencies[0].ghsaId).toEqual('')
   expect(updatedDependencies[0].cvss).toEqual(0)
+  expect(updatedDependencies[0].dependencyGroup).toEqual('')
 })
 
 test('calculateUpdateType should handle all paths', () => {
