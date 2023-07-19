@@ -13,6 +13,18 @@ updates:
       day: "sunday"
       time: "16:00"
     groups:
-      eslint-dependencies:
+      dependencies:
+        patterns:
+          - "*actions*"
+          - "*pluralize*"
+      dev-dependencies:
         patterns:
           - "*eslint*"
+          - "*types*"
+          - "*vercel"
+          - "*dotenv*"
+          - "*jest*"
+          - "*nock*"
+          - "*node*"
+          - "*yaml*"
+          - "*yargs*"
