@@ -51,5 +51,5 @@ outputs:
   maintainer-changes:
     description: 'Whether or not the the body of this PR contains the phrase "Maintainer changes" which is an indicator of whether or not any maintainers have changed.'
 runs:
-  using: 'node16'
+  using: 'node20'
   main: 'dist/index.js'
