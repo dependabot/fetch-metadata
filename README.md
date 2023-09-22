@@ -112,7 +112,7 @@ jobs:
       - name: Dependabot metadata
         id: dependabot-metadata
         uses: dependabot/fetch-metadata@v1
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Approve a PR if not already approved
         run: |
           gh pr checkout "$PR_URL" # sets the upstream metadata for `gh pr status`
