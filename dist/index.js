@@ -10109,11 +10109,15 @@ function parse(commitMessage, body, branchName, mainBranch, lookup, getScore) {
             const dependencyGroup = (_k = (_j = groupName === null || groupName === void 0 ? void 0 : groupName.groups) === null || _j === void 0 ? void 0 : _j.name) !== null && _k !== void 0 ? _k : '';
             if (data['updated-dependencies']) {
                 return yield Promise.all(data['updated-dependencies'].map((dependency, index) => __awaiter(this, void 0, void 0, function* () {
-                    const dirname = `/${chunks.slice(2, -1 * (1 + (dependency['dependency-name'].match(/\//g) || []).length)).join(delim) || ''}`;
+                    // When a branch delimiter of "-" is used, we need to +1 to end of slice because there is always a hyphen
+                    // between dependency name and version at the end of the branch name, regardless of configured branch separator.
+                    // e.g. "fsevents-1.2.13".
+                    const baseSliceEnd = delim === '-' ? 2 : 1;
+                    const dirname = `/${chunks.slice(2, -1 * (baseSliceEnd + (dependency['dependency-name'].match(/\//g) || []).length)).join('/') || ''}`;
                     const lastVersion = index === 0 ? prev : '';
                     const nextVersion = index === 0 ? next : '';
                     const updateType = dependency['update-type'] || calculateUpdateType(lastVersion, nextVersion);
-                    return Object.assign({ dependencyName: dependency['dependency-name'], dependencyType: dependency['dependency-type'], updateType, directory: dirname, packageEcosystem: chunks[1], targetBranch: mainBranch, prevVersion: lastVersion, newVersion: nextVersion, compatScore: yield scoreFn(dependency['dependency-name'], lastVersion, nextVersion, chunks[1]), maintainerChanges: newMaintainer, dependencyGroup: dependencyGroup }, yield lookupFn(dependency['dependency-name'], lastVersion, dirname));
+                    return Object.assign({ dependencyName: dependency['dependency-name'], dependencyType: dependency['dependency-type'], updateType, directory: dirname, packageEcosystem: chunks[1], targetBranch: mainBranch, prevVersion: lastVersion, newVersion: nextVersion, compatScore: yield scoreFn(dependency['dependency-name'], lastVersion, nextVersion, chunks[1]), maintainerChanges: newMaintainer, dependencyGroup }, yield lookupFn(dependency['dependency-name'], lastVersion, dirname));
                 })));
             }
         }

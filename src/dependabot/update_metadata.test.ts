@@ -299,6 +299,67 @@ test('it properly handles dependencies which contain slashes', async () => {
   expect(updatedDependencies[0].dependencyGroup).toEqual('')
 })
 
+test('it handles branch names with hyphen separator', async () => {
+  const commitMessage =
+      '- [Release notes](https://github.com/fsevents/fsevents/releases)\n' +
+      '- [Commits](fsevents/fsevents@v1.2.9...v1.2.13)\n' +
+      '\n' +
+      '---\n' +
+      'updated-dependencies:\n' +
+      '- dependency-name: fsevents\n' +
+      '  dependency-type: indirect\n' +
+      '...\n' +
+      '\n' +
+      'Signed-off-by: dependabot[bot] <support@github.com>'
+
+  const getAlert = async () => Promise.resolve({ alertState: '', ghsaId: '', cvss: 0 })
+  const getScore = async () => Promise.resolve(0)
+  const updatedDependencies = await updateMetadata.parse(commitMessage, '', 'dependabot-npm_and_yarn-fsevents-1.2.13', 'master', getAlert, getScore)
+
+  expect(updatedDependencies[0].directory).toEqual('/')
+})
+
+test('it handles branch names with hyphen separator and manifest files in nested directories', async () => {
+  const commitMessage =
+      '- [Release notes](https://github.com/fsevents/fsevents/releases)\n' +
+      '- [Commits](fsevents/fsevents@v1.2.9...v1.2.13)\n' +
+      '\n' +
+      '---\n' +
+      'updated-dependencies:\n' +
+      '- dependency-name: fsevents\n' +
+      '  dependency-type: indirect\n' +
+      '...\n' +
+      '\n' +
+      'Signed-off-by: dependabot[bot] <support@github.com>'
+
+  const getAlert = async () => Promise.resolve({ alertState: '', ghsaId: '', cvss: 0 })
+  const getScore = async () => Promise.resolve(0)
+  const updatedDependencies = await updateMetadata.parse(commitMessage, '', 'dependabot-npm_and_yarn-nested-nested-fsevents-1.2.13', 'master', getAlert, getScore)
+
+  expect(updatedDependencies[0].directory).toEqual('/nested/nested')
+})
+
+test('it handles branch names with hyphen separator and dependency names with forward slashes', async () => {
+  const commitMessage =
+      '- [Release notes](https://github.com/composer/composer/releases)\n' +
+      '- [Changelog](https://github.com/composer/composer/blob/main/CHANGELOG.md)\n' +
+      '- [Commits](composer/composer@1.10.26...2.6.5)\n' +
+      '\n' +
+      '---\n' +
+      'updated-dependencies:\n' +
+      '- dependency-name: composer/composer\n' +
+      '  dependency-type: indirect\n' +
+      '...\n' +
+      '\n' +
+      'Signed-off-by: dependabot[bot] <support@github.com>'
+
+  const getAlert = async () => Promise.resolve({ alertState: '', ghsaId: '', cvss: 0 })
+  const getScore = async () => Promise.resolve(0)
+  const updatedDependencies = await updateMetadata.parse(commitMessage, '', 'dependabot-composer-composer-composer-2.6.5', 'master', getAlert, getScore)
+
+  expect(updatedDependencies[0].directory).toEqual('/')
+})
+
 test('calculateUpdateType should handle all paths', () => {
   expect(updateMetadata.calculateUpdateType('', '')).toEqual('')
   expect(updateMetadata.calculateUpdateType('', '1')).toEqual('')

@@ -49,7 +49,11 @@ export async function parse (commitMessage: string, body: string, branchName: st
 
     if (data['updated-dependencies']) {
       return await Promise.all(data['updated-dependencies'].map(async (dependency, index) => {
-        const dirname = `/${chunks.slice(2, -1 * (1 + (dependency['dependency-name'].match(/\//g) || []).length)).join(delim) || ''}`
+        // When a branch delimiter of "-" is used, we need to +1 to end of slice because there is always a hyphen
+        // between dependency name and version at the end of the branch name, regardless of configured branch separator.
+        // e.g. "fsevents-1.2.13".
+        const baseSliceEnd = delim === '-' ? 2 : 1
+        const dirname = `/${chunks.slice(2, -1 * (baseSliceEnd + (dependency['dependency-name'].match(/\//g) || []).length)).join('/') || ''}`
         const lastVersion = index === 0 ? prev : ''
         const nextVersion = index === 0 ? next : ''
         const updateType = dependency['update-type'] || calculateUpdateType(lastVersion, nextVersion)
@@ -64,7 +68,7 @@ export async function parse (commitMessage: string, body: string, branchName: st
           newVersion: nextVersion,
           compatScore: await scoreFn(dependency['dependency-name'], lastVersion, nextVersion, chunks[1]),
           maintainerChanges: newMaintainer,
-          dependencyGroup: dependencyGroup,
+          dependencyGroup,
           ...await lookupFn(dependency['dependency-name'], lastVersion, dirname)
         }
       }))
