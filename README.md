@@ -40,13 +40,15 @@ Supported inputs are:
 - `github-token` (string)
   - The `GITHUB_TOKEN` secret
   - Defaults to `${{ github.token }}`
-  - Note: this must be set to a [personal access token (PAT)](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token) if you enable `alert-lookup` or `compat-token`.
+  - Note: this must be set to a [personal access token (PAT)](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token) if you enable `alert-lookup` or `compat-lookup`.
 - `alert-lookup` (boolean)
   - If `true`, then populate the `alert-state`, `ghsa-id` and `cvss` outputs.
   - Defaults to `false`
+  - Note: the `github-token` field must be set to a [personal access token (PAT)](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token).
 - `compat-lookup` (boolean)
   - If `true`, then populate the `compatibility-score` output.
   - Defaults to `false`
+  - Note: the `github-token` field must be set to a [personal access token (PAT)](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token).
 - `skip-commit-verification` (boolean)
   - If `true`, then the action will not expect the commits to have a verification signature. **It is required to set this to 'true' in GitHub Enterprise Server**
   - Defaults to `false`
