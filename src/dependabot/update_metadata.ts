@@ -28,6 +28,32 @@ export interface scoreLookup {
     (dependencyName: string, previousVersion: string, newVersion: string, ecosystem: string): Promise<number>;
 }
 
+function branchNameToDirectoryName (chunks: string[], delimiter: string, updatedDependencies: any): string {
+  // We can always slice after the first 2 pieces, because they will always contain "dependabot" followed by the name
+  // of the package ecosystem. e.g. "dependabot/npm_and_yarn".
+  const sliceStart = 2
+  let sliceEnd = chunks.length
+
+  // If the delimiter is "-", we assume the last piece of the branch name is a version number.
+  if (delimiter === '-') {
+    sliceEnd -= 1
+  }
+
+  // If there is more than 1 dependency name being updated, we assume 1 piece of the branch name will be "and".
+  if (updatedDependencies.length > 1) {
+    sliceEnd -= 1
+  }
+
+  updatedDependencies.forEach(dependency => {
+    // After replacing "/" in the dependency name with the delimiter, which could also be "/", we count how many pieces
+    // the dependency name would split into by the delimiter, and slicing that amount off the end of the branch name.
+    // e.g. "@types/twilio-video" and a delimiter of "-" would show up in the branch name as "types-twilio-video".
+    sliceEnd -= dependency['dependency-name'].replace('/', delimiter).split(delimiter).length
+  })
+
+  return `/${chunks.slice(sliceStart, sliceEnd).join('/')}`
+}
+
 export async function parse (commitMessage: string, body: string, branchName: string, mainBranch: string, lookup?: alertLookup, getScore?: scoreLookup): Promise<Array<updatedDependency>> {
   const bumpFragment = commitMessage.match(/^Bumps .* from (?<from>v?\d[^ ]*) to (?<to>v?\d[^ ]*)\.$/m)
   const updateFragment = commitMessage.match(/^Update .* requirement from \S*? ?(?<from>v?\d\S*) to \S*? ?(?<to>v?\d\S*)$/m)
@@ -48,12 +74,10 @@ export async function parse (commitMessage: string, body: string, branchName: st
     const dependencyGroup = groupName?.groups?.name ?? ''
 
     if (data['updated-dependencies']) {
+      // const dirname = branchNameToDirectoryName(chunks, delim, data['updated-dependencies'])
+      const dirname = branchNameToDirectoryName(chunks, delim, data['updated-dependencies'])
+
       return await Promise.all(data['updated-dependencies'].map(async (dependency, index) => {
-        // When a branch delimiter of "-" is used, we need to +1 to end of slice because there is always a hyphen
-        // between dependency name and version at the end of the branch name, regardless of configured branch separator.
-        // e.g. "fsevents-1.2.13".
-        const baseSliceEnd = delim === '-' ? 2 : 1
-        const dirname = `/${chunks.slice(2, -1 * (baseSliceEnd + (dependency['dependency-name'].match(/\//g) || []).length)).join('/') || ''}`
         const lastVersion = index === 0 ? prev : ''
         const nextVersion = index === 0 ? next : ''
         const updateType = dependency['update-type'] || calculateUpdateType(lastVersion, nextVersion)
