@@ -415,7 +415,7 @@ test('if there are multiple dependencies, it summarizes them', async () => {
   const mockAlert = { alertState: '', ghsaId: '', cvss: 0 }
 
   jest.spyOn(core, 'getInput').mockReturnValue('mock-token')
-  jest.spyOn(util, 'getBranchNames').mockReturnValue({ headName: 'dependabot/npm_and_yarn/api/main/feature1', baseName: 'trunk' })
+  jest.spyOn(util, 'getBranchNames').mockReturnValue({ headName: 'dependabot/npm_and_yarn/api/main/coffee-rails/and/coffeescript', baseName: 'trunk' })
   jest.spyOn(dependabotCommits, 'getMessage').mockImplementation(jest.fn(
     () => Promise.resolve(mockCommitMessage)
   ))
