@@ -10129,7 +10129,6 @@ function parse(commitMessage, body, branchName, mainBranch, lookup, getScore) {
             const next = (_f = (_e = bumpFragment === null || bumpFragment === void 0 ? void 0 : bumpFragment.groups) === null || _e === void 0 ? void 0 : _e.to) !== null && _f !== void 0 ? _f : ((_h = (_g = updateFragment === null || updateFragment === void 0 ? void 0 : updateFragment.groups) === null || _g === void 0 ? void 0 : _g.to) !== null && _h !== void 0 ? _h : '');
             const dependencyGroup = (_k = (_j = groupName === null || groupName === void 0 ? void 0 : groupName.groups) === null || _j === void 0 ? void 0 : _j.name) !== null && _k !== void 0 ? _k : '';
             if (data['updated-dependencies']) {
-                // const dirname = branchNameToDirectoryName(chunks, delim, data['updated-dependencies'])
                 const dirname = branchNameToDirectoryName(chunks, delim, data['updated-dependencies']);
                 return yield Promise.all(data['updated-dependencies'].map((dependency, index) => __awaiter(this, void 0, void 0, function* () {
                     const lastVersion = index === 0 ? prev : '';

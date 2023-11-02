@@ -74,7 +74,6 @@ export async function parse (commitMessage: string, body: string, branchName: st
     const dependencyGroup = groupName?.groups?.name ?? ''
 
     if (data['updated-dependencies']) {
-      // const dirname = branchNameToDirectoryName(chunks, delim, data['updated-dependencies'])
       const dirname = branchNameToDirectoryName(chunks, delim, data['updated-dependencies'])
 
       return await Promise.all(data['updated-dependencies'].map(async (dependency, index) => {
