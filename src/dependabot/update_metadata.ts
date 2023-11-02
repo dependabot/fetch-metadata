@@ -68,7 +68,8 @@ export async function parse (commitMessage: string, body: string, branchName: st
           newVersion: nextVersion,
           compatScore: await scoreFn(dependency['dependency-name'], lastVersion, nextVersion, chunks[1]),
           maintainerChanges: newMaintainer,
-          dependencyGroup,
+          // eslint-disable-next-line object-shorthand
+          dependencyGroup: dependencyGroup,
           ...await lookupFn(dependency['dependency-name'], lastVersion, dirname)
         }
       }))
