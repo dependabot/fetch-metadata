@@ -315,7 +315,7 @@ test('calculateUpdateType should handle all paths', () => {
   expect(updateMetadata.calculateUpdateType('1.1.1.1', '1.1.1.2')).toEqual('version-update:semver-patch')
 })
 
-test("handles - as separator", async () => {
+test('handles - as separator', async () => {
   const commitMessage =
     'Bumps [stripe](https://github.com/stripe/stripe-python) from 3.5.0 to 8.1.0.\n' +
     '- [Release notes](https://github.com/stripe/stripe-python/releases)\n' +
@@ -351,9 +351,9 @@ test("handles - as separator", async () => {
   expect(updatedDependencies[0].ghsaId).toEqual('')
   expect(updatedDependencies[0].cvss).toEqual(0)
   expect(updatedDependencies[0].dependencyGroup).toEqual('')
-});
+})
 
-test("it handles multi-segment directory with non-standard separator", async () => {
+test('it handles multi-segment directory with non-standard separator', async () => {
   const commitMessage =
     'Bumps [stripe](https://github.com/stripe/stripe-python) from 3.5.0 to 8.1.0.\n' +
     '- [Release notes](https://github.com/stripe/stripe-python/releases)\n' +
@@ -389,4 +389,4 @@ test("it handles multi-segment directory with non-standard separator", async () 
   expect(updatedDependencies[0].ghsaId).toEqual('')
   expect(updatedDependencies[0].cvss).toEqual(0)
   expect(updatedDependencies[0].dependencyGroup).toEqual('')
-});
+})
