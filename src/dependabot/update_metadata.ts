@@ -46,10 +46,11 @@ export async function parse (commitMessage: string, body: string, branchName: st
     const prev = bumpFragment?.groups?.from ?? (updateFragment?.groups?.from ?? '')
     const next = bumpFragment?.groups?.to ?? (updateFragment?.groups?.to ?? '')
     const dependencyGroup = groupName?.groups?.name ?? ''
+    const delimIsDash = delim === '-'
 
     if (data['updated-dependencies']) {
       return await Promise.all(data['updated-dependencies'].map(async (dependency, index) => {
-        const dirname = `/${chunks.slice(2, -1 * (1 + (dependency['dependency-name'].match(/\//g) || []).length)).join(delim) || ''}`
+        const dirname = `/${chunks.slice(2, -1 * (delimIsDash ? 2 : 1 + (dependency['dependency-name'].match(/\//g) || []).length)).join('/') || ''}`
         const lastVersion = index === 0 ? prev : ''
         const nextVersion = index === 0 ? next : ''
         const updateType = dependency['update-type'] || calculateUpdateType(lastVersion, nextVersion)

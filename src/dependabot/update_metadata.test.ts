@@ -314,3 +314,79 @@ test('calculateUpdateType should handle all paths', () => {
   expect(updateMetadata.calculateUpdateType('1.1.1', '1.1.2')).toEqual('version-update:semver-patch')
   expect(updateMetadata.calculateUpdateType('1.1.1.1', '1.1.1.2')).toEqual('version-update:semver-patch')
 })
+
+test("handles - as separator", async () => {
+  const commitMessage =
+    'Bumps [stripe](https://github.com/stripe/stripe-python) from 3.5.0 to 8.1.0.\n' +
+    '- [Release notes](https://github.com/stripe/stripe-python/releases)\n' +
+    '- [Changelog](https://github.com/stripe/stripe-python/blob/master/CHANGELOG.md)\n' +
+    '- [Commits](stripe/stripe-python@v3.5.0...v8.1.0)\n' +
+    '\n' +
+    '---\n' +
+    'updated-dependencies:\n' +
+    '- dependency-name: stripe\n' +
+    '  dependency-type: direct:production\n' +
+    '  update-type: version-update:semver-major\n' +
+    '...\n' +
+    '\n' +
+    'Signed-off-by: dependabot[bot] <support@github.com>\n'
+
+  const getAlert = async () => Promise.resolve({ alertState: '', ghsaId: '', cvss: 0 })
+  const getScore = async () => Promise.resolve(0)
+  const updatedDependencies = await updateMetadata.parse(commitMessage, '', 'dependabot-pip-dirname-stripe-8.1.0', 'main', getAlert, getScore)
+
+  expect(updatedDependencies).toHaveLength(1)
+
+  expect(updatedDependencies[0].dependencyName).toEqual('stripe')
+  expect(updatedDependencies[0].dependencyType).toEqual('direct:production')
+  expect(updatedDependencies[0].updateType).toEqual('version-update:semver-major')
+  expect(updatedDependencies[0].directory).toEqual('/dirname')
+  expect(updatedDependencies[0].packageEcosystem).toEqual('pip')
+  expect(updatedDependencies[0].targetBranch).toEqual('main')
+  expect(updatedDependencies[0].prevVersion).toEqual('3.5.0')
+  expect(updatedDependencies[0].newVersion).toEqual('8.1.0')
+  expect(updatedDependencies[0].compatScore).toEqual(0)
+  expect(updatedDependencies[0].maintainerChanges).toEqual(false)
+  expect(updatedDependencies[0].alertState).toEqual('')
+  expect(updatedDependencies[0].ghsaId).toEqual('')
+  expect(updatedDependencies[0].cvss).toEqual(0)
+  expect(updatedDependencies[0].dependencyGroup).toEqual('')
+});
+
+test("it handles multi-segment directory with non-standard separator", async () => {
+  const commitMessage =
+    'Bumps [stripe](https://github.com/stripe/stripe-python) from 3.5.0 to 8.1.0.\n' +
+    '- [Release notes](https://github.com/stripe/stripe-python/releases)\n' +
+    '- [Changelog](https://github.com/stripe/stripe-python/blob/master/CHANGELOG.md)\n' +
+    '- [Commits](stripe/stripe-python@v3.5.0...v8.1.0)\n' +
+    '\n' +
+    '---\n' +
+    'updated-dependencies:\n' +
+    '- dependency-name: stripe\n' +
+    '  dependency-type: direct:production\n' +
+    '  update-type: version-update:semver-major\n' +
+    '...\n' +
+    '\n' +
+    'Signed-off-by: dependabot[bot] <support@github.com>\n'
+
+  const getAlert = async () => Promise.resolve({ alertState: '', ghsaId: '', cvss: 0 })
+  const getScore = async () => Promise.resolve(0)
+  const updatedDependencies = await updateMetadata.parse(commitMessage, '', 'dependabot|pip|dirname|dirname|stripe-8.1.0', 'main', getAlert, getScore)
+
+  expect(updatedDependencies).toHaveLength(1)
+
+  expect(updatedDependencies[0].dependencyName).toEqual('stripe')
+  expect(updatedDependencies[0].dependencyType).toEqual('direct:production')
+  expect(updatedDependencies[0].updateType).toEqual('version-update:semver-major')
+  expect(updatedDependencies[0].directory).toEqual('/dirname/dirname')
+  expect(updatedDependencies[0].packageEcosystem).toEqual('pip')
+  expect(updatedDependencies[0].targetBranch).toEqual('main')
+  expect(updatedDependencies[0].prevVersion).toEqual('3.5.0')
+  expect(updatedDependencies[0].newVersion).toEqual('8.1.0')
+  expect(updatedDependencies[0].compatScore).toEqual(0)
+  expect(updatedDependencies[0].maintainerChanges).toEqual(false)
+  expect(updatedDependencies[0].alertState).toEqual('')
+  expect(updatedDependencies[0].ghsaId).toEqual('')
+  expect(updatedDependencies[0].cvss).toEqual(0)
+  expect(updatedDependencies[0].dependencyGroup).toEqual('')
+});
