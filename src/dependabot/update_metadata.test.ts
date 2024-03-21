@@ -106,7 +106,7 @@ test('it supports multiple dependencies within a single fragment', async () => {
     return Promise.resolve(0)
   }
 
-  const updatedDependencies = await updateMetadata.parse(commitMessage, body, 'dependabot/nuget/api/main/coffee-rails', 'main', getAlert, getScore)
+  const updatedDependencies = await updateMetadata.parse(commitMessage, body, 'dependabot/nuget/api/main/coffee-rails/and/coffeescript', 'main', getAlert, getScore)
 
   expect(updatedDependencies).toHaveLength(2)
 
@@ -297,6 +297,105 @@ test('it properly handles dependencies which contain slashes', async () => {
   expect(updatedDependencies[0].ghsaId).toEqual('')
   expect(updatedDependencies[0].cvss).toEqual(0)
   expect(updatedDependencies[0].dependencyGroup).toEqual('')
+})
+
+test('it handles branch names with hyphen separator', async () => {
+  const commitMessage =
+      '- [Release notes](https://github.com/fsevents/fsevents/releases)\n' +
+      '- [Commits](fsevents/fsevents@v1.2.9...v1.2.13)\n' +
+      '\n' +
+      '---\n' +
+      'updated-dependencies:\n' +
+      '- dependency-name: fsevents\n' +
+      '  dependency-type: indirect\n' +
+      '...\n' +
+      '\n' +
+      'Signed-off-by: dependabot[bot] <support@github.com>'
+
+  const getAlert = async () => Promise.resolve({ alertState: '', ghsaId: '', cvss: 0 })
+  const getScore = async () => Promise.resolve(0)
+  const updatedDependencies = await updateMetadata.parse(commitMessage, '', 'dependabot-npm_and_yarn-fsevents-1.2.13', 'master', getAlert, getScore)
+
+  expect(updatedDependencies[0].directory).toEqual('/')
+})
+
+test('it handles branch names with hyphen separator and manifest files in nested directories', async () => {
+  const commitMessage =
+      '- [Release notes](https://github.com/fsevents/fsevents/releases)\n' +
+      '- [Commits](fsevents/fsevents@v1.2.9...v1.2.13)\n' +
+      '\n' +
+      '---\n' +
+      'updated-dependencies:\n' +
+      '- dependency-name: fsevents\n' +
+      '  dependency-type: indirect\n' +
+      '...\n' +
+      '\n' +
+      'Signed-off-by: dependabot[bot] <support@github.com>'
+
+  const getAlert = async () => Promise.resolve({ alertState: '', ghsaId: '', cvss: 0 })
+  const getScore = async () => Promise.resolve(0)
+  const updatedDependencies = await updateMetadata.parse(commitMessage, '', 'dependabot-npm_and_yarn-nested-nested-fsevents-1.2.13', 'master', getAlert, getScore)
+
+  expect(updatedDependencies[0].directory).toEqual('/nested/nested')
+})
+
+test('it handles branch names with hyphen separator and dependency names with forward slashes', async () => {
+  const commitMessage =
+      '- [Release notes](https://github.com/composer/composer/releases)\n' +
+      '- [Changelog](https://github.com/composer/composer/blob/main/CHANGELOG.md)\n' +
+      '- [Commits](composer/composer@1.10.26...2.6.5)\n' +
+      '\n' +
+      '---\n' +
+      'updated-dependencies:\n' +
+      '- dependency-name: composer/composer\n' +
+      '  dependency-type: indirect\n' +
+      '...\n' +
+      '\n' +
+      'Signed-off-by: dependabot[bot] <support@github.com>'
+
+  const getAlert = async () => Promise.resolve({ alertState: '', ghsaId: '', cvss: 0 })
+  const getScore = async () => Promise.resolve(0)
+  const updatedDependencies = await updateMetadata.parse(commitMessage, '', 'dependabot-composer-composer-composer-2.6.5', 'master', getAlert, getScore)
+
+  expect(updatedDependencies[0].directory).toEqual('/')
+})
+
+test('it handles branch names with hyphen separator and multiple dependencies', async () => {
+  const commitMessage =
+      'Updates `twilio-video` from 2.7.0 to 2.28.1\n' +
+      '- [Release notes](https://github.com/twilio/twilio-video.js/releases)\n' +
+      '- [Changelog](https://github.com/twilio/twilio-video.js/blob/master/CHANGELOG.md)\n' +
+      '- [Commits](twilio/twilio-video.js@2.7.0...2.28.1)\n' +
+      '\n' +
+      'Updates `@types/twilio-video` from 2.7.0 to 2.11.0\n' +
+      '- [Release notes](https://github.com/DefinitelyTyped/DefinitelyTyped/releases)\n' +
+      '- [Commits](https://github.com/DefinitelyTyped/DefinitelyTyped/commits/HEAD/types/twilio-video)\n' +
+      '\n' +
+      '---\n' +
+      'updated-dependencies:\n' +
+      '- dependency-name: twilio-video\n' +
+      '  dependency-type: direct:production\n' +
+      '  update-type: version-update:semver-minor\n' +
+      '- dependency-name: "@types/twilio-video"\n' +
+      '  dependency-type: direct:development\n' +
+      '  update-type: version-update:semver-minor\n' +
+      '...\n' +
+      '\n' +
+      'Signed-off-by: dependabot[bot] <support@github.com>'
+
+  const getAlert = async () => Promise.resolve({ alertState: '', ghsaId: '', cvss: 0 })
+  const getScore = async () => Promise.resolve(0)
+
+  const updatedDependencies = await updateMetadata.parse(
+    commitMessage,
+    '',
+    'dependabot-npm_and_yarn-twilio-video-and-types-twilio-video-2.28.1',
+    'master',
+    getAlert,
+    getScore
+  )
+
+  expect(updatedDependencies[0].directory).toEqual('/')
 })
 
 test('calculateUpdateType should handle all paths', () => {

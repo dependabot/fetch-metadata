@@ -93,4 +93,5 @@ require('yargs')(hideBin(process.argv))
   })
   .demandCommand(1)
   .help()
+  .strict()
   .argv
