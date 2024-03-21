@@ -40,11 +40,11 @@ jobs:
           token: ${{ steps.generate_token.outputs.token }}
 
       - name: Move the tracking tag
-        run: git tag -f v1
+        run: git tag -f v2
 
       - name: Push the new tag value back to the repo
-        run: git push -f origin refs/tags/v1
+        run: git push -f origin refs/tags/v2
 
       - name: Set summary
         run: |
-          echo ":rocket: Successfully moved the \`v1\` tag to point at release: ${{ github.event.release.name }} with SHA: \`$GITHUB_SHA\`." >> $GITHUB_STEP_SUMMARY
+          echo ":rocket: Successfully moved the \`v2\` tag to point at release: ${{ github.event.release.name }} with SHA: \`$GITHUB_SHA\`." >> $GITHUB_STEP_SUMMARY
