@@ -1,6 +1,8 @@
 name: Release - Bump Version
 
-on:
+on:  # yamllint disable-line rule:truthy
+  schedule:
+    - cron: '0 0 1 * *'
   workflow_dispatch:
     inputs:
       version_type:
@@ -36,8 +38,7 @@ jobs:
           node-version-file: .nvmrc
 
       - name: Bump the version
-        # Currently we don't run via `schedule` trigger since this repo isn't active enough.
-        # However, if that ever changes, it will run with no inputs, so version_type will default to 'minor'
+        # Cron runs with no inputs, so version_type will default to 'minor'
         run: |
           NEW_VERSION=$(bin/bump-version ${{ github.event.inputs.version_type || 'minor' }})
           echo "New version is: $NEW_VERSION"
