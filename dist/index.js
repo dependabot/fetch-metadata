@@ -10281,7 +10281,7 @@ function getAlert(name, version, directory, client, context) {
         const alerts = yield client.graphql(`
      {
        repository(owner: "${context.repo.owner}", name: "${context.repo.repo}") { 
-         vulnerabilityAlerts(first: 100) {
+         vulnerabilityAlerts(first: 100, states: [OPEN]) {
            nodes {
              vulnerableManifestFilename
              vulnerableManifestPath

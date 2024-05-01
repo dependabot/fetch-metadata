@@ -60,7 +60,7 @@ export async function getAlert (name: string, version: string, directory: string
   const alerts: any = await client.graphql(`
      {
        repository(owner: "${context.repo.owner}", name: "${context.repo.repo}") { 
-         vulnerabilityAlerts(first: 100) {
+         vulnerabilityAlerts(first: 100, states: [OPEN]) {
            nodes {
              vulnerableManifestFilename
              vulnerableManifestPath
