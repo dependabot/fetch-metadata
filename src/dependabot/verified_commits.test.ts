@@ -229,12 +229,14 @@ test('it returns default if it does not match the directory', async () => {
   nock('https://api.github.com').post('/graphql', query)
     .reply(200, response)
 
-  expect(await getAlert('coffee-script', '4.0.1', '/', mockGitHubClient, mockGitHubPullContext())).toEqual({ alertState: '', cvss: 0, ghsaId: '' })
+  expect(await getAlert('coffee-script', '4.0.1', '/differentPath', mockGitHubClient, mockGitHubPullContext())).toEqual({ alertState: '', cvss: 0, ghsaId: '' })
+})
 
+test('it returns values if the manifest file is at root', async () => {
   nock('https://api.github.com').post('/graphql', query)
     .reply(200, responseWithManifestFileAtRoot)
 
-  expect(await getAlert('coffee-script', '4.0.1', '/wwwroot', mockGitHubClient, mockGitHubPullContext())).toEqual({ alertState: '', cvss: 0, ghsaId: '' })
+  expect(await getAlert('coffee-script', '4.0.1', '/', mockGitHubClient, mockGitHubPullContext())).toEqual({ alertState: 'DISMISSED', cvss: 4.5, ghsaId: 'FOO' })
 })
 
 test('it returns default if it does not match the name', async () => {
