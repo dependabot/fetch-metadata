@@ -93,6 +93,8 @@ Subsequent actions will have access to the following outputs:
 **Note:** By default, these outputs will only be populated if the target Pull Request was opened by Dependabot and contains
 **only** Dependabot-created commits. To override, see `skip-commit-verification` / `skip-verification`.
 
+For workflows initiated by Dependabot (`github.actor == 'dependabot[bot]'`) using the `pull_request_target` event, if the base ref of the pull request was created by Dependabot (`github.event.pull_request.user.login == 'dependabot[bot]'`), the `GITHUB_TOKEN` will be read-only and secrets are not available.
+
 This metadata can be used along with Action's [expression syntax](https://docs.github.com/en/actions/reference/context-and-expression-syntax-for-github-actions#functions) and the [GitHub CLI](https://github.com/cli/cli) to create
 useful automation for your Dependabot PRs.
 
