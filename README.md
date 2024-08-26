@@ -20,7 +20,7 @@ Create a workflow file that contains a step that uses: `dependabot/fetch-metadat
 -- .github/workflows/dependabot-prs.yml
 name: Dependabot Pull Request
 on: pull_request_target
-if: ${{ github.event.pull_request.user.login == 'dependabot[bot]' && github.repository == 'owner/my_repo' }}
+if: github.event.pull_request.user.login == 'dependabot[bot]' && github.repository == 'owner/my_repo'
 jobs:
   build:
     permissions:
@@ -110,7 +110,7 @@ jobs:
   dependabot:
     runs-on: ubuntu-latest
     # Checking the author will prevent your Action run failing on non-Dependabot PRs
-    if: ${{ github.event.pull_request.user.login == 'dependabot[bot]' && github.repository == 'owner/my_repo' }}
+    if: github.event.pull_request.user.login == 'dependabot[bot]' && github.repository == 'owner/my_repo'
     steps:
       - name: Dependabot metadata
         id: dependabot-metadata
@@ -144,7 +144,7 @@ permissions:
 jobs:
   dependabot:
     runs-on: ubuntu-latest
-    if: ${{ github.event.pull_request.user.login == 'dependabot[bot]' && github.repository == 'owner/my_repo' }}
+    if: github.event.pull_request.user.login == 'dependabot[bot]' && github.repository == 'owner/my_repo'
     steps:
       - name: Dependabot metadata
         id: dependabot-metadata
@@ -173,7 +173,7 @@ permissions:
 jobs:
   dependabot:
     runs-on: ubuntu-latest
-    if: ${{ github.event.pull_request.user.login == 'dependabot[bot]' && github.repository == 'owner/my_repo' }}
+    if: github.event.pull_request.user.login == 'dependabot[bot]' && github.repository == 'owner/my_repo'
     steps:
       - name: Dependabot metadata
         id: dependabot-metadata
