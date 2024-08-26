@@ -19,7 +19,7 @@ Create a workflow file that contains a step that uses: `dependabot/fetch-metadat
 ```yaml
 -- .github/workflows/dependabot-prs.yml
 name: Dependabot Pull Request
-on: pull_request_target
+on: pull_request
 if: github.event.pull_request.user.login == 'dependabot[bot]' && github.repository == 'owner/my_repo'
 jobs:
   build:
@@ -103,7 +103,7 @@ have a permissive auto-approval on all Dependabot PRs like so:
 
 ```yaml
 name: Dependabot auto-approve
-on: pull_request_target
+on: pull_request
 permissions:
   pull-requests: write
 jobs:
@@ -137,7 +137,7 @@ For example, if you want to automatically merge all patch updates to Rails:
 
 ```yaml
 name: Dependabot auto-merge
-on: pull_request_target
+on: pull_request
 permissions:
   pull-requests: write
   contents: write
@@ -165,7 +165,7 @@ For example, if you want to flag all production dependency updates with a label:
 
 ```yaml
 name: Dependabot auto-label
-on: pull_request_target
+on: pull_request
 permissions:
   pull-requests: write
   issues: write
