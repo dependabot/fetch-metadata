@@ -14,12 +14,13 @@ Extract information about the dependencies being updated by a Dependabot-generat
 
 ## Usage instructions
 
-Create a workflow file that contains a step that uses: `dependabot/fetch-metadata@v1`, e.g.
+Create a workflow file that contains a step that uses: `dependabot/fetch-metadata@v2`, e.g.
 
 ```yaml
 -- .github/workflows/dependabot-prs.yml
 name: Dependabot Pull Request
 on: pull_request_target
+if: ${{ github.event.pull_request.user.login == 'dependabot[bot]' && github.repository == 'owner/my_repo' }}
 jobs:
   build:
     permissions:
@@ -28,7 +29,7 @@ jobs:
     steps:
     - name: Fetch Dependabot metadata
       id: dependabot-metadata
-      uses: dependabot/fetch-metadata@v1
+      uses: dependabot/fetch-metadata@v2
       with:
         alert-lookup: true
         compat-lookup: true
@@ -109,11 +110,11 @@ jobs:
   dependabot:
     runs-on: ubuntu-latest
     # Checking the author will prevent your Action run failing on non-Dependabot PRs
-    if: ${{ github.event.pull_request.user.login == 'dependabot[bot]' }}
+    if: ${{ github.event.pull_request.user.login == 'dependabot[bot]' && github.repository == 'owner/my_repo' }}
     steps:
       - name: Dependabot metadata
         id: dependabot-metadata
-        uses: dependabot/fetch-metadata@v1
+        uses: dependabot/fetch-metadata@v2
       - uses: actions/checkout@v4
       - name: Approve a PR if not already approved
         run: |
@@ -143,11 +144,11 @@ permissions:
 jobs:
   dependabot:
     runs-on: ubuntu-latest
-    if: ${{ github.event.pull_request.user.login == 'dependabot[bot]' }}
+    if: ${{ github.event.pull_request.user.login == 'dependabot[bot]' && github.repository == 'owner/my_repo' }}
     steps:
       - name: Dependabot metadata
         id: dependabot-metadata
-        uses: dependabot/fetch-metadata@v1
+        uses: dependabot/fetch-metadata@v2
       - name: Enable auto-merge for Dependabot PRs
         if: ${{contains(steps.dependabot-metadata.outputs.dependency-names, 'rails') && steps.dependabot-metadata.outputs.update-type == 'version-update:semver-patch'}}
         run: gh pr merge --auto --merge "$PR_URL"
@@ -172,11 +173,11 @@ permissions:
 jobs:
   dependabot:
     runs-on: ubuntu-latest
-    if: ${{ github.event.pull_request.user.login == 'dependabot[bot]' }}
+    if: ${{ github.event.pull_request.user.login == 'dependabot[bot]' && github.repository == 'owner/my_repo' }}
     steps:
       - name: Dependabot metadata
         id: dependabot-metadata
-        uses: dependabot/fetch-metadata@v1
+        uses: dependabot/fetch-metadata@v2
       - name: Add a label for all production dependencies
         if: ${{ steps.dependabot-metadata.outputs.dependency-type == 'direct:production' }}
         run: gh pr edit "$PR_URL" --add-label "production"
