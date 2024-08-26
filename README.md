@@ -14,12 +14,13 @@ Extract information about the dependencies being updated by a Dependabot-generat
 
 ## Usage instructions
 
-Create a workflow file that contains a step that uses: `dependabot/fetch-metadata@v1`, e.g.
+Create a workflow file that contains a step that uses: `dependabot/fetch-metadata@v2`, e.g.
 
 ```yaml
 -- .github/workflows/dependabot-prs.yml
 name: Dependabot Pull Request
-on: pull_request_target
+on: pull_request
+if: github.event.pull_request.user.login == 'dependabot[bot]' && github.repository == 'owner/my_repo'
 jobs:
   build:
     permissions:
@@ -28,7 +29,7 @@ jobs:
     steps:
     - name: Fetch Dependabot metadata
       id: dependabot-metadata
-      uses: dependabot/fetch-metadata@v1
+      uses: dependabot/fetch-metadata@v2
       with:
         alert-lookup: true
         compat-lookup: true
@@ -92,6 +93,8 @@ Subsequent actions will have access to the following outputs:
 **Note:** By default, these outputs will only be populated if the target Pull Request was opened by Dependabot and contains
 **only** Dependabot-created commits. To override, see `skip-commit-verification` / `skip-verification`.
 
+For workflows initiated by Dependabot (`github.actor == 'dependabot[bot]'`) using the `pull_request_target` event, if the base ref of the pull request was created by Dependabot (`github.event.pull_request.user.login == 'dependabot[bot]'`), the `GITHUB_TOKEN` will be read-only and secrets are not available.
+
 This metadata can be used along with Action's [expression syntax](https://docs.github.com/en/actions/reference/context-and-expression-syntax-for-github-actions#functions) and the [GitHub CLI](https://github.com/cli/cli) to create
 useful automation for your Dependabot PRs.
 
@@ -102,18 +105,18 @@ have a permissive auto-approval on all Dependabot PRs like so:
 
 ```yaml
 name: Dependabot auto-approve
-on: pull_request_target
+on: pull_request
 permissions:
   pull-requests: write
 jobs:
   dependabot:
     runs-on: ubuntu-latest
     # Checking the author will prevent your Action run failing on non-Dependabot PRs
-    if: ${{ github.event.pull_request.user.login == 'dependabot[bot]' }}
+    if: github.event.pull_request.user.login == 'dependabot[bot]' && github.repository == 'owner/my_repo'
     steps:
       - name: Dependabot metadata
         id: dependabot-metadata
-        uses: dependabot/fetch-metadata@v1
+        uses: dependabot/fetch-metadata@v2
       - uses: actions/checkout@v4
       - name: Approve a PR if not already approved
         run: |
@@ -136,18 +139,18 @@ For example, if you want to automatically merge all patch updates to Rails:
 
 ```yaml
 name: Dependabot auto-merge
-on: pull_request_target
+on: pull_request
 permissions:
   pull-requests: write
   contents: write
 jobs:
   dependabot:
     runs-on: ubuntu-latest
-    if: ${{ github.event.pull_request.user.login == 'dependabot[bot]' }}
+    if: github.event.pull_request.user.login == 'dependabot[bot]' && github.repository == 'owner/my_repo'
     steps:
       - name: Dependabot metadata
         id: dependabot-metadata
-        uses: dependabot/fetch-metadata@v1
+        uses: dependabot/fetch-metadata@v2
       - name: Enable auto-merge for Dependabot PRs
         if: ${{contains(steps.dependabot-metadata.outputs.dependency-names, 'rails') && steps.dependabot-metadata.outputs.update-type == 'version-update:semver-patch'}}
         run: gh pr merge --auto --merge "$PR_URL"
@@ -164,7 +167,7 @@ For example, if you want to flag all production dependency updates with a label:
 
 ```yaml
 name: Dependabot auto-label
-on: pull_request_target
+on: pull_request
 permissions:
   pull-requests: write
   issues: write
@@ -172,11 +175,11 @@ permissions:
 jobs:
   dependabot:
     runs-on: ubuntu-latest
-    if: ${{ github.event.pull_request.user.login == 'dependabot[bot]' }}
+    if: github.event.pull_request.user.login == 'dependabot[bot]' && github.repository == 'owner/my_repo'
     steps:
       - name: Dependabot metadata
         id: dependabot-metadata
-        uses: dependabot/fetch-metadata@v1
+        uses: dependabot/fetch-metadata@v2
       - name: Add a label for all production dependencies
         if: ${{ steps.dependabot-metadata.outputs.dependency-type == 'direct:production' }}
         run: gh pr edit "$PR_URL" --add-label "production"
