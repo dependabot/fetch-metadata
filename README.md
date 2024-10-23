@@ -17,15 +17,15 @@ Extract information about the dependencies being updated by a Dependabot-generat
 Create a workflow file that contains a step that uses: `dependabot/fetch-metadata@v2`, e.g.
 
 ```yaml
--- .github/workflows/dependabot-prs.yml
+# .github/workflows/dependabot-prs.yml
 name: Dependabot Pull Request
 on: pull_request
-if: github.event.pull_request.user.login == 'dependabot[bot]' && github.repository == 'owner/my_repo'
 jobs:
-  build:
+  dependabot:
     permissions:
       pull-requests: read
     runs-on: ubuntu-latest
+    if: github.event.pull_request.user.login == 'dependabot[bot]' && github.repository == 'owner/my_repo'
     steps:
     - name: Fetch Dependabot metadata
       id: dependabot-metadata
