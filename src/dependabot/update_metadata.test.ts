@@ -398,6 +398,100 @@ test('it handles branch names with hyphen separator and multiple dependencies', 
   expect(updatedDependencies[0].directory).toEqual('/')
 })
 
+test('it handles branch names when it has dependency-group and non-root directory', async () => {
+  const commitMessage = `Bumps the eslint group in /first-package with 1 update: [eslint](https://github.com/eslint/eslint).
+
+
+Updates \`eslint\` from 9.12.0 to 9.13.0
+- [Release notes](https://github.com/eslint/eslint/releases)
+- [Changelog](https://github.com/eslint/eslint/blob/main/CHANGELOG.md)
+- [Commits](eslint/eslint@v9.12.0...v9.13.0)
+
+---
+updated-dependencies:
+- dependency-name: eslint
+  dependency-type: direct:development
+  update-type: version-update:semver-minor
+  dependency-group: eslint
+...
+
+Signed-off-by: dependabot[bot] <support@github.com>`
+
+  const getAlert = async () => Promise.resolve({ alertState: 'DISMISSED', ghsaId: 'GHSA-III-BBB', cvss: 4.6 })
+  const getScore = async () => Promise.resolve(43)
+  const updatedDependencies = await updateMetadata.parse(commitMessage, '', 'dependabot/npm_and_yarn/first-package/eslint-3c401b8a51', 'main', getAlert, getScore)
+
+  expect(updatedDependencies[0].directory).toEqual('/first-package')
+})
+
+test('it handles branch names when it has dependency-group and root directory', async () => {
+  const commitMessage = `Bumps the eslint group in /first-package with 1 update: [eslint](https://github.com/eslint/eslint).
+
+
+Updates \`eslint\` from 9.12.0 to 9.13.0
+- [Release notes](https://github.com/eslint/eslint/releases)
+- [Changelog](https://github.com/eslint/eslint/blob/main/CHANGELOG.md)
+- [Commits](eslint/eslint@v9.12.0...v9.13.0)
+
+---
+updated-dependencies:
+- dependency-name: eslint
+  dependency-type: direct:development
+  update-type: version-update:semver-minor
+  dependency-group: eslint
+...
+
+Signed-off-by: dependabot[bot] <support@github.com>`
+
+  const getAlert = async () => Promise.resolve({ alertState: 'DISMISSED', ghsaId: 'GHSA-III-BBB', cvss: 4.6 })
+  const getScore = async () => Promise.resolve(43)
+  const updatedDependencies = await updateMetadata.parse(commitMessage, '', 'dependabot/npm_and_yarn/first-package/eslint-3c401b8a51', 'main', getAlert, getScore)
+
+  expect(updatedDependencies[0].directory).toEqual('/first-package')
+})
+
+test('it handles branch names when it has dependency-group with multiple dependencies and non-root directory', async () => {
+  const commitMessage = `Bumps the grouped-dependencies group with 3 updates in the /first-package directory: [eslint](https://github.com/eslint/eslint), [rimraf](https://github.com/isaacs/rimraf) and [vitest](https://github.com/vitest-dev/vitest/tree/HEAD/packages/vitest).
+
+
+Updates \`eslint\` from 9.12.0 to 9.13.0
+- [Release notes](https://github.com/eslint/eslint/releases)
+- [Changelog](https://github.com/eslint/eslint/blob/main/CHANGELOG.md)
+- [Commits](eslint/eslint@v9.12.0...v9.13.0)
+
+Updates \`rimraf\` from 5.0.10 to 6.0.1
+- [Changelog](https://github.com/isaacs/rimraf/blob/main/CHANGELOG.md)
+- [Commits](isaacs/rimraf@v5.0.10...v6.0.1)
+
+Updates \`vitest\` from 1.6.0 to 2.1.3
+- [Release notes](https://github.com/vitest-dev/vitest/releases)
+- [Commits](https://github.com/vitest-dev/vitest/commits/v2.1.3/packages/vitest)
+
+---
+updated-dependencies:
+- dependency-name: eslint
+  dependency-type: direct:development
+  update-type: version-update:semver-minor
+  dependency-group: grouped-dependencies
+- dependency-name: rimraf
+  dependency-type: direct:development
+  update-type: version-update:semver-major
+  dependency-group: grouped-dependencies
+- dependency-name: vitest
+  dependency-type: direct:development
+  update-type: version-update:semver-major
+  dependency-group: grouped-dependencies
+...
+
+Signed-off-by: dependabot[bot] <support@github.com>`
+
+  const getAlert = async () => Promise.resolve({ alertState: 'DISMISSED', ghsaId: 'GHSA-III-BBB', cvss: 4.6 })
+  const getScore = async () => Promise.resolve(43)
+  const updatedDependencies = await updateMetadata.parse(commitMessage, '', 'dependabot/npm_and_yarn/first-package/grouped-dependencies-b23a7a6750', 'main', getAlert, getScore)
+
+  expect(updatedDependencies[0].directory).toEqual('/first-package')
+})
+
 test('calculateUpdateType should handle all paths', () => {
   expect(updateMetadata.calculateUpdateType('', '')).toEqual('')
   expect(updateMetadata.calculateUpdateType('', '1')).toEqual('')
