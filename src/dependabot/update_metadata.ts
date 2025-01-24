@@ -28,7 +28,7 @@ export interface scoreLookup {
     (dependencyName: string, previousVersion: string, newVersion: string, ecosystem: string): Promise<number>;
 }
 
-function branchNameToDirectoryName (chunks: string[], delimiter: string, updatedDependencies: any): string {
+function branchNameToDirectoryName (chunks: string[], delimiter: string, updatedDependencies: any, dependencyGroup: string): string {
   // We can always slice after the first 2 pieces, because they will always contain "dependabot" followed by the name
   // of the package ecosystem. e.g. "dependabot/npm_and_yarn".
   const sliceStart = 2
@@ -37,6 +37,15 @@ function branchNameToDirectoryName (chunks: string[], delimiter: string, updated
   // If the delimiter is "-", we assume the last piece of the branch name is a version number.
   if (delimiter === '-') {
     sliceEnd -= 1
+  }
+
+  if (dependencyGroup) {
+    // After replacing "/" in the dependency group with the delimiter, which could also be "/", we count how many pieces
+    // the dependency group would split into by the delimiter, and slicing that amount off the end of the branch name.
+    // e.g. "eslint/plugins" and a delimiter of "-" would show up in the branch name as "eslint-plugins".
+    sliceEnd -= dependencyGroup.replace('/', delimiter).split(delimiter).length
+
+    return `/${chunks.slice(sliceStart, sliceEnd).join('/')}`
   }
 
   // If there is more than 1 dependency name being updated, we assume 1 piece of the branch name will be "and".
@@ -74,7 +83,7 @@ export async function parse (commitMessage: string, body: string, branchName: st
     const dependencyGroup = groupName?.groups?.name ?? ''
 
     if (data['updated-dependencies']) {
-      const dirname = branchNameToDirectoryName(chunks, delim, data['updated-dependencies'])
+      const dirname = branchNameToDirectoryName(chunks, delim, data['updated-dependencies'], dependencyGroup)
 
       return await Promise.all(data['updated-dependencies'].map(async (dependency, index) => {
         const lastVersion = index === 0 ? prev : ''

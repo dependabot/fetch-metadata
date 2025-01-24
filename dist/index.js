@@ -10089,7 +10089,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.calculateUpdateType = exports.parse = void 0;
 const YAML = __importStar(__nccwpck_require__(4083));
-function branchNameToDirectoryName(chunks, delimiter, updatedDependencies) {
+function branchNameToDirectoryName(chunks, delimiter, updatedDependencies, dependencyGroup) {
     // We can always slice after the first 2 pieces, because they will always contain "dependabot" followed by the name
     // of the package ecosystem. e.g. "dependabot/npm_and_yarn".
     const sliceStart = 2;
@@ -10097,6 +10097,13 @@ function branchNameToDirectoryName(chunks, delimiter, updatedDependencies) {
     // If the delimiter is "-", we assume the last piece of the branch name is a version number.
     if (delimiter === '-') {
         sliceEnd -= 1;
+    }
+    if (dependencyGroup) {
+        // After replacing "/" in the dependency group with the delimiter, which could also be "/", we count how many pieces
+        // the dependency group would split into by the delimiter, and slicing that amount off the end of the branch name.
+        // e.g. "eslint/plugins" and a delimiter of "-" would show up in the branch name as "eslint-plugins".
+        sliceEnd -= dependencyGroup.replace('/', delimiter).split(delimiter).length;
+        return `/${chunks.slice(sliceStart, sliceEnd).join('/')}`;
     }
     // If there is more than 1 dependency name being updated, we assume 1 piece of the branch name will be "and".
     if (updatedDependencies.length > 1) {
@@ -10129,7 +10136,7 @@ function parse(commitMessage, body, branchName, mainBranch, lookup, getScore) {
             const next = (_f = (_e = bumpFragment === null || bumpFragment === void 0 ? void 0 : bumpFragment.groups) === null || _e === void 0 ? void 0 : _e.to) !== null && _f !== void 0 ? _f : ((_h = (_g = updateFragment === null || updateFragment === void 0 ? void 0 : updateFragment.groups) === null || _g === void 0 ? void 0 : _g.to) !== null && _h !== void 0 ? _h : '');
             const dependencyGroup = (_k = (_j = groupName === null || groupName === void 0 ? void 0 : groupName.groups) === null || _j === void 0 ? void 0 : _j.name) !== null && _k !== void 0 ? _k : '';
             if (data['updated-dependencies']) {
-                const dirname = branchNameToDirectoryName(chunks, delim, data['updated-dependencies']);
+                const dirname = branchNameToDirectoryName(chunks, delim, data['updated-dependencies'], dependencyGroup);
                 return yield Promise.all(data['updated-dependencies'].map((dependency, index) => __awaiter(this, void 0, void 0, function* () {
                     const lastVersion = index === 0 ? prev : '';
                     const nextVersion = index === 0 ? next : '';
