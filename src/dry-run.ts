@@ -1,6 +1,5 @@
 /* eslint-disable no-console, @typescript-eslint/no-var-requires */
-import * as github from 
-npm install @actions/github
+import * as github from '@actions/github'
 
 import { Context } from '@actions/github/lib/context'
 import * as dotenv from 'dotenv'
