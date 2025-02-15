@@ -1,4 +1,4 @@
-/* eslint-disable no-console, @typescript-eslint/no-var-requires, no-unused-expressions */
+/* eslint-disable no-console, @typescript-eslint/no-var-requires */
 import * as github from '@actions/github'
 import { Context } from '@actions/github/lib/context'
 import * as dotenv from 'dotenv'
@@ -95,3 +95,4 @@ require('yargs')(hideBin(process.argv))
   .help()
   .strict()
   .argv
+
