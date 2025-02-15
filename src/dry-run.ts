@@ -1,4 +1,5 @@
 import { GitHub } from "@actions/github/lib/utils";
+import * as core from '@actions/core';
 
 interface updatedDependency {
     old: string;
