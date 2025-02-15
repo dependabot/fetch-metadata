@@ -1,8 +1,17 @@
-/*************  ✨ Codeium Command ⭐  *************/
+import { GitHub } from "@actions/github/lib/utils";
+
+interface updatedDependency {
+    old: string;
+    new: string;
+    oldRepository: string;
+    newRepository: string;
+}
 export async function dryRun(
     updatedDeps: updatedDependency[],
-    octokit: Octokit,
+    octokit: InstanceType<typeof GitHub>,
     owner: string,
+
+    dryRunMessage: string,
     repo: string,
     prNumber: number,
     baseBranch: string,
@@ -38,4 +47,3 @@ export async function dryRun(
         state: 'closed'
     });
 }
-/******  e565f894-bac1-4452-a102-f31020ad9a4b  *******/
