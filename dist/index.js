@@ -10085,17 +10085,17 @@ function set(updatedDependencies) {
     const dependencyType = maxDependencyTypes(updatedDependencies);
     const updateType = maxSemver(updatedDependencies);
     const firstDependency = updatedDependencies[0];
-    const directory = firstDependency === null || firstDependency === void 0 ? void 0 : firstDependency.directory;
-    const ecosystem = firstDependency === null || firstDependency === void 0 ? void 0 : firstDependency.packageEcosystem;
-    const target = firstDependency === null || firstDependency === void 0 ? void 0 : firstDependency.targetBranch;
-    const prevVersion = firstDependency === null || firstDependency === void 0 ? void 0 : firstDependency.prevVersion;
-    const newVersion = firstDependency === null || firstDependency === void 0 ? void 0 : firstDependency.newVersion;
-    const compatScore = firstDependency === null || firstDependency === void 0 ? void 0 : firstDependency.compatScore;
-    const maintainerChanges = firstDependency === null || firstDependency === void 0 ? void 0 : firstDependency.maintainerChanges;
-    const dependencyGroup = firstDependency === null || firstDependency === void 0 ? void 0 : firstDependency.dependencyGroup;
-    const alertState = firstDependency === null || firstDependency === void 0 ? void 0 : firstDependency.alertState;
-    const ghsaId = firstDependency === null || firstDependency === void 0 ? void 0 : firstDependency.ghsaId;
-    const cvss = firstDependency === null || firstDependency === void 0 ? void 0 : firstDependency.cvss;
+    const directory = firstDependency?.directory;
+    const ecosystem = firstDependency?.packageEcosystem;
+    const target = firstDependency?.targetBranch;
+    const prevVersion = firstDependency?.prevVersion;
+    const newVersion = firstDependency?.newVersion;
+    const compatScore = firstDependency?.compatScore;
+    const maintainerChanges = firstDependency?.maintainerChanges;
+    const dependencyGroup = firstDependency?.dependencyGroup;
+    const alertState = firstDependency?.alertState;
+    const ghsaId = firstDependency?.ghsaId;
+    const cvss = firstDependency?.cvss;
     core.startGroup(`Outputting metadata for ${(0, pluralize_1.default)('updated dependency', updatedDependencies.length, true)}`);
     core.info(`outputs.dependency-names: ${dependencyNames}`);
     core.info(`outputs.dependency-type: ${dependencyType}`);
@@ -10175,15 +10175,6 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.calculateUpdateType = exports.parse = void 0;
 const YAML = __importStar(__nccwpck_require__(8815));
@@ -10215,36 +10206,46 @@ function branchNameToDirectoryName(chunks, delimiter, updatedDependencies, depen
     });
     return `/${chunks.slice(sliceStart, sliceEnd).join('/')}`;
 }
-function parse(commitMessage, body, branchName, mainBranch, lookup, getScore) {
-    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k;
-    return __awaiter(this, void 0, void 0, function* () {
-        const bumpFragment = commitMessage.match(/^Bumps .* from (?<from>v?\d[^ ]*) to (?<to>v?\d[^ ]*)\.$/m);
-        const updateFragment = commitMessage.match(/^Update .* requirement from \S*? ?(?<from>v?\d\S*) to \S*? ?(?<to>v?\d\S*)$/m);
-        const yamlFragment = commitMessage.match(/^-{3}\n(?<dependencies>[\S|\s]*?)\n^\.{3}\n/m);
-        const groupName = commitMessage.match(/dependency-group:\s(?<name>\S*)/m);
-        const newMaintainer = !!body.match(/Maintainer changes/m);
-        const lookupFn = lookup !== null && lookup !== void 0 ? lookup : (() => Promise.resolve({ alertState: '', ghsaId: '', cvss: 0 }));
-        const scoreFn = getScore !== null && getScore !== void 0 ? getScore : (() => Promise.resolve(0));
-        if ((yamlFragment === null || yamlFragment === void 0 ? void 0 : yamlFragment.groups) && branchName.startsWith('dependabot')) {
-            const data = YAML.parse(yamlFragment.groups.dependencies);
-            // Since we are on the `dependabot` branch (9 letters), the 10th letter in the branch name is the delimiter
-            const delim = branchName[10];
-            const chunks = branchName.split(delim);
-            const prev = (_b = (_a = bumpFragment === null || bumpFragment === void 0 ? void 0 : bumpFragment.groups) === null || _a === void 0 ? void 0 : _a.from) !== null && _b !== void 0 ? _b : ((_d = (_c = updateFragment === null || updateFragment === void 0 ? void 0 : updateFragment.groups) === null || _c === void 0 ? void 0 : _c.from) !== null && _d !== void 0 ? _d : '');
-            const next = (_f = (_e = bumpFragment === null || bumpFragment === void 0 ? void 0 : bumpFragment.groups) === null || _e === void 0 ? void 0 : _e.to) !== null && _f !== void 0 ? _f : ((_h = (_g = updateFragment === null || updateFragment === void 0 ? void 0 : updateFragment.groups) === null || _g === void 0 ? void 0 : _g.to) !== null && _h !== void 0 ? _h : '');
-            const dependencyGroup = (_k = (_j = groupName === null || groupName === void 0 ? void 0 : groupName.groups) === null || _j === void 0 ? void 0 : _j.name) !== null && _k !== void 0 ? _k : '';
-            if (data['updated-dependencies']) {
-                const dirname = branchNameToDirectoryName(chunks, delim, data['updated-dependencies'], dependencyGroup);
-                return yield Promise.all(data['updated-dependencies'].map((dependency, index) => __awaiter(this, void 0, void 0, function* () {
-                    const lastVersion = index === 0 ? prev : '';
-                    const nextVersion = index === 0 ? next : '';
-                    const updateType = dependency['update-type'] || calculateUpdateType(lastVersion, nextVersion);
-                    return Object.assign({ dependencyName: dependency['dependency-name'], dependencyType: dependency['dependency-type'], updateType, directory: dirname, packageEcosystem: chunks[1], targetBranch: mainBranch, prevVersion: lastVersion, newVersion: nextVersion, compatScore: yield scoreFn(dependency['dependency-name'], lastVersion, nextVersion, chunks[1]), maintainerChanges: newMaintainer, dependencyGroup }, yield lookupFn(dependency['dependency-name'], lastVersion, dirname));
-                })));
-            }
+async function parse(commitMessage, body, branchName, mainBranch, lookup, getScore) {
+    const bumpFragment = commitMessage.match(/^Bumps .* from (?<from>v?\d[^ ]*) to (?<to>v?\d[^ ]*)\.$/m);
+    const updateFragment = commitMessage.match(/^Update .* requirement from \S*? ?(?<from>v?\d\S*) to \S*? ?(?<to>v?\d\S*)$/m);
+    const yamlFragment = commitMessage.match(/^-{3}\n(?<dependencies>[\S|\s]*?)\n^\.{3}\n/m);
+    const groupName = commitMessage.match(/dependency-group:\s(?<name>\S*)/m);
+    const newMaintainer = !!body.match(/Maintainer changes/m);
+    const lookupFn = lookup ?? (() => Promise.resolve({ alertState: '', ghsaId: '', cvss: 0 }));
+    const scoreFn = getScore ?? (() => Promise.resolve(0));
+    if (yamlFragment?.groups && branchName.startsWith('dependabot')) {
+        const data = YAML.parse(yamlFragment.groups.dependencies);
+        // Since we are on the `dependabot` branch (9 letters), the 10th letter in the branch name is the delimiter
+        const delim = branchName[10];
+        const chunks = branchName.split(delim);
+        const prev = bumpFragment?.groups?.from ?? (updateFragment?.groups?.from ?? '');
+        const next = bumpFragment?.groups?.to ?? (updateFragment?.groups?.to ?? '');
+        const dependencyGroup = groupName?.groups?.name ?? '';
+        if (data['updated-dependencies']) {
+            const dirname = branchNameToDirectoryName(chunks, delim, data['updated-dependencies'], dependencyGroup);
+            return await Promise.all(data['updated-dependencies'].map(async (dependency, index) => {
+                const lastVersion = index === 0 ? prev : '';
+                const nextVersion = index === 0 ? next : '';
+                const updateType = dependency['update-type'] || calculateUpdateType(lastVersion, nextVersion);
+                return {
+                    dependencyName: dependency['dependency-name'],
+                    dependencyType: dependency['dependency-type'],
+                    updateType,
+                    directory: dirname,
+                    packageEcosystem: chunks[1],
+                    targetBranch: mainBranch,
+                    prevVersion: lastVersion,
+                    newVersion: nextVersion,
+                    compatScore: await scoreFn(dependency['dependency-name'], lastVersion, nextVersion, chunks[1]),
+                    maintainerChanges: newMaintainer,
+                    dependencyGroup,
+                    ...await lookupFn(dependency['dependency-name'], lastVersion, dirname)
+                };
+            }));
         }
-        return Promise.resolve([]);
-    });
+    }
+    return Promise.resolve([]);
 }
 exports.parse = parse;
 function calculateUpdateType(lastVersion, nextVersion) {
@@ -10283,12 +10284,12 @@ function parseNwo(nwo) {
 exports.parseNwo = parseNwo;
 function getBranchNames(context) {
     const { pull_request: pr } = context.payload;
-    return { headName: (pr === null || pr === void 0 ? void 0 : pr.head.ref) || '', baseName: pr === null || pr === void 0 ? void 0 : pr.base.ref };
+    return { headName: pr?.head.ref || '', baseName: pr?.base.ref };
 }
 exports.getBranchNames = getBranchNames;
 function getBody(context) {
     const { pull_request: pr } = context.payload;
-    return (pr === null || pr === void 0 ? void 0 : pr.body) || '';
+    return pr?.body || '';
 }
 exports.getBody = getBody;
 
@@ -10323,15 +10324,6 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -10340,50 +10332,45 @@ exports.getCompatibility = exports.trimSlashes = exports.getAlert = exports.getM
 const core = __importStar(__nccwpck_require__(7484));
 const https_1 = __importDefault(__nccwpck_require__(5692));
 const DEPENDABOT_LOGIN = 'dependabot[bot]';
-function getMessage(client, context, skipCommitVerification = false, skipVerification = false) {
-    var _a;
-    return __awaiter(this, void 0, void 0, function* () {
-        if (skipVerification) {
-            core.debug('Skipping pull request verification');
-        }
-        else {
-            core.debug('Verifying the job is for an authentic Dependabot Pull Request');
-        }
-        const { pull_request: pr } = context.payload;
-        if (!pr) {
-            core.warning("Event payload missing `pull_request` key. Make sure you're " +
-                'triggering this action on the `pull_request` or `pull_request_target` events.');
-            return false;
-        }
-        // Don't bother hitting the API if the PR author isn't Dependabot unless verification is disabled
-        if (!skipVerification && pr.user.login !== DEPENDABOT_LOGIN) {
-            core.debug(`PR author '${pr.user.login}' is not Dependabot.`);
-            return false;
-        }
-        const { data: commits } = yield client.rest.pulls.listCommits({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            pull_number: pr.number
-        });
-        const { commit, author } = commits[0];
-        if (!skipVerification && (author === null || author === void 0 ? void 0 : author.login) !== DEPENDABOT_LOGIN) {
-            // TODO: Promote to setFailed
-            core.warning('It looks like this PR was not created by Dependabot, refusing to proceed.');
-            return false;
-        }
-        if (!skipVerification && !skipCommitVerification && !((_a = commit.verification) === null || _a === void 0 ? void 0 : _a.verified)) {
-            // TODO: Promote to setFailed
-            core.warning("Dependabot's commit signature is not verified, refusing to proceed.");
-            return false;
-        }
-        return commit.message;
+async function getMessage(client, context, skipCommitVerification = false, skipVerification = false) {
+    if (skipVerification) {
+        core.debug('Skipping pull request verification');
+    }
+    else {
+        core.debug('Verifying the job is for an authentic Dependabot Pull Request');
+    }
+    const { pull_request: pr } = context.payload;
+    if (!pr) {
+        core.warning("Event payload missing `pull_request` key. Make sure you're " +
+            'triggering this action on the `pull_request` or `pull_request_target` events.');
+        return false;
+    }
+    // Don't bother hitting the API if the PR author isn't Dependabot unless verification is disabled
+    if (!skipVerification && pr.user.login !== DEPENDABOT_LOGIN) {
+        core.debug(`PR author '${pr.user.login}' is not Dependabot.`);
+        return false;
+    }
+    const { data: commits } = await client.rest.pulls.listCommits({
+        owner: context.repo.owner,
+        repo: context.repo.repo,
+        pull_number: pr.number
     });
+    const { commit, author } = commits[0];
+    if (!skipVerification && author?.login !== DEPENDABOT_LOGIN) {
+        // TODO: Promote to setFailed
+        core.warning('It looks like this PR was not created by Dependabot, refusing to proceed.');
+        return false;
+    }
+    if (!skipVerification && !skipCommitVerification && !commit.verification?.verified) {
+        // TODO: Promote to setFailed
+        core.warning("Dependabot's commit signature is not verified, refusing to proceed.");
+        return false;
+    }
+    return commit.message;
 }
 exports.getMessage = getMessage;
-function getAlert(name, version, directory, client, context) {
-    var _a, _b, _c, _d, _e;
-    return __awaiter(this, void 0, void 0, function* () {
-        const alerts = yield client.graphql(`
+async function getAlert(name, version, directory, client, context) {
+    const alerts = await client.graphql(`
      {
        repository(owner: "${context.repo.owner}", name: "${context.repo.repo}") { 
          vulnerabilityAlerts(first: 100) {
@@ -10403,34 +10390,31 @@ function getAlert(name, version, directory, client, context) {
          }
        }
      }`);
-        const nodes = (_b = (_a = alerts === null || alerts === void 0 ? void 0 : alerts.repository) === null || _a === void 0 ? void 0 : _a.vulnerabilityAlerts) === null || _b === void 0 ? void 0 : _b.nodes;
-        const found = nodes.find(a => (version === '' || a.vulnerableRequirements === `= ${version}`) &&
-            trimSlashes(a.vulnerableManifestPath) === trimSlashes(`${directory}/${a.vulnerableManifestFilename}`) &&
-            a.securityVulnerability.package.name === name);
-        return {
-            alertState: (_c = found === null || found === void 0 ? void 0 : found.state) !== null && _c !== void 0 ? _c : '',
-            ghsaId: (_d = found === null || found === void 0 ? void 0 : found.securityAdvisory.ghsaId) !== null && _d !== void 0 ? _d : '',
-            cvss: (_e = found === null || found === void 0 ? void 0 : found.securityAdvisory.cvss.score) !== null && _e !== void 0 ? _e : 0.0
-        };
-    });
+    const nodes = alerts?.repository?.vulnerabilityAlerts?.nodes;
+    const found = nodes.find(a => (version === '' || a.vulnerableRequirements === `= ${version}`) &&
+        trimSlashes(a.vulnerableManifestPath) === trimSlashes(`${directory}/${a.vulnerableManifestFilename}`) &&
+        a.securityVulnerability.package.name === name);
+    return {
+        alertState: found?.state ?? '',
+        ghsaId: found?.securityAdvisory.ghsaId ?? '',
+        cvss: found?.securityAdvisory.cvss.score ?? 0.0
+    };
 }
 exports.getAlert = getAlert;
 function trimSlashes(value) {
     return value.replace(/^\/+/, '').replace(/\/+$/, '');
 }
 exports.trimSlashes = trimSlashes;
-function getCompatibility(name, oldVersion, newVersion, ecosystem) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const svg = yield new Promise((resolve) => {
-            https_1.default.get(`https://dependabot-badges.githubapp.com/badges/compatibility_score?dependency-name=${name}&package-manager=${ecosystem}&previous-version=${oldVersion}&new-version=${newVersion}`, res => {
-                let data = '';
-                res.on('data', chunk => { data += chunk.toString('utf8'); });
-                res.on('end', () => { resolve(data); });
-            }).on('error', () => { resolve(''); });
-        });
-        const scoreChunk = svg.match(/<title>compatibility: (?<score>\d+)%<\/title>/m);
-        return (scoreChunk === null || scoreChunk === void 0 ? void 0 : scoreChunk.groups) ? parseInt(scoreChunk.groups.score) : 0;
+async function getCompatibility(name, oldVersion, newVersion, ecosystem) {
+    const svg = await new Promise((resolve) => {
+        https_1.default.get(`https://dependabot-badges.githubapp.com/badges/compatibility_score?dependency-name=${name}&package-manager=${ecosystem}&previous-version=${oldVersion}&new-version=${newVersion}`, res => {
+            let data = '';
+            res.on('data', chunk => { data += chunk.toString('utf8'); });
+            res.on('end', () => { resolve(data); });
+        }).on('error', () => { resolve(''); });
     });
+    const scoreChunk = svg.match(/<title>compatibility: (?<score>\d+)%<\/title>/m);
+    return scoreChunk?.groups ? parseInt(scoreChunk.groups.score) : 0;
 }
 exports.getCompatibility = getCompatibility;
 
@@ -10465,15 +10449,6 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.run = void 0;
 const core = __importStar(__nccwpck_require__(7484));
@@ -10483,54 +10458,52 @@ const verifiedCommits = __importStar(__nccwpck_require__(461));
 const updateMetadata = __importStar(__nccwpck_require__(9777));
 const output = __importStar(__nccwpck_require__(6033));
 const util = __importStar(__nccwpck_require__(9180));
-function run() {
-    return __awaiter(this, void 0, void 0, function* () {
-        const token = core.getInput('github-token');
-        if (!token) {
-            /* eslint-disable no-template-curly-in-string */
-            core.setFailed('github-token is not set! Please add \'github-token: "${{ secrets.GITHUB_TOKEN }}"\' to your workflow file.');
-            /* eslint-enable no-template-curly-in-string */
+async function run() {
+    const token = core.getInput('github-token');
+    if (!token) {
+        /* eslint-disable no-template-curly-in-string */
+        core.setFailed('github-token is not set! Please add \'github-token: "${{ secrets.GITHUB_TOKEN }}"\' to your workflow file.');
+        /* eslint-enable no-template-curly-in-string */
+        return;
+    }
+    try {
+        const githubClient = github.getOctokit(token);
+        // Validate the job
+        const commitMessage = await verifiedCommits.getMessage(githubClient, github.context, core.getBooleanInput('skip-commit-verification'), core.getBooleanInput('skip-verification'));
+        const branchNames = util.getBranchNames(github.context);
+        const body = util.getBody(github.context);
+        let alertLookup;
+        if (core.getInput('alert-lookup')) {
+            alertLookup = (name, version, directory) => verifiedCommits.getAlert(name, version, directory, githubClient, github.context);
+        }
+        const scoreLookup = core.getInput('compat-lookup') ? verifiedCommits.getCompatibility : undefined;
+        if (commitMessage) {
+            // Parse metadata
+            core.info('Parsing Dependabot metadata');
+            const updatedDependencies = await updateMetadata.parse(commitMessage, body, branchNames.headName, branchNames.baseName, alertLookup, scoreLookup);
+            if (updatedDependencies.length > 0) {
+                output.set(updatedDependencies);
+            }
+            else {
+                core.setFailed('PR does not contain metadata, nothing to do.');
+            }
+        }
+        else {
+            core.setFailed('PR is not from Dependabot, nothing to do.');
+        }
+    }
+    catch (error) {
+        if (error instanceof request_error_1.RequestError) {
+            core.setFailed(`Api Error: (${error.status}) ${error.message}`);
             return;
         }
-        try {
-            const githubClient = github.getOctokit(token);
-            // Validate the job
-            const commitMessage = yield verifiedCommits.getMessage(githubClient, github.context, core.getBooleanInput('skip-commit-verification'), core.getBooleanInput('skip-verification'));
-            const branchNames = util.getBranchNames(github.context);
-            const body = util.getBody(github.context);
-            let alertLookup;
-            if (core.getInput('alert-lookup')) {
-                alertLookup = (name, version, directory) => verifiedCommits.getAlert(name, version, directory, githubClient, github.context);
-            }
-            const scoreLookup = core.getInput('compat-lookup') ? verifiedCommits.getCompatibility : undefined;
-            if (commitMessage) {
-                // Parse metadata
-                core.info('Parsing Dependabot metadata');
-                const updatedDependencies = yield updateMetadata.parse(commitMessage, body, branchNames.headName, branchNames.baseName, alertLookup, scoreLookup);
-                if (updatedDependencies.length > 0) {
-                    output.set(updatedDependencies);
-                }
-                else {
-                    core.setFailed('PR does not contain metadata, nothing to do.');
-                }
-            }
-            else {
-                core.setFailed('PR is not from Dependabot, nothing to do.');
-            }
+        if (error instanceof Error) {
+            core.setFailed(error.message);
         }
-        catch (error) {
-            if (error instanceof request_error_1.RequestError) {
-                core.setFailed(`Api Error: (${error.status}) ${error.message}`);
-                return;
-            }
-            if (error instanceof Error) {
-                core.setFailed(error.message);
-            }
-            else {
-                core.setFailed('There was an unexpected error.');
-            }
+        else {
+            core.setFailed('There was an unexpected error.');
         }
-    });
+    }
 }
 exports.run = run;
 run();
