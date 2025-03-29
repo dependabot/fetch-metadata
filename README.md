@@ -153,10 +153,9 @@ jobs:
         uses: dependabot/fetch-metadata@v2
       - name: Enable auto-merge for Dependabot PRs
         if: ${{contains(steps.dependabot-metadata.outputs.dependency-names, 'rails') && steps.dependabot-metadata.outputs.update-type == 'version-update:semver-patch'}}
-        run: gh pr merge --auto --merge "$PR_URL"
+        run: gh pr merge --auto --merge "${{github.event.pull_request.html_url}}"
         env:
-          PR_URL: ${{github.event.pull_request.html_url}}
-          GH_TOKEN: ${{secrets.GITHUB_TOKEN}}
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
 ```
 
 ### Labelling
@@ -182,9 +181,8 @@ jobs:
         uses: dependabot/fetch-metadata@v2
       - name: Add a label for all production dependencies
         if: ${{ steps.dependabot-metadata.outputs.dependency-type == 'direct:production' }}
-        run: gh pr edit "$PR_URL" --add-label "production"
+        run: gh pr edit "${{github.event.pull_request.html_url}}" --add-label "production"
         env:
-          PR_URL: ${{github.event.pull_request.html_url}}
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
 ```
 
