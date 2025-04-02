@@ -62,9 +62,9 @@ Subsequent actions will have access to the following outputs:
 - `steps.dependabot-metadata.outputs.dependency-names`
   - A comma-separated list of the package names updated by the PR.
 - `steps.dependabot-metadata.outputs.dependency-type`
-  - The type of dependency has determined this PR to be.  Possible values are: `direct:production`, `direct:development` and `indirect`.  See [the `allow` documentation](https://docs.github.com/en/code-security/supply-chain-security/keeping-your-dependencies-updated-automatically/configuration-options-for-dependency-updates#allow) for descriptions of each.
+  - The type of dependency has determined this PR to be.  Possible values are: `direct:production`, `direct:development` and `indirect`.  See [the `allow` documentation](https://docs.github.com/en/code-security/dependabot/working-with-dependabot/dependabot-options-reference#dependency-type-allow) for descriptions of each.
 - `steps.dependabot-metadata.outputs.update-type`
-  - The highest semver change being made by this PR, e.g. `version-update:semver-major`. For all possible values, see [the `ignore` documentation](https://docs.github.com/en/code-security/supply-chain-security/keeping-your-dependencies-updated-automatically/configuration-options-for-dependency-updates#ignore).
+  - The highest semver change being made by this PR, e.g. `version-update:semver-major`. For all possible values, see [the `ignore` documentation](https://docs.github.com/en/code-security/dependabot/working-with-dependabot/dependabot-options-reference#ignore--).
 - `steps.dependabot-metadata.outputs.updated-dependencies-json`
   - A JSON string containing the full information about each updated Dependency.
 - `steps.dependabot-metadata.outputs.directory`
