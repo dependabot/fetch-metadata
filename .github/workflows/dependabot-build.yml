@@ -17,8 +17,6 @@ jobs:
       package-ecosystem: ${{ steps.dependabot-metadata.outputs.package-ecosystem }}
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.pull_request.head.ref }}
 
       - name: Fetch dependabot metadata
         id: dependabot-metadata
@@ -40,7 +38,6 @@ jobs:
 
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.ref }}
           # Check out using an app token so any pushed changes will trigger checkruns
           token: ${{ steps.generate_token.outputs.token }}
 
