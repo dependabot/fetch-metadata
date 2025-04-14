@@ -36,6 +36,7 @@ jobs:
       - uses: actions/setup-node@v4 # bin/bump-version needs npm
         with:
           node-version-file: .nvmrc
+          cache: 'npm'
 
       - name: Bump the version
         # Cron runs with no inputs, so version_type will default to 'minor'

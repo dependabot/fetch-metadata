@@ -41,13 +41,12 @@ jobs:
           # Check out using an app token so any pushed changes will trigger checkruns
           token: ${{ steps.generate_token.outputs.token }}
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
+          cache: 'npm'
 
-      - name: Install NPM dependencies
-        run: npm ci
+      - run: npm ci
 
       - name: Rebuild the dist/ directory
         run: npm run build
