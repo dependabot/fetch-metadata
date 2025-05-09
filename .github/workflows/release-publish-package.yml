@@ -18,7 +18,7 @@ jobs:
       
       - name: Publish
         id: publish
-        uses: actions/publish-immutable-action@0.0.1
+        uses: actions/publish-immutable-action@0.0.3
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
       
