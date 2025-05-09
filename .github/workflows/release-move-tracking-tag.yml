@@ -1,3 +1,11 @@
+# TODO: This GitHub Action was migrated to Immutable Actions, which resolves versions from packages
+# rather than from git tags. So theoretically floating this tracking tag isn't necessary.
+# However, Immutable Actions are still in beta, and currently (May 8, 2025) only hosted runners
+# are resolving immutable actions from packages. Self-hosted runners are still pulling from git tags.
+# So we still need to float this trackign tag. Once Immutable Actions is fully GA'd, then _all_ runners
+# should be resolving from the immutable actions packages, and then we should delete both
+# this workflow AND the `v1`/`v2` git tags.
+
 name: Release - Move Tracking Tag
 
 on:
