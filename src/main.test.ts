@@ -509,7 +509,6 @@ test('it sets the action to failed if there is a request error', async () => {
   jest.spyOn(util, 'getBranchNames').mockReturnValue({ headName: 'dependabot|nuget|feature1', baseName: 'main' })
   jest.spyOn(dependabotCommits, 'getMessage').mockImplementation(jest.fn(
     () => Promise.reject(new RequestError('Something bad happened!', 500, {
-      headers: {},
       request: {
         method: 'GET',
         url: 'https://api.github.com/repos/dependabot/dependabot/pulls/101/commits',
