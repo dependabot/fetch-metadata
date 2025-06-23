@@ -507,3 +507,54 @@ test('calculateUpdateType should handle all paths', () => {
   expect(updateMetadata.calculateUpdateType('1.1.1', '1.1.2')).toEqual('version-update:semver-patch')
   expect(updateMetadata.calculateUpdateType('1.1.1.1', '1.1.1.2')).toEqual('version-update:semver-patch')
 })
+
+test('it handles versions from `metadataLinks`', async () => {
+  const commitMessage = `Bump the non-breaking group in /log4j-parent with 2 updates
+
+Bumps the non-breaking group in /log4j-parent with 2 updates:
+
+
+Updates \`commons-codec:commons-codec\` from 1.17.0 to 1.18.0
+- [Changelog](https://github.com/apache/commons-codec/blob/master/RELEASE-NOTES.txt)
+- [Commits](apache/commons-codec@rel/commons-codec-1.17.0...rel/commons-codec-1.18.0)
+
+Updates \`org.apache.commons:commons-compress\` to 1.27.1
+
+---
+updated-dependencies:
+- dependency-name: commons-codec:commons-codec
+- dependency-name: org.apache.commons:commons-compress
+...
+`
+  const updatedDependencies = await updateMetadata.parse(commitMessage, '', 'dependabot/maven/non-breaking-cc60d48967', '2.x')
+  expect(updatedDependencies).toHaveLength(2)
+  expect(updatedDependencies[0].dependencyName).toEqual('commons-codec:commons-codec')
+  expect(updatedDependencies[0].prevVersion).toEqual('1.17.0')
+  expect(updatedDependencies[0].newVersion).toEqual('1.18.0')
+  expect(updatedDependencies[1].dependencyName).toEqual('org.apache.commons:commons-compress')
+  expect(updatedDependencies[1].prevVersion).toEqual('')
+  expect(updatedDependencies[1].newVersion).toEqual('1.27.1')
+})
+
+test('it handles new versions from YAML', async () => {
+  const commitMessage = `Bump the non-breaking group in /log4j-parent with 2 updates
+
+Bumps the non-breaking group in /log4j-parent with 2 updates:
+
+---
+updated-dependencies:
+- dependency-name: commons-codec:commons-codec
+  dependency-version: 1.18.0
+- dependency-name: org.apache.commons:commons-compress
+  dependency-version: 1.27.1
+...
+`
+  const updatedDependencies = await updateMetadata.parse(commitMessage, '', 'dependabot/maven/non-breaking-cc60d48967', '2.x')
+  expect(updatedDependencies).toHaveLength(2)
+  expect(updatedDependencies[0].dependencyName).toEqual('commons-codec:commons-codec')
+  expect(updatedDependencies[0].prevVersion).toEqual('')
+  expect(updatedDependencies[0].newVersion).toEqual('1.18.0')
+  expect(updatedDependencies[1].dependencyName).toEqual('org.apache.commons:commons-compress')
+  expect(updatedDependencies[1].prevVersion).toEqual('')
+  expect(updatedDependencies[1].newVersion).toEqual('1.27.1')
+})
