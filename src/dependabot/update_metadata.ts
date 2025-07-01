@@ -118,13 +118,12 @@ export async function parse (commitMessage: string, body: string, branchName: st
 
 /**
  * Parses the human-readable metadata links from a commit message.
- * <p>
- *    See {@code Dependabot::PullRequestCreator::MessageBuilder#metadata_links} in the Ruby codebase for more details
- *    on the current format.
- * </p>
- * <p>
- *     <strong>Note:</strong> This data is only available if more than one dependency is updated in a single PR.
- * </>
+ *
+ * See `Dependabot::PullRequestCreator::MessageBuilder#metadata_links` in the Ruby codebase for more details
+ * on the current format.
+ *
+ * **NOTE**: This data is only available if more than one dependency is updated in a single PR.
+ *
  * @param commitMessage - The commit message containing metadata links.
  * @returns A map from the name of the dependency to an updatedDependency object containing the old and new versions.
  */
