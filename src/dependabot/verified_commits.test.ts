@@ -298,6 +298,44 @@ test('fetch all vulnerability alert pages', async () => {
   expect(await getAlert('coffee-script', '4.0.1', '/wwwroot', mockGitHubClient, mockGitHubPullContext())).toEqual({ alertState: 'DISMISSED', cvss: 4.5, ghsaId: 'FOO' })
 })
 
+const responseWithoutEqInFrontOfVulnerableRequirements = {
+  data: {
+    repository: {
+      vulnerabilityAlerts: {
+        nodes: [
+          {
+            vulnerableManifestFilename: "yarn.lock",
+            vulnerableManifestPath: "cypress/yarn.lock",
+            vulnerableRequirements: "4.4.0",
+            state: "OPEN",
+            securityVulnerability: {
+              package: {
+                name: "terser",
+              },
+            },
+            securityAdvisory: {
+              cvss: {
+                score: 7.5,
+              },
+              ghsaId: "GHSA-4wf5-vphf-c2xc",
+            },
+          },
+        ],
+        pageInfo: {
+          hasNextPage: false
+        },
+      },
+    },
+  },
+}
+
+test('it returns alert without eq in front of vulnerableRequirements', async () => {
+  nock('https://api.github.com')
+   .post('/graphql', query).reply(200, responseWithoutEqInFrontOfVulnerableRequirements)
+
+  expect(await getAlert('terser', '4.4.0', '/cypress', mockGitHubClient, mockGitHubPullContext())).toEqual({ alertState: 'OPEN', cvss: 7.5, ghsaId: 'GHSA-4wf5-vphf-c2xc' })
+})
+
 test('trimSlashes should only trim slashes from both ends', () => {
   expect(trimSlashes('')).toEqual('')
   expect(trimSlashes('///')).toEqual('')

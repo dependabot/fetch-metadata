@@ -127,7 +127,7 @@ export async function getAlert (name: string, version: string, directory: string
   const nodes = await fetchVulnerabilityAlerts(client, context.repo.owner, context.repo.repo);
   core.debug(`Fetched ${nodes.length} vulnerability alerts`);
 
-  const found = nodes.find(a => (version === '' || a.vulnerableRequirements === `= ${version}`) &&
+  const found = nodes.find(a => (version === '' || a.vulnerableRequirements === `${version}` || a.vulnerableRequirements === `= ${version}`) &&
       trimSlashes(a.vulnerableManifestPath) === trimSlashes(`${directory}/${a.vulnerableManifestFilename}`) &&
       a.securityVulnerability.package.name === name)
 
