@@ -56,30 +56,78 @@ export async function getMessage (client: InstanceType<typeof GitHub>, context: 
   return commit.message
 }
 
-export async function getAlert (name: string, version: string, directory: string, client: InstanceType<typeof GitHub>, context: Context): Promise<dependencyAlert> {
-  const alerts: any = await client.graphql(`
+/**
+ * @see https://docs.github.com/en/graphql/reference/objects#repositoryvulnerabilityalert
+ */
+interface RepositoryVulnerabilityAlert {
+  vulnerableManifestFilename: string;
+  vulnerableManifestPath: string;
+  vulnerableRequirements: string;
+  state: "OPEN" | "FIXED" | "DISMISSED";
+  securityVulnerability: {
+    package: {
+      name: string;
+    };
+  };
+  securityAdvisory: {
+    cvss: {
+      score: number;
+    };
+    ghsaId: string;
+  };
+}
+
+interface RepositoryVulnerabilityAlertsResult {
+  repository: {
+    vulnerabilityAlerts: {
+      nodes: RepositoryVulnerabilityAlert[];
+      pageInfo: {
+        endCursor: string;
+        hasNextPage: boolean;
+      }
+    }
+  }
+}
+
+async function fetchVulnerabilityAlerts(client: InstanceType<typeof GitHub>, repoOwner: string, repoName: string, endCursor?: string): Promise<RepositoryVulnerabilityAlert[]> {
+  core.debug(`Fetching vulnerability alerts for cursor ${endCursor ?? 'start'}`);
+  const result: RepositoryVulnerabilityAlertsResult = await client.graphql(`
      {
-       repository(owner: "${context.repo.owner}", name: "${context.repo.repo}") { 
-         vulnerabilityAlerts(first: 100) {
+       repository(owner: "${repoOwner}", name: "${repoName}") {
+         vulnerabilityAlerts(first: 100 ${endCursor ? ', after: "' + endCursor + '"' : ''}) {
            nodes {
              vulnerableManifestFilename
              vulnerableManifestPath
              vulnerableRequirements
              state
-             securityVulnerability { 
-               package { name } 
+             securityVulnerability {
+               package { name }
              }
-             securityAdvisory { 
+             securityAdvisory {
               cvss { score }
-              ghsaId 
+              ghsaId
              }
            }
+           pageInfo {
+            hasNextPage
+            endCursor
+          }
          }
        }
      }`)
 
-  const nodes = alerts?.repository?.vulnerabilityAlerts?.nodes
-  const found = nodes.find(a => (version === '' || a.vulnerableRequirements === `= ${version}`) &&
+    if (result.repository.vulnerabilityAlerts.pageInfo.hasNextPage) {
+      const nextPageNodes = await fetchVulnerabilityAlerts(client, repoOwner, repoName, result.repository.vulnerabilityAlerts.pageInfo.endCursor);
+      return [...result.repository.vulnerabilityAlerts.nodes, ...nextPageNodes ];
+    }
+    return result.repository.vulnerabilityAlerts.nodes;
+}
+
+export async function getAlert (name: string, version: string, directory: string, client: InstanceType<typeof GitHub>, context: Context): Promise<dependencyAlert> {
+  const nodes = await fetchVulnerabilityAlerts(client, context.repo.owner, context.repo.repo);
+  core.debug(`Fetched ${nodes.length} vulnerability alerts`);
+
+  const found = nodes.find(a => (version === '' || a.vulnerableRequirements === `${version}` || a.vulnerableRequirements === `= ${version}`) &&
       trimSlashes(a.vulnerableManifestPath) === trimSlashes(`${directory}/${a.vulnerableManifestFilename}`) &&
       a.securityVulnerability.package.name === name)
 

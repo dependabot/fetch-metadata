@@ -10398,29 +10398,42 @@ async function getMessage(client, context, skipCommitVerification = false, skipV
     }
     return commit.message;
 }
-async function getAlert(name, version, directory, client, context) {
-    const alerts = await client.graphql(`
+async function fetchVulnerabilityAlerts(client, repoOwner, repoName, endCursor) {
+    core.debug(`Fetching vulnerability alerts for cursor ${endCursor ?? 'start'}`);
+    const result = await client.graphql(`
      {
-       repository(owner: "${context.repo.owner}", name: "${context.repo.repo}") { 
-         vulnerabilityAlerts(first: 100) {
+       repository(owner: "${repoOwner}", name: "${repoName}") {
+         vulnerabilityAlerts(first: 100 ${endCursor ? ', after: "' + endCursor + '"' : ''}) {
            nodes {
              vulnerableManifestFilename
              vulnerableManifestPath
              vulnerableRequirements
              state
-             securityVulnerability { 
-               package { name } 
+             securityVulnerability {
+               package { name }
              }
-             securityAdvisory { 
+             securityAdvisory {
               cvss { score }
-              ghsaId 
+              ghsaId
              }
            }
+           pageInfo {
+            hasNextPage
+            endCursor
+          }
          }
        }
      }`);
-    const nodes = alerts?.repository?.vulnerabilityAlerts?.nodes;
-    const found = nodes.find(a => (version === '' || a.vulnerableRequirements === `= ${version}`) &&
+    if (result.repository.vulnerabilityAlerts.pageInfo.hasNextPage) {
+        const nextPageNodes = await fetchVulnerabilityAlerts(client, repoOwner, repoName, result.repository.vulnerabilityAlerts.pageInfo.endCursor);
+        return [...result.repository.vulnerabilityAlerts.nodes, ...nextPageNodes];
+    }
+    return result.repository.vulnerabilityAlerts.nodes;
+}
+async function getAlert(name, version, directory, client, context) {
+    const nodes = await fetchVulnerabilityAlerts(client, context.repo.owner, context.repo.repo);
+    core.debug(`Fetched ${nodes.length} vulnerability alerts`);
+    const found = nodes.find(a => (version === '' || a.vulnerableRequirements === `${version}` || a.vulnerableRequirements === `= ${version}`) &&
         trimSlashes(a.vulnerableManifestPath) === trimSlashes(`${directory}/${a.vulnerableManifestFilename}`) &&
         a.securityVulnerability.package.name === name);
     return {
