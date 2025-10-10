@@ -33,7 +33,7 @@ jobs:
           ref: "main"
           token: ${{ steps.generate_token.outputs.token }}
 
-      - uses: actions/setup-node@v4 # bin/bump-version needs npm
+      - uses: actions/setup-node@v5 # bin/bump-version needs npm
         with:
           node-version-file: .nvmrc
           cache: 'npm'
