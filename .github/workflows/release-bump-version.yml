@@ -27,7 +27,7 @@ jobs:
           app-id: ${{ secrets.FETCH_METADATA_ACTION_AUTOMATION_APP_ID }}
           private-key: ${{ secrets.FETCH_METADATA_ACTION_AUTOMATION_PRIVATE_KEY }}
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           # Ensure we start from main in case the workflow is run from a branch
           ref: "main"
