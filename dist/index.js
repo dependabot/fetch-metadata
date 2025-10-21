@@ -10243,10 +10243,13 @@ async function parse(commitMessage, body, branchName, mainBranch, lookup, getSco
         const next = bumpFragment?.groups?.to ?? (updateFragment?.groups?.to ?? '');
         const dependencyGroup = groupName?.groups?.name ?? '';
         if (data['updated-dependencies']) {
+            const updatedVersions = parseMetadataLinks(commitMessage);
             const dirname = branchNameToDirectoryName(chunks, delim, data['updated-dependencies'], dependencyGroup);
             return await Promise.all(data['updated-dependencies'].map(async (dependency, index) => {
-                const lastVersion = index === 0 ? prev : '';
-                const nextVersion = index === 0 ? next : '';
+                const dependencyName = dependency['dependency-name'];
+                const updatedVersion = updatedVersions.get(dependencyName);
+                const lastVersion = updatedVersion?.prevVersion || (index === 0 ? prev : '');
+                const nextVersion = dependency['dependency-version'] || updatedVersion?.newVersion || (index === 0 ? next : '');
                 const updateType = dependency['update-type'] || calculateUpdateType(lastVersion, nextVersion);
                 return {
                     dependencyName: dependency['dependency-name'],
@@ -10266,6 +10269,33 @@ async function parse(commitMessage, body, branchName, mainBranch, lookup, getSco
         }
     }
     return Promise.resolve([]);
+}
+/**
+ * Parses the human-readable metadata links from a commit message.
+ *
+ * See `Dependabot::PullRequestCreator::MessageBuilder#metadata_links` in the Ruby codebase for more details
+ * on the current format.
+ *
+ * **NOTE**: This data is only available if more than one dependency is updated in a single PR.
+ *
+ * @param commitMessage - The commit message containing metadata links.
+ * @returns A map from the name of the dependency to an updatedDependency object containing the old and new versions.
+ */
+function parseMetadataLinks(commitMessage) {
+    const updates = new Map();
+    const updatesExpr = /^Updates `(?<dependencyName>\S+)` (from (?<from>\S+) )?to (?<to>\S+)$/gm;
+    let match;
+    while ((match = updatesExpr.exec(commitMessage)) !== null) {
+        const groups = match.groups;
+        if (groups) {
+            const dependencyName = groups.dependencyName;
+            updates.set(dependencyName, {
+                prevVersion: groups.from ?? '',
+                newVersion: groups.to
+            });
+        }
+    }
+    return updates;
 }
 function calculateUpdateType(lastVersion, nextVersion) {
     if (!lastVersion || !nextVersion || lastVersion === nextVersion) {
