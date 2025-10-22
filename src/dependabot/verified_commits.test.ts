@@ -15,6 +15,7 @@ beforeEach(() => {
   jest.spyOn(core, 'warning').mockImplementation(jest.fn())
 
   process.env.GITHUB_REPOSITORY = 'dependabot/dependabot'
+  process.env.NODE_DEBUG = 'nock:*'
 })
 
 test('it returns false if the action is not invoked on a PullRequest', async () => {
@@ -149,7 +150,7 @@ test('it returns the commit message for a PR authored exclusively by Dependabot 
   expect(await getMessage(mockGitHubClient, mockGitHubPullContext())).toEqual('Bump lodash from 1.0.0 to 2.0.0')
 })
 
-const query = '{"query":"\\n     {\\n       repository(owner: \\"dependabot\\", name: \\"dependabot\\") { \\n         vulnerabilityAlerts(first: 100) {\\n           nodes {\\n             vulnerableManifestFilename\\n             vulnerableManifestPath\\n             vulnerableRequirements\\n             state\\n             securityVulnerability { \\n               package { name } \\n             }\\n             securityAdvisory { \\n              cvss { score }\\n              ghsaId \\n             }\\n           }\\n         }\\n       }\\n     }"}'
+const query = '{"query":"\\n     {\\n       repository(owner: \\"dependabot\\", name: \\"dependabot\\") {\\n         vulnerabilityAlerts(first: 100 ) {\\n           nodes {\\n             vulnerableManifestFilename\\n             vulnerableManifestPath\\n             vulnerableRequirements\\n             state\\n             securityVulnerability {\\n               package { name }\\n             }\\n             securityAdvisory {\\n              cvss { score }\\n              ghsaId\\n             }\\n           }\\n           pageInfo {\\n            hasNextPage\\n            endCursor\\n          }\\n         }\\n       }\\n     }"}'
 
 const response = {
   data: {
@@ -164,7 +165,10 @@ const response = {
             securityVulnerability: { package: { name: 'coffee-script' } },
             securityAdvisory: { cvss: { score: 4.5 }, ghsaId: 'FOO' }
           }
-        ]
+        ],
+        pageInfo: {
+          hasNextPage: false
+        }
       }
     }
   }
@@ -183,7 +187,10 @@ const responseWithManifestFileAtRoot = {
             securityVulnerability: { package: { name: 'coffee-script' } },
             securityAdvisory: { cvss: { score: 4.5 }, ghsaId: 'FOO' }
           }
-        ]
+        ],
+        pageInfo: {
+          hasNextPage: false
+        }
       }
     }
   }
@@ -191,7 +198,7 @@ const responseWithManifestFileAtRoot = {
 
 test('it returns the alert state if it matches all 3', async () => {
   nock('https://api.github.com').post('/graphql', query)
-    .reply(200, response)
+    .reply(200, response);
 
   expect(await getAlert('coffee-script', '4.0.1', '/wwwroot', mockGitHubClient, mockGitHubPullContext())).toEqual({ alertState: 'DISMISSED', cvss: 4.5, ghsaId: 'FOO' })
 
@@ -247,6 +254,86 @@ test('it returns default if it does not match the name', async () => {
     .reply(200, responseWithManifestFileAtRoot)
 
   expect(await getAlert('coffee', '4.0.1', '/', mockGitHubClient, mockGitHubPullContext())).toEqual({ alertState: '', cvss: 0, ghsaId: '' })
+})
+
+const responsePage1 = {
+  data: {
+    repository: {
+      vulnerabilityAlerts: {
+        nodes: [
+          {
+            vulnerableManifestFilename: "yarn.lock",
+            vulnerableManifestPath: "yarn.lock",
+            vulnerableRequirements: "= 4.17.11",
+            state: "FIXED",
+            securityVulnerability: {
+              package: {
+                name: "lodash",
+              },
+            },
+            securityAdvisory: {
+              cvss: {
+                score: 9.1,
+              },
+              ghsaId: "GHSA-jf85-cpcp-j695",
+            },
+          },
+        ],
+        pageInfo: {
+          hasNextPage: true,
+          endCursor: "Y3Vyc29yOnYyOpHOLxj2uQ==",
+        },
+      },
+    },
+  },
+}
+
+const query2 = '{"query":"\\n     {\\n       repository(owner: \\"dependabot\\", name: \\"dependabot\\") {\\n         vulnerabilityAlerts(first: 100 , after: \\"Y3Vyc29yOnYyOpHOLxj2uQ==\\") {\\n           nodes {\\n             vulnerableManifestFilename\\n             vulnerableManifestPath\\n             vulnerableRequirements\\n             state\\n             securityVulnerability {\\n               package { name }\\n             }\\n             securityAdvisory {\\n              cvss { score }\\n              ghsaId\\n             }\\n           }\\n           pageInfo {\\n            hasNextPage\\n            endCursor\\n          }\\n         }\\n       }\\n     }"}'
+
+test('fetch all vulnerability alert pages', async () => {
+  nock('https://api.github.com')
+   .post('/graphql', query).reply(200, responsePage1)
+   .post('/graphql', query2).reply(200, response)
+
+  expect(await getAlert('coffee-script', '4.0.1', '/wwwroot', mockGitHubClient, mockGitHubPullContext())).toEqual({ alertState: 'DISMISSED', cvss: 4.5, ghsaId: 'FOO' })
+})
+
+const responseWithoutEqInFrontOfVulnerableRequirements = {
+  data: {
+    repository: {
+      vulnerabilityAlerts: {
+        nodes: [
+          {
+            vulnerableManifestFilename: "yarn.lock",
+            vulnerableManifestPath: "cypress/yarn.lock",
+            vulnerableRequirements: "4.4.0",
+            state: "OPEN",
+            securityVulnerability: {
+              package: {
+                name: "terser",
+              },
+            },
+            securityAdvisory: {
+              cvss: {
+                score: 7.5,
+              },
+              ghsaId: "GHSA-4wf5-vphf-c2xc",
+            },
+          },
+        ],
+        pageInfo: {
+          hasNextPage: false
+        },
+      },
+    },
+  },
+}
+
+test('it returns alert without eq in front of vulnerableRequirements', async () => {
+  nock('https://api.github.com')
+   .post('/graphql', query).reply(200, responseWithoutEqInFrontOfVulnerableRequirements)
+
+  expect(await getAlert('terser', '4.4.0', '/cypress', mockGitHubClient, mockGitHubPullContext())).toEqual({ alertState: 'OPEN', cvss: 7.5, ghsaId: 'GHSA-4wf5-vphf-c2xc' })
 })
 
 test('trimSlashes should only trim slashes from both ends', () => {
