@@ -1,4 +1,4 @@
-/* eslint-disable no-console, @typescript-eslint/no-var-requires, no-unused-expressions */
+ 
 import * as github from '@actions/github'
 import { Context } from '@actions/github/lib/context'
 import * as dotenv from 'dotenv'

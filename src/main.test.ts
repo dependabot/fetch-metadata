@@ -11,6 +11,19 @@ beforeEach(() => {
   jest.spyOn(core, 'setFailed').mockImplementation(jest.fn())
   jest.spyOn(core, 'startGroup').mockImplementation(jest.fn())
   jest.spyOn(core, 'getBooleanInput').mockReturnValue(false)
+  jest.spyOn(util, 'getBody').mockReturnValue(`
+Bumps [fake/package](https://github.com/) from 0.0.0 to 0.0.1.
+<details>
+<summary>Release notes</summary>
+<blockquote>
+<h2>0.0.1</h2>
+<h2>Summary</h2>
+<p>This is a fake description for a fake update</p>
+<h2>What's Changed</h2>
+* Nothing
+</blockquote>
+</details>
+`)
 })
 
 test('it early exits with an error if github-token is not set', async () => {
@@ -22,10 +35,10 @@ test('it early exits with an error if github-token is not set', async () => {
   expect(core.setFailed).toHaveBeenCalledWith(
     expect.stringContaining('github-token is not set!')
   )
-  /* eslint-disable no-unused-expressions */
+   
   expect(dependabotCommits.getMessage).not.toHaveBeenCalled
   expect(dependabotCommits.getAlert).not.toHaveBeenCalled
-  /* eslint-enable no-unused-expressions */
+   
 })
 
 test('it does nothing if the PR is not verified as from Dependabot', async () => {
@@ -40,9 +53,9 @@ test('it does nothing if the PR is not verified as from Dependabot', async () =>
   expect(core.setFailed).toHaveBeenCalledWith(
     expect.stringContaining('PR is not from Dependabot, nothing to do.')
   )
-  /* eslint-disable no-unused-expressions */
+   
   expect(dependabotCommits.getAlert).not.toHaveBeenCalled
-  /* eslint-enable no-unused-expressions */
+   
 })
 
 test('it does nothing if there is no metadata in the commit', async () => {
@@ -57,9 +70,9 @@ test('it does nothing if there is no metadata in the commit', async () => {
   expect(core.setFailed).toHaveBeenCalledWith(
     expect.stringContaining('PR does not contain metadata, nothing to do.')
   )
-  /* eslint-disable no-unused-expressions */
+   
   expect(dependabotCommits.getAlert).not.toHaveBeenCalled
-  /* eslint-enable no-unused-expressions */
+   
 })
 
 test('it sets the updated dependency as an output for subsequent actions when given a commit message for application', async () => {
@@ -120,20 +133,20 @@ test('it sets the updated dependency as an output for subsequent actions when gi
     ]
   )
 
-  expect(core.setOutput).toBeCalledWith('dependency-names', 'coffee-rails')
-  expect(core.setOutput).toBeCalledWith('dependency-type', 'direct:production')
-  expect(core.setOutput).toBeCalledWith('update-type', 'version-update:semver-minor')
-  expect(core.setOutput).toBeCalledWith('directory', '/')
-  expect(core.setOutput).toBeCalledWith('package-ecosystem', 'nuget')
-  expect(core.setOutput).toBeCalledWith('target-branch', 'main')
-  expect(core.setOutput).toBeCalledWith('previous-version', '4.0.1')
-  expect(core.setOutput).toBeCalledWith('new-version', '4.2.2')
-  expect(core.setOutput).toBeCalledWith('compatibility-score', 0)
-  expect(core.setOutput).toBeCalledWith('maintainer-changes', false)
-  expect(core.setOutput).toBeCalledWith('dependency-group', '')
-  expect(core.setOutput).toBeCalledWith('alert-state', '')
-  expect(core.setOutput).toBeCalledWith('ghsa-id', '')
-  expect(core.setOutput).toBeCalledWith('cvss', 0)
+  expect(core.setOutput).toHaveBeenCalledWith('dependency-names', 'coffee-rails')
+  expect(core.setOutput).toHaveBeenCalledWith('dependency-type', 'direct:production')
+  expect(core.setOutput).toHaveBeenCalledWith('update-type', 'version-update:semver-minor')
+  expect(core.setOutput).toHaveBeenCalledWith('directory', '/')
+  expect(core.setOutput).toHaveBeenCalledWith('package-ecosystem', 'nuget')
+  expect(core.setOutput).toHaveBeenCalledWith('target-branch', 'main')
+  expect(core.setOutput).toHaveBeenCalledWith('previous-version', '4.0.1')
+  expect(core.setOutput).toHaveBeenCalledWith('new-version', '4.2.2')
+  expect(core.setOutput).toHaveBeenCalledWith('compatibility-score', 0)
+  expect(core.setOutput).toHaveBeenCalledWith('maintainer-changes', false)
+  expect(core.setOutput).toHaveBeenCalledWith('dependency-group', '')
+  expect(core.setOutput).toHaveBeenCalledWith('alert-state', '')
+  expect(core.setOutput).toHaveBeenCalledWith('ghsa-id', '')
+  expect(core.setOutput).toHaveBeenCalledWith('cvss', 0)
 })
 
 test('it sets the updated dependency as an output for subsequent actions when there is a leading v in the commit message version', async () => {
@@ -193,20 +206,20 @@ test('it sets the updated dependency as an output for subsequent actions when th
     ]
   )
 
-  expect(core.setOutput).toBeCalledWith('dependency-names', 'coffee-rails')
-  expect(core.setOutput).toBeCalledWith('dependency-type', 'direct:production')
-  expect(core.setOutput).toBeCalledWith('update-type', 'version-update:semver-minor')
-  expect(core.setOutput).toBeCalledWith('directory', '/')
-  expect(core.setOutput).toBeCalledWith('package-ecosystem', 'nuget')
-  expect(core.setOutput).toBeCalledWith('target-branch', 'main')
-  expect(core.setOutput).toBeCalledWith('previous-version', 'v4.0.1')
-  expect(core.setOutput).toBeCalledWith('new-version', 'v4.2.2')
-  expect(core.setOutput).toBeCalledWith('compatibility-score', 0)
-  expect(core.setOutput).toBeCalledWith('maintainer-changes', false)
-  expect(core.setOutput).toBeCalledWith('dependency-group', '')
-  expect(core.setOutput).toBeCalledWith('alert-state', '')
-  expect(core.setOutput).toBeCalledWith('ghsa-id', '')
-  expect(core.setOutput).toBeCalledWith('cvss', 0)
+  expect(core.setOutput).toHaveBeenCalledWith('dependency-names', 'coffee-rails')
+  expect(core.setOutput).toHaveBeenCalledWith('dependency-type', 'direct:production')
+  expect(core.setOutput).toHaveBeenCalledWith('update-type', 'version-update:semver-minor')
+  expect(core.setOutput).toHaveBeenCalledWith('directory', '/')
+  expect(core.setOutput).toHaveBeenCalledWith('package-ecosystem', 'nuget')
+  expect(core.setOutput).toHaveBeenCalledWith('target-branch', 'main')
+  expect(core.setOutput).toHaveBeenCalledWith('previous-version', 'v4.0.1')
+  expect(core.setOutput).toHaveBeenCalledWith('new-version', 'v4.2.2')
+  expect(core.setOutput).toHaveBeenCalledWith('compatibility-score', 0)
+  expect(core.setOutput).toHaveBeenCalledWith('maintainer-changes', false)
+  expect(core.setOutput).toHaveBeenCalledWith('dependency-group', '')
+  expect(core.setOutput).toHaveBeenCalledWith('alert-state', '')
+  expect(core.setOutput).toHaveBeenCalledWith('ghsa-id', '')
+  expect(core.setOutput).toHaveBeenCalledWith('cvss', 0)
 })
 
 test('it supports returning information about grouped updates', async () => {
@@ -377,20 +390,20 @@ test('it sets the updated dependency as an output for subsequent actions when gi
     ]
   )
 
-  expect(core.setOutput).toBeCalledWith('dependency-names', 'rubocop')
-  expect(core.setOutput).toBeCalledWith('dependency-type', 'direct:development')
-  expect(core.setOutput).toBeCalledWith('update-type', 'version-update:semver-minor')
-  expect(core.setOutput).toBeCalledWith('directory', '/')
-  expect(core.setOutput).toBeCalledWith('package-ecosystem', 'bundler')
-  expect(core.setOutput).toBeCalledWith('target-branch', 'main')
-  expect(core.setOutput).toBeCalledWith('previous-version', '1.30.1')
-  expect(core.setOutput).toBeCalledWith('new-version', '1.31.0')
-  expect(core.setOutput).toBeCalledWith('compatibility-score', 0)
-  expect(core.setOutput).toBeCalledWith('maintainer-changes', false)
-  expect(core.setOutput).toBeCalledWith('dependency-group', '')
-  expect(core.setOutput).toBeCalledWith('alert-state', '')
-  expect(core.setOutput).toBeCalledWith('ghsa-id', '')
-  expect(core.setOutput).toBeCalledWith('cvss', 0)
+  expect(core.setOutput).toHaveBeenCalledWith('dependency-names', 'rubocop')
+  expect(core.setOutput).toHaveBeenCalledWith('dependency-type', 'direct:development')
+  expect(core.setOutput).toHaveBeenCalledWith('update-type', 'version-update:semver-minor')
+  expect(core.setOutput).toHaveBeenCalledWith('directory', '/')
+  expect(core.setOutput).toHaveBeenCalledWith('package-ecosystem', 'bundler')
+  expect(core.setOutput).toHaveBeenCalledWith('target-branch', 'main')
+  expect(core.setOutput).toHaveBeenCalledWith('previous-version', '1.30.1')
+  expect(core.setOutput).toHaveBeenCalledWith('new-version', '1.31.0')
+  expect(core.setOutput).toHaveBeenCalledWith('compatibility-score', 0)
+  expect(core.setOutput).toHaveBeenCalledWith('maintainer-changes', false)
+  expect(core.setOutput).toHaveBeenCalledWith('dependency-group', '')
+  expect(core.setOutput).toHaveBeenCalledWith('alert-state', '')
+  expect(core.setOutput).toHaveBeenCalledWith('ghsa-id', '')
+  expect(core.setOutput).toHaveBeenCalledWith('cvss', 0)
 })
 
 test('if there are multiple dependencies, it summarizes them', async () => {
@@ -471,20 +484,20 @@ test('if there are multiple dependencies, it summarizes them', async () => {
     ]
   )
 
-  expect(core.setOutput).toBeCalledWith('dependency-names', 'coffee-rails, coffeescript')
-  expect(core.setOutput).toBeCalledWith('dependency-type', 'direct:production')
-  expect(core.setOutput).toBeCalledWith('update-type', 'version-update:semver-major')
-  expect(core.setOutput).toBeCalledWith('directory', '/api/main')
-  expect(core.setOutput).toBeCalledWith('package-ecosystem', 'npm_and_yarn')
-  expect(core.setOutput).toBeCalledWith('target-branch', 'trunk')
-  expect(core.setOutput).toBeCalledWith('previous-version', '4.0.1')
-  expect(core.setOutput).toBeCalledWith('new-version', '4.2.2')
-  expect(core.setOutput).toBeCalledWith('compatibility-score', 34)
-  expect(core.setOutput).toBeCalledWith('maintainer-changes', false)
-  expect(core.setOutput).toBeCalledWith('dependency-group', '')
-  expect(core.setOutput).toBeCalledWith('alert-state', '')
-  expect(core.setOutput).toBeCalledWith('ghsa-id', '')
-  expect(core.setOutput).toBeCalledWith('cvss', 0)
+  expect(core.setOutput).toHaveBeenCalledWith('dependency-names', 'coffee-rails, coffeescript')
+  expect(core.setOutput).toHaveBeenCalledWith('dependency-type', 'direct:production')
+  expect(core.setOutput).toHaveBeenCalledWith('update-type', 'version-update:semver-major')
+  expect(core.setOutput).toHaveBeenCalledWith('directory', '/api/main')
+  expect(core.setOutput).toHaveBeenCalledWith('package-ecosystem', 'npm_and_yarn')
+  expect(core.setOutput).toHaveBeenCalledWith('target-branch', 'trunk')
+  expect(core.setOutput).toHaveBeenCalledWith('previous-version', '4.0.1')
+  expect(core.setOutput).toHaveBeenCalledWith('new-version', '4.2.2')
+  expect(core.setOutput).toHaveBeenCalledWith('compatibility-score', 34)
+  expect(core.setOutput).toHaveBeenCalledWith('maintainer-changes', false)
+  expect(core.setOutput).toHaveBeenCalledWith('dependency-group', '')
+  expect(core.setOutput).toHaveBeenCalledWith('alert-state', '')
+  expect(core.setOutput).toHaveBeenCalledWith('ghsa-id', '')
+  expect(core.setOutput).toHaveBeenCalledWith('cvss', 0)
 })
 
 test('it sets the action to failed if there is an unexpected exception', async () => {
@@ -499,9 +512,9 @@ test('it sets the action to failed if there is an unexpected exception', async (
   expect(core.setFailed).toHaveBeenCalledWith(
     expect.stringContaining('Something bad happened!')
   )
-  /* eslint-disable no-unused-expressions */
+   
   expect(dependabotCommits.getAlert).not.toHaveBeenCalled
-  /* eslint-enable no-unused-expressions */
+   
 })
 
 test('it sets the action to failed if there is a request error', async () => {
@@ -525,7 +538,7 @@ test('it sets the action to failed if there is a request error', async () => {
   expect(core.setFailed).toHaveBeenCalledWith(
     expect.stringContaining('(500) Something bad happened!')
   )
-  /* eslint-disable no-unused-expressions */
+   
   expect(dependabotCommits.getAlert).not.toHaveBeenCalled
-  /* eslint-enable no-unused-expressions */
+   
 })

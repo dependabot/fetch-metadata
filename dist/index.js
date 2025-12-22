@@ -10497,9 +10497,7 @@ const util = __importStar(__nccwpck_require__(9180));
 async function run() {
     const token = core.getInput('github-token');
     if (!token) {
-        /* eslint-disable no-template-curly-in-string */
         core.setFailed('github-token is not set! Please add \'github-token: "${{ secrets.GITHUB_TOKEN }}"\' to your workflow file.');
-        /* eslint-enable no-template-curly-in-string */
         return;
     }
     try {
