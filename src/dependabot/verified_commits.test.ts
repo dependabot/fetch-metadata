@@ -15,7 +15,6 @@ beforeEach(() => {
   jest.spyOn(core, 'warning').mockImplementation(jest.fn())
 
   process.env.GITHUB_REPOSITORY = 'dependabot/dependabot'
-  process.env.NODE_DEBUG = 'nock:*'
 })
 
 test('it returns false if the action is not invoked on a PullRequest', async () => {
