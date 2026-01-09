@@ -89,32 +89,37 @@ interface RepositoryVulnerabilityAlertsResult {
   }
 }
 
-async function fetchVulnerabilityAlerts(client: InstanceType<typeof GitHub>, repoOwner: string, repoName: string, endCursor?: string): Promise<RepositoryVulnerabilityAlert[]> {
-  core.debug(`Fetching vulnerability alerts for cursor ${endCursor ?? 'start'}`);
-  const result: RepositoryVulnerabilityAlertsResult = await client.graphql(`
-     {
-       repository(owner: "${repoOwner}", name: "${repoName}") {
-         vulnerabilityAlerts(first: 100 ${endCursor ? ', after: "' + endCursor + '"' : ''}) {
-           nodes {
-             vulnerableManifestFilename
-             vulnerableManifestPath
-             vulnerableRequirements
-             state
-             securityVulnerability {
-               package { name }
-             }
-             securityAdvisory {
+export function createFetchVulnerabilityAlertsQuery(repoOwner: string, repoName: string, endCursor?: string): string {
+  return `
+    {
+      repository(owner: "${repoOwner}", name: "${repoName}") {
+        vulnerabilityAlerts(first: 100 ${endCursor ? ', after: "' + endCursor + '"' : ''}) {
+          nodes {
+            vulnerableManifestFilename
+            vulnerableManifestPath
+            vulnerableRequirements
+            state
+            securityVulnerability {
+              package { name }
+            }
+            securityAdvisory {
               cvss { score }
               ghsaId
-             }
-           }
-           pageInfo {
+            }
+          }
+          pageInfo {
             hasNextPage
             endCursor
           }
-         }
-       }
-     }`)
+        }
+      }
+    }`
+}
+
+async function fetchVulnerabilityAlerts(client: InstanceType<typeof GitHub>, repoOwner: string, repoName: string, endCursor?: string): Promise<RepositoryVulnerabilityAlert[]> {
+  core.debug(`Fetching vulnerability alerts for cursor ${endCursor ?? 'start'}`);
+  const query = createFetchVulnerabilityAlertsQuery(repoOwner, repoName, endCursor);
+  const result: RepositoryVulnerabilityAlertsResult = await client.graphql(query)
 
     if (result.repository.vulnerabilityAlerts.pageInfo.hasNextPage) {
       const nextPageNodes = await fetchVulnerabilityAlerts(client, repoOwner, repoName, result.repository.vulnerabilityAlerts.pageInfo.endCursor);

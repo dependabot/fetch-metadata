@@ -7,6 +7,7 @@ import {
   getMessage,
   trimSlashes,
   getCompatibility,
+  createFetchVulnerabilityAlertsQuery
 } from "./verified_commits";
 
 beforeAll(() => {
@@ -178,8 +179,74 @@ test("it returns the commit message for a PR authored exclusively by Dependabot 
   );
 });
 
-const query =
-  '{"query":"\\n     {\\n       repository(owner: \\"dependabot\\", name: \\"dependabot\\") {\\n         vulnerabilityAlerts(first: 100 ) {\\n           nodes {\\n             vulnerableManifestFilename\\n             vulnerableManifestPath\\n             vulnerableRequirements\\n             state\\n             securityVulnerability {\\n               package { name }\\n             }\\n             securityAdvisory {\\n              cvss { score }\\n              ghsaId\\n             }\\n           }\\n           pageInfo {\\n            hasNextPage\\n            endCursor\\n          }\\n         }\\n       }\\n     }"}';
+test('createFetchVulnerabilityAlertsQuery without endCursor', () => {
+  expect(createFetchVulnerabilityAlertsQuery("foo", "bar")).toEqual(`
+    {
+      repository(owner: "foo", name: "bar") {
+        vulnerabilityAlerts(first: 100 ) {
+          nodes {
+            vulnerableManifestFilename
+            vulnerableManifestPath
+            vulnerableRequirements
+            state
+            securityVulnerability {
+              package { name }
+            }
+            securityAdvisory {
+              cvss { score }
+              ghsaId
+            }
+          }
+          pageInfo {
+            hasNextPage
+            endCursor
+          }
+        }
+      }
+    }`);
+})
+
+test('createFetchVulnerabilityAlertsQuery with endCursor', () => {
+  expect(createFetchVulnerabilityAlertsQuery("foo", "bar", "c123")).toEqual(`
+    {
+      repository(owner: "foo", name: "bar") {
+        vulnerabilityAlerts(first: 100 , after: "c123") {
+          nodes {
+            vulnerableManifestFilename
+            vulnerableManifestPath
+            vulnerableRequirements
+            state
+            securityVulnerability {
+              package { name }
+            }
+            securityAdvisory {
+              cvss { score }
+              ghsaId
+            }
+          }
+          pageInfo {
+            hasNextPage
+            endCursor
+          }
+        }
+      }
+    }`);
+})
+
+/**
+ * Wraps the GraphQL query in a json object which would be sent over the wire.
+ *
+ * To get something readable from nock unmatched query error, you can do the opposite steps
+ * in order to get something readable, e.g. via Node REPL:
+ * let s = "unexpected_query"
+ * console.log(JSON.parse(s).query)
+ */
+function createGraphQlJsonBody(endCursor?: string): string {
+  const query = createFetchVulnerabilityAlertsQuery("dependabot", "dependabot", endCursor);
+  return JSON.stringify({query});
+}
+
+const query = createGraphQlJsonBody();
 
 const response = {
   data: {
@@ -397,34 +464,7 @@ const responseFetchAllPage1 = {
   },
 };
 
-const queryFetchAllPage2 =
-  '{"query":"' + `
-     {
-       repository(owner: "dependabot", name: "dependabot") {
-         vulnerabilityAlerts(first: 100 , after: "${responseFetchAllPage1.data.repository.vulnerabilityAlerts.pageInfo.endCursor}") {
-           nodes {
-             vulnerableManifestFilename
-             vulnerableManifestPath
-             vulnerableRequirements
-             state
-             securityVulnerability {
-               package { name }
-             }
-             securityAdvisory {
-              cvss { score }
-              ghsaId
-             }
-           }
-           pageInfo {
-            hasNextPage
-            endCursor
-          }
-         }
-       }
-     }`
-    .replaceAll('"', String.raw`\"`)
-    .replaceAll("\n", String.raw`\n`) +
-  '"}';
+const queryFetchAllPage2 = createGraphQlJsonBody(responseFetchAllPage1.data.repository.vulnerabilityAlerts.pageInfo.endCursor);
 
 const responseFetchAllPage2 = {
   data: {
@@ -452,34 +492,7 @@ const responseFetchAllPage2 = {
   },
 };
 
-const queryFetchAllPage3 =
-  '{"query":"' + `
-     {
-       repository(owner: "dependabot", name: "dependabot") {
-         vulnerabilityAlerts(first: 100 , after: "${responseFetchAllPage2.data.repository.vulnerabilityAlerts.pageInfo.endCursor}") {
-           nodes {
-             vulnerableManifestFilename
-             vulnerableManifestPath
-             vulnerableRequirements
-             state
-             securityVulnerability {
-               package { name }
-             }
-             securityAdvisory {
-              cvss { score }
-              ghsaId
-             }
-           }
-           pageInfo {
-            hasNextPage
-            endCursor
-          }
-         }
-       }
-     }`
-    .replaceAll('"', String.raw`\"`)
-    .replaceAll("\n", String.raw`\n`) +
-  '"}';
+const queryFetchAllPage3 = createGraphQlJsonBody(responseFetchAllPage2.data.repository.vulnerabilityAlerts.pageInfo.endCursor);
 
 test("fetch all vulnerability alert pages", async () => {
   const queryFetchAllPage1 = query;
