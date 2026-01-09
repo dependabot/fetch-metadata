@@ -498,8 +498,6 @@ test("fetch all vulnerability alert pages", async () => {
   const queryFetchAllPage1 = query;
   const responseFetchAllPage3 = response;
 
-  console.log(queryFetchAllPage2);
-
   nock("https://api.github.com")
     .post("/graphql", queryFetchAllPage1)
     .reply(200, responseFetchAllPage1)
@@ -517,6 +515,28 @@ test("fetch all vulnerability alert pages", async () => {
       mockGitHubPullContext()
     )
   ).toEqual({ alertState: "DISMISSED", cvss: 4.5, ghsaId: "FOO" });
+});
+
+test("fetch all vulnerability alert pages, match on page 2", async () => {
+  const queryFetchAllPage1 = query;
+
+  nock("https://api.github.com")
+    .post("/graphql", queryFetchAllPage1)
+    .reply(200, responseFetchAllPage1)
+    .post("/graphql", queryFetchAllPage2)
+    .reply(200, responseFetchAllPage2)
+    .post("/graphql", queryFetchAllPage3)
+    .replyWithError("impl should not continue fetching this page");
+
+  expect(
+    await getAlert(
+      "js-yaml",
+      "3.12.0",
+      "",
+      mockGitHubClient,
+      mockGitHubPullContext()
+    )
+  ).toEqual({ alertState: "FIXED", cvss: 0, ghsaId: "GHSA-8j8c-7jfh-h6hx" });
 });
 
 const responseWithoutEqInFrontOfVulnerableRequirements = {

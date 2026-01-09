@@ -116,30 +116,53 @@ export function createFetchVulnerabilityAlertsQuery(repoOwner: string, repoName:
     }`
 }
 
-async function fetchVulnerabilityAlerts(client: InstanceType<typeof GitHub>, repoOwner: string, repoName: string, endCursor?: string): Promise<RepositoryVulnerabilityAlert[]> {
+type FindAlertFunction = (element: RepositoryVulnerabilityAlert) => boolean;
+
+function createFindAlertFunction(name: string, version: string, directory: string): FindAlertFunction {
+  return function (repoAlert: RepositoryVulnerabilityAlert) {
+    return (
+      (version === "" || repoAlert.vulnerableRequirements === `${version}` || repoAlert.vulnerableRequirements === `= ${version}`) &&
+      trimSlashes(repoAlert.vulnerableManifestPath) === trimSlashes(`${directory}/${repoAlert.vulnerableManifestFilename}`) &&
+      repoAlert.securityVulnerability.package.name === name
+    );
+  };
+}
+
+async function fetchAndFilterVulnerabilityAlerts(client: InstanceType<typeof GitHub>, repoOwner: string, repoName: string, findFn: FindAlertFunction, endCursor?: string): Promise<RepositoryVulnerabilityAlert | undefined> {
   core.debug(`Fetching vulnerability alerts for cursor ${endCursor ?? 'start'}`);
   const query = createFetchVulnerabilityAlertsQuery(repoOwner, repoName, endCursor);
-  const result: RepositoryVulnerabilityAlertsResult = await client.graphql(query)
+  const result: RepositoryVulnerabilityAlertsResult = await client.graphql(query);
 
-    if (result.repository.vulnerabilityAlerts.pageInfo.hasNextPage) {
-      const nextPageNodes = await fetchVulnerabilityAlerts(client, repoOwner, repoName, result.repository.vulnerabilityAlerts.pageInfo.endCursor);
-      return [...result.repository.vulnerabilityAlerts.nodes, ...nextPageNodes ];
-    }
-    return result.repository.vulnerabilityAlerts.nodes;
+  const found = result.repository.vulnerabilityAlerts.nodes.find(findFn);
+
+  if (found) {
+    return found;
+  }
+  if (result.repository.vulnerabilityAlerts.pageInfo.hasNextPage) {
+    return fetchAndFilterVulnerabilityAlerts(client, repoOwner, repoName, findFn, result.repository.vulnerabilityAlerts.pageInfo.endCursor);
+  }
+  return undefined;
 }
 
 export async function getAlert (name: string, version: string, directory: string, client: InstanceType<typeof GitHub>, context: Context): Promise<dependencyAlert> {
-  const nodes = await fetchVulnerabilityAlerts(client, context.repo.owner, context.repo.repo);
-  core.debug(`Fetched ${nodes.length} vulnerability alerts`);
+  const findFn = createFindAlertFunction(name, version, directory);
 
-  const found = nodes.find(a => (version === '' || a.vulnerableRequirements === `${version}` || a.vulnerableRequirements === `= ${version}`) &&
-      trimSlashes(a.vulnerableManifestPath) === trimSlashes(`${directory}/${a.vulnerableManifestFilename}`) &&
-      a.securityVulnerability.package.name === name)
+  const repoAlert = await fetchAndFilterVulnerabilityAlerts(client, context.repo.owner, context.repo.repo, findFn);
 
+  if (repoAlert) {
+    core.debug(`Found matching vulnerability alert`);
+    return {
+      alertState: repoAlert?.state ?? '',
+      ghsaId: repoAlert?.securityAdvisory.ghsaId  ?? '',
+      cvss: repoAlert?.securityAdvisory.cvss.score ?? 0
+    }
+  }
+
+  core.debug(`Did not find matching vulnerability alert`);
   return {
-    alertState: found?.state ?? '',
-    ghsaId: found?.securityAdvisory.ghsaId ?? '',
-    cvss: found?.securityAdvisory.cvss.score ?? 0.0
+    alertState: '',
+    ghsaId: '',
+    cvss: 0,
   }
 }
 
