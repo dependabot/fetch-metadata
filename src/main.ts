@@ -27,7 +27,8 @@ export async function run (): Promise<void> {
     const body = util.getBody(github.context)
     let alertLookup: updateMetadata.alertLookup | undefined
     if (core.getInput('alert-lookup')) {
-      alertLookup = (name, version, directory) => verifiedCommits.getAlert(name, version, directory, githubClient, github.context)
+      const fetchDepth = util.getNumberInput('fetch-depth', 0);
+      alertLookup = (name, version, directory) => verifiedCommits.getAlert(name, version, directory, githubClient, github.context, fetchDepth)
     }
     const scoreLookup = core.getInput('compat-lookup') ? verifiedCommits.getCompatibility : undefined
 

@@ -23,6 +23,8 @@ beforeEach(() => {
   process.env.GITHUB_REPOSITORY = "dependabot/dependabot";
 });
 
+const defaultAlertFetchDepth = 0;
+
 test("it returns false if the action is not invoked on a PullRequest", async () => {
   expect(await getMessage(mockGitHubClient, mockGitHubOtherContext())).toBe(
     false
@@ -179,7 +181,7 @@ test("it returns the commit message for a PR authored exclusively by Dependabot 
   );
 });
 
-test('createFetchVulnerabilityAlertsQuery without endCursor', () => {
+test('createFetchVulnerabilityAlertsQuery', () => {
   expect(createFetchVulnerabilityAlertsQuery("foo", "bar")).toEqual(`
     {
       repository(owner: "foo", name: "bar") {
@@ -206,8 +208,85 @@ test('createFetchVulnerabilityAlertsQuery without endCursor', () => {
     }`);
 })
 
+test('createFetchVulnerabilityAlertsQuery with maxResults', () => {
+  expect(createFetchVulnerabilityAlertsQuery("foo", "bar", 0)).toEqual(`
+    {
+      repository(owner: "foo", name: "bar") {
+        vulnerabilityAlerts(first: 100 ) {
+          nodes {
+            vulnerableManifestFilename
+            vulnerableManifestPath
+            vulnerableRequirements
+            state
+            securityVulnerability {
+              package { name }
+            }
+            securityAdvisory {
+              cvss { score }
+              ghsaId
+            }
+          }
+          pageInfo {
+            hasNextPage
+            endCursor
+          }
+        }
+      }
+    }`);
+
+  expect(createFetchVulnerabilityAlertsQuery("foo", "bar", 25)).toEqual(`
+    {
+      repository(owner: "foo", name: "bar") {
+        vulnerabilityAlerts(first: 25 ) {
+          nodes {
+            vulnerableManifestFilename
+            vulnerableManifestPath
+            vulnerableRequirements
+            state
+            securityVulnerability {
+              package { name }
+            }
+            securityAdvisory {
+              cvss { score }
+              ghsaId
+            }
+          }
+          pageInfo {
+            hasNextPage
+            endCursor
+          }
+        }
+      }
+    }`);
+
+  expect(createFetchVulnerabilityAlertsQuery("foo", "bar", 150)).toEqual(`
+    {
+      repository(owner: "foo", name: "bar") {
+        vulnerabilityAlerts(first: 100 ) {
+          nodes {
+            vulnerableManifestFilename
+            vulnerableManifestPath
+            vulnerableRequirements
+            state
+            securityVulnerability {
+              package { name }
+            }
+            securityAdvisory {
+              cvss { score }
+              ghsaId
+            }
+          }
+          pageInfo {
+            hasNextPage
+            endCursor
+          }
+        }
+      }
+    }`);
+})
+
 test('createFetchVulnerabilityAlertsQuery with endCursor', () => {
-  expect(createFetchVulnerabilityAlertsQuery("foo", "bar", "c123")).toEqual(`
+  expect(createFetchVulnerabilityAlertsQuery("foo", "bar", 0, "c123")).toEqual(`
     {
       repository(owner: "foo", name: "bar") {
         vulnerabilityAlerts(first: 100 , after: "c123") {
@@ -241,8 +320,8 @@ test('createFetchVulnerabilityAlertsQuery with endCursor', () => {
  * let s = "unexpected_query"
  * console.log(JSON.parse(s).query)
  */
-function createGraphQlJsonBody(endCursor?: string): string {
-  const query = createFetchVulnerabilityAlertsQuery("dependabot", "dependabot", endCursor);
+function createGraphQlJsonBody(maxResults = 100, endCursor?: string): string {
+  const query = createFetchVulnerabilityAlertsQuery("dependabot", "dependabot", maxResults, endCursor);
   return JSON.stringify({query});
 }
 
@@ -301,7 +380,8 @@ test("it returns the alert state if it matches all 3", async () => {
       "4.0.1",
       "/wwwroot",
       mockGitHubClient,
-      mockGitHubPullContext()
+      mockGitHubPullContext(),
+      defaultAlertFetchDepth
     )
   ).toEqual({ alertState: "DISMISSED", cvss: 4.5, ghsaId: "FOO" });
 
@@ -315,7 +395,8 @@ test("it returns the alert state if it matches all 3", async () => {
       "4.0.1",
       "/",
       mockGitHubClient,
-      mockGitHubPullContext()
+      mockGitHubPullContext(),
+      defaultAlertFetchDepth
     )
   ).toEqual({ alertState: "DISMISSED", cvss: 4.5, ghsaId: "FOO" });
 });
@@ -329,7 +410,8 @@ test("it returns the alert state if it matches 2 and the version is blank", asyn
       "",
       "/wwwroot",
       mockGitHubClient,
-      mockGitHubPullContext()
+      mockGitHubPullContext(),
+      defaultAlertFetchDepth
     )
   ).toEqual({ alertState: "DISMISSED", cvss: 4.5, ghsaId: "FOO" });
 
@@ -343,7 +425,8 @@ test("it returns the alert state if it matches 2 and the version is blank", asyn
       "",
       "/",
       mockGitHubClient,
-      mockGitHubPullContext()
+      mockGitHubPullContext(),
+      defaultAlertFetchDepth
     )
   ).toEqual({ alertState: "DISMISSED", cvss: 4.5, ghsaId: "FOO" });
 });
@@ -357,7 +440,8 @@ test("it returns default if it does not match the version", async () => {
       "4.0.2",
       "/wwwroot",
       mockGitHubClient,
-      mockGitHubPullContext()
+      mockGitHubPullContext(),
+      defaultAlertFetchDepth
     )
   ).toEqual({ alertState: "", cvss: 0, ghsaId: "" });
 
@@ -371,7 +455,8 @@ test("it returns default if it does not match the version", async () => {
       "4.0.2",
       "/",
       mockGitHubClient,
-      mockGitHubPullContext()
+      mockGitHubPullContext(),
+      defaultAlertFetchDepth
     )
   ).toEqual({ alertState: "", cvss: 0, ghsaId: "" });
 });
@@ -385,7 +470,8 @@ test("it returns default if it does not match the directory", async () => {
       "4.0.1",
       "/",
       mockGitHubClient,
-      mockGitHubPullContext()
+      mockGitHubPullContext(),
+      defaultAlertFetchDepth
     )
   ).toEqual({ alertState: "", cvss: 0, ghsaId: "" });
 
@@ -399,7 +485,8 @@ test("it returns default if it does not match the directory", async () => {
       "4.0.1",
       "/wwwroot",
       mockGitHubClient,
-      mockGitHubPullContext()
+      mockGitHubPullContext(),
+      defaultAlertFetchDepth
     )
   ).toEqual({ alertState: "", cvss: 0, ghsaId: "" });
 });
@@ -413,7 +500,8 @@ test("it returns default if it does not match the name", async () => {
       "4.0.1",
       "/wwwroot",
       mockGitHubClient,
-      mockGitHubPullContext()
+      mockGitHubPullContext(),
+      defaultAlertFetchDepth
     )
   ).toEqual({ alertState: "", cvss: 0, ghsaId: "" });
 
@@ -427,7 +515,8 @@ test("it returns default if it does not match the name", async () => {
       "4.0.1",
       "/",
       mockGitHubClient,
-      mockGitHubPullContext()
+      mockGitHubPullContext(),
+      defaultAlertFetchDepth
     )
   ).toEqual({ alertState: "", cvss: 0, ghsaId: "" });
 });
@@ -464,7 +553,7 @@ const responseFetchAllPage1 = {
   },
 };
 
-const queryFetchAllPage2 = createGraphQlJsonBody(responseFetchAllPage1.data.repository.vulnerabilityAlerts.pageInfo.endCursor);
+const queryFetchAllPage2 = createGraphQlJsonBody(defaultAlertFetchDepth, responseFetchAllPage1.data.repository.vulnerabilityAlerts.pageInfo.endCursor);
 
 const responseFetchAllPage2 = {
   data: {
@@ -492,7 +581,7 @@ const responseFetchAllPage2 = {
   },
 };
 
-const queryFetchAllPage3 = createGraphQlJsonBody(responseFetchAllPage2.data.repository.vulnerabilityAlerts.pageInfo.endCursor);
+const queryFetchAllPage3 = createGraphQlJsonBody(defaultAlertFetchDepth, responseFetchAllPage2.data.repository.vulnerabilityAlerts.pageInfo.endCursor);
 
 test("fetch all vulnerability alert pages", async () => {
   const queryFetchAllPage1 = query;
@@ -512,7 +601,8 @@ test("fetch all vulnerability alert pages", async () => {
       "4.0.1",
       "/wwwroot",
       mockGitHubClient,
-      mockGitHubPullContext()
+      mockGitHubPullContext(),
+      defaultAlertFetchDepth
     )
   ).toEqual({ alertState: "DISMISSED", cvss: 4.5, ghsaId: "FOO" });
 });
@@ -532,11 +622,65 @@ test("fetch all vulnerability alert pages, match on page 2", async () => {
     await getAlert(
       "js-yaml",
       "3.12.0",
-      "",
+      "/",
       mockGitHubClient,
-      mockGitHubPullContext()
+      mockGitHubPullContext(),
+      defaultAlertFetchDepth
     )
   ).toEqual({ alertState: "FIXED", cvss: 0, ghsaId: "GHSA-8j8c-7jfh-h6hx" });
+});
+
+test("fetch all vulnerability alerts, 3 pages, fetch-depth 2", async () => {
+  const queryFetch1 = createGraphQlJsonBody(2);
+  const queryFetch2 = createGraphQlJsonBody(1, responseFetchAllPage1.data.repository.vulnerabilityAlerts.pageInfo.endCursor);
+  const queryFetch3 = createGraphQlJsonBody(100, responseFetchAllPage2.data.repository.vulnerabilityAlerts.pageInfo.endCursor);
+
+  nock("https://api.github.com")
+    .post("/graphql", queryFetch1)
+    .reply(200, responseFetchAllPage1)
+    .post("/graphql", queryFetch2)
+    .reply(200, responseFetchAllPage2)
+    .post("/graphql", queryFetch3)
+    .replyWithError("impl should not continue fetching this page");
+
+  expect(
+    await getAlert(
+      "coffee-script",
+      "4.0.1",
+      "/wwwroot",
+      mockGitHubClient,
+      mockGitHubPullContext(),
+      2
+    )
+  ).toEqual({ alertState: "", cvss: 0, ghsaId: "" });
+
+  expect(core.warning).toHaveBeenCalledWith("Query has more results, but reached number of max results configured via fetch-depth");
+});
+
+test("fetch all vulnerability alerts, 3 pages, fetch-depth 3", async () => {
+  const queryFetch1 = createGraphQlJsonBody(3);
+  const queryFetch2 = createGraphQlJsonBody(2, responseFetchAllPage1.data.repository.vulnerabilityAlerts.pageInfo.endCursor);
+  const queryFetch3 = createGraphQlJsonBody(1, responseFetchAllPage2.data.repository.vulnerabilityAlerts.pageInfo.endCursor);
+  const responseFetchAllPage3 = response;
+
+  nock("https://api.github.com")
+    .post("/graphql", queryFetch1)
+    .reply(200, responseFetchAllPage1)
+    .post("/graphql", queryFetch2)
+    .reply(200, responseFetchAllPage2)
+    .post("/graphql", queryFetch3)
+    .reply(200, responseFetchAllPage3);
+
+  expect(
+    await getAlert(
+      "coffee-script",
+      "4.0.1",
+      "/wwwroot",
+      mockGitHubClient,
+      mockGitHubPullContext(),
+      3
+    )
+  ).toEqual({ alertState: "DISMISSED", cvss: 4.5, ghsaId: "FOO" });
 });
 
 const responseWithoutEqInFrontOfVulnerableRequirements = {
@@ -581,7 +725,8 @@ test("it returns alert without eq in front of vulnerableRequirements", async () 
       "4.4.0",
       "/cypress",
       mockGitHubClient,
-      mockGitHubPullContext()
+      mockGitHubPullContext(),
+      defaultAlertFetchDepth
     )
   ).toEqual({ alertState: "OPEN", cvss: 7.5, ghsaId: "GHSA-4wf5-vphf-c2xc" });
 });
