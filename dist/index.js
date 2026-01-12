@@ -10286,7 +10286,7 @@ function calculateUpdateType(lastVersion, nextVersion) {
 /***/ }),
 
 /***/ 9180:
-/***/ ((__unused_webpack_module, exports) => {
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
 
@@ -10294,6 +10294,8 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.parseNwo = parseNwo;
 exports.getBranchNames = getBranchNames;
 exports.getBody = getBody;
+exports.getNumberInput = getNumberInput;
+const core_1 = __nccwpck_require__(7484);
 function parseNwo(nwo) {
     const [owner, name] = nwo.split('/');
     if (!owner || !name) {
@@ -10308,6 +10310,14 @@ function getBranchNames(context) {
 function getBody(context) {
     const { pull_request: pr } = context.payload;
     return pr?.body || '';
+}
+function getNumberInput(inputName, defaultVal) {
+    const inputStr = (0, core_1.getInput)(inputName);
+    let num = Number.parseInt(inputStr);
+    if (Number.isNaN(num)) {
+        return defaultVal;
+    }
+    return num;
 }
 
 
@@ -10356,6 +10366,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.getMessage = getMessage;
+exports.createFetchVulnerabilityAlertsQuery = createFetchVulnerabilityAlertsQuery;
 exports.getAlert = getAlert;
 exports.trimSlashes = trimSlashes;
 exports.getCompatibility = getCompatibility;
@@ -10398,48 +10409,82 @@ async function getMessage(client, context, skipCommitVerification = false, skipV
     }
     return commit.message;
 }
-async function fetchVulnerabilityAlerts(client, repoOwner, repoName, endCursor) {
-    core.debug(`Fetching vulnerability alerts for cursor ${endCursor ?? 'start'}`);
-    const result = await client.graphql(`
-     {
-       repository(owner: "${repoOwner}", name: "${repoName}") {
-         vulnerabilityAlerts(first: 100 ${endCursor ? ', after: "' + endCursor + '"' : ''}) {
-           nodes {
-             vulnerableManifestFilename
-             vulnerableManifestPath
-             vulnerableRequirements
-             state
-             securityVulnerability {
-               package { name }
-             }
-             securityAdvisory {
+;
+function createFetchVulnerabilityAlertsQuery(repoOwner, repoName, nResults = 100, endCursor) {
+    const first = nResults < 1 || nResults > 100 ? 100 : nResults;
+    return `
+    {
+      repository(owner: "${repoOwner}", name: "${repoName}") {
+        vulnerabilityAlerts(first: ${first} ${endCursor ? ', after: "' + endCursor + '"' : ''}) {
+          nodes {
+            vulnerableManifestFilename
+            vulnerableManifestPath
+            vulnerableRequirements
+            state
+            securityVulnerability {
+              package { name }
+            }
+            securityAdvisory {
               cvss { score }
               ghsaId
-             }
-           }
-           pageInfo {
+            }
+          }
+          pageInfo {
             hasNextPage
             endCursor
           }
-         }
-       }
-     }`);
-    if (result.repository.vulnerabilityAlerts.pageInfo.hasNextPage) {
-        const nextPageNodes = await fetchVulnerabilityAlerts(client, repoOwner, repoName, result.repository.vulnerabilityAlerts.pageInfo.endCursor);
-        return [...result.repository.vulnerabilityAlerts.nodes, ...nextPageNodes];
-    }
-    return result.repository.vulnerabilityAlerts.nodes;
+        }
+      }
+    }`;
 }
-async function getAlert(name, version, directory, client, context) {
-    const nodes = await fetchVulnerabilityAlerts(client, context.repo.owner, context.repo.repo);
-    core.debug(`Fetched ${nodes.length} vulnerability alerts`);
-    const found = nodes.find(a => (version === '' || a.vulnerableRequirements === `${version}` || a.vulnerableRequirements === `= ${version}`) &&
-        trimSlashes(a.vulnerableManifestPath) === trimSlashes(`${directory}/${a.vulnerableManifestFilename}`) &&
-        a.securityVulnerability.package.name === name);
+function createFindAlertFunction(name, version, directory) {
+    return function (repoAlert) {
+        return ((version === "" || repoAlert.vulnerableRequirements === `${version}` || repoAlert.vulnerableRequirements === `= ${version}`) &&
+            trimSlashes(repoAlert.vulnerableManifestPath) === trimSlashes(`${directory}/${repoAlert.vulnerableManifestFilename}`) &&
+            repoAlert.securityVulnerability.package.name === name);
+    };
+}
+async function fetchAndFilterVulnerabilityAlerts(client, repoOwner, repoName, fetchDepth, findFn, endCursor) {
+    let fetchedResults = 0;
+    while (true) {
+        core.debug(`Fetching vulnerability alerts for cursor ${endCursor ?? 'start'}`);
+        const query = createFetchVulnerabilityAlertsQuery(repoOwner, repoName, fetchDepth - fetchedResults, endCursor);
+        const result = await client.graphql(query);
+        const vulnerabilityAlerts = result.repository.vulnerabilityAlerts;
+        const nodes = vulnerabilityAlerts.nodes;
+        const found = nodes.find(findFn);
+        if (found) {
+            return found;
+        }
+        const pageInfo = vulnerabilityAlerts.pageInfo;
+        if (!pageInfo.hasNextPage) {
+            return undefined;
+        }
+        fetchedResults += nodes.length;
+        if (fetchDepth > 0 && fetchedResults >= fetchDepth) {
+            core.warning("Query has more results, but reached number of max results configured via fetch-depth");
+            break;
+        }
+        endCursor = pageInfo.endCursor;
+    }
+    return undefined;
+}
+async function getAlert(name, version, directory, client, context, fetchDepth) {
+    const findFn = createFindAlertFunction(name, version, directory);
+    const repoAlert = await fetchAndFilterVulnerabilityAlerts(client, context.repo.owner, context.repo.repo, fetchDepth, findFn);
+    if (repoAlert) {
+        core.debug(`Found matching vulnerability alert`);
+        return {
+            alertState: repoAlert?.state ?? '',
+            ghsaId: repoAlert?.securityAdvisory.ghsaId ?? '',
+            cvss: repoAlert?.securityAdvisory.cvss.score ?? 0
+        };
+    }
+    core.debug(`Did not find matching vulnerability alert`);
     return {
-        alertState: found?.state ?? '',
-        ghsaId: found?.securityAdvisory.ghsaId ?? '',
-        cvss: found?.securityAdvisory.cvss.score ?? 0.0
+        alertState: '',
+        ghsaId: '',
+        cvss: 0,
     };
 }
 function trimSlashes(value) {
@@ -10523,7 +10568,8 @@ async function run() {
         const body = util.getBody(github.context);
         let alertLookup;
         if (core.getInput('alert-lookup')) {
-            alertLookup = (name, version, directory) => verifiedCommits.getAlert(name, version, directory, githubClient, github.context);
+            const fetchDepth = util.getNumberInput('fetch-depth', 0);
+            alertLookup = (name, version, directory) => verifiedCommits.getAlert(name, version, directory, githubClient, github.context, fetchDepth);
         }
         const scoreLookup = core.getInput('compat-lookup') ? verifiedCommits.getCompatibility : undefined;
         if (commitMessage) {
