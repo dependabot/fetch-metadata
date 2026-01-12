@@ -133,36 +133,42 @@ async function fetchAndFilterVulnerabilityAlerts(
     client: InstanceType<typeof GitHub>,
     repoOwner: string,
     repoName: string,
-    fetchAll: boolean,
     fetchDepth: number,
     findFn: FindAlertFunction,
     endCursor?: string
 ): Promise<RepositoryVulnerabilityAlert | undefined> {
-  core.debug(`Fetching vulnerability alerts for cursor ${endCursor ?? 'start'}`);
-  const query = createFetchVulnerabilityAlertsQuery(repoOwner, repoName, fetchDepth, endCursor);
-  const result: RepositoryVulnerabilityAlertsResult = await client.graphql(query);
+  let fetchedResults = 0;
+  while (true) {
+    core.debug(`Fetching vulnerability alerts for cursor ${endCursor ?? 'start'}`);
+    const query = createFetchVulnerabilityAlertsQuery(repoOwner, repoName, fetchDepth - fetchedResults, endCursor);
+    const result: RepositoryVulnerabilityAlertsResult = await client.graphql(query);
 
-  const nodes = result.repository.vulnerabilityAlerts.nodes;
-  const found = nodes.find(findFn);
+    const nodes = result.repository.vulnerabilityAlerts.nodes;
+    const found = nodes.find(findFn);
 
-  if (found) {
-    return found;
-  }
-  const fetchDepthNext = fetchDepth - nodes.length;
-  if (result.repository.vulnerabilityAlerts.pageInfo.hasNextPage) {
-    if (fetchAll || fetchDepthNext > 0) {
-      return fetchAndFilterVulnerabilityAlerts(client, repoOwner, repoName, fetchAll, fetchDepthNext, findFn, result.repository.vulnerabilityAlerts.pageInfo.endCursor);
-    } else {
-      core.warning("Query has more results, but reached number of max results configured via fetch-depth");
+    if (found) {
+      return found;
     }
+    if (!result.repository.vulnerabilityAlerts.pageInfo.hasNextPage) {
+      return undefined;
+    }
+
+    fetchedResults += nodes.length;
+    if (fetchDepth > 0 && fetchedResults >= fetchDepth) {
+      core.warning("Query has more results, but reached number of max results configured via fetch-depth");
+      break;
+    }
+
+    endCursor = result.repository.vulnerabilityAlerts.pageInfo.endCursor;
   }
+
   return undefined;
 }
 
 export async function getAlert (name: string, version: string, directory: string, client: InstanceType<typeof GitHub>, context: Context, fetchDepth: number): Promise<dependencyAlert> {
   const findFn = createFindAlertFunction(name, version, directory);
 
-  const repoAlert = await fetchAndFilterVulnerabilityAlerts(client, context.repo.owner, context.repo.repo, fetchDepth <= 0, fetchDepth, findFn);
+  const repoAlert = await fetchAndFilterVulnerabilityAlerts(client, context.repo.owner, context.repo.repo, fetchDepth, findFn);
 
   if (repoAlert) {
     core.debug(`Found matching vulnerability alert`);
