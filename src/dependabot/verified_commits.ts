@@ -77,19 +77,23 @@ interface RepositoryVulnerabilityAlert {
   };
 }
 
+type CursorValue = string | null | undefined;
+
+interface PageInfoForward {
+  hasNextPage: boolean;
+  endCursor: CursorValue;
+};
+
 interface RepositoryVulnerabilityAlertsResult {
   repository: {
     vulnerabilityAlerts: {
       nodes: RepositoryVulnerabilityAlert[];
-      pageInfo: {
-        endCursor: string;
-        hasNextPage: boolean;
-      }
+      pageInfo: PageInfoForward
     }
   }
 }
 
-export function createFetchVulnerabilityAlertsQuery(repoOwner: string, repoName: string, nResults: number = 100, endCursor?: string): string {
+export function createFetchVulnerabilityAlertsQuery(repoOwner: string, repoName: string, nResults: number = 100, endCursor?: CursorValue): string {
   const first = nResults < 1 || nResults > 100 ? 100 : nResults;
   return `
     {
@@ -135,7 +139,7 @@ async function fetchAndFilterVulnerabilityAlerts(
     repoName: string,
     fetchDepth: number,
     findFn: FindAlertFunction,
-    endCursor?: string
+    endCursor?: CursorValue
 ): Promise<RepositoryVulnerabilityAlert | undefined> {
   let fetchedResults = 0;
   while (true) {
@@ -143,13 +147,15 @@ async function fetchAndFilterVulnerabilityAlerts(
     const query = createFetchVulnerabilityAlertsQuery(repoOwner, repoName, fetchDepth - fetchedResults, endCursor);
     const result: RepositoryVulnerabilityAlertsResult = await client.graphql(query);
 
-    const nodes = result.repository.vulnerabilityAlerts.nodes;
+    const vulnerabilityAlerts = result.repository.vulnerabilityAlerts;
+    const nodes = vulnerabilityAlerts.nodes;
     const found = nodes.find(findFn);
 
     if (found) {
       return found;
     }
-    if (!result.repository.vulnerabilityAlerts.pageInfo.hasNextPage) {
+    const pageInfo = vulnerabilityAlerts.pageInfo;
+    if (!pageInfo.hasNextPage) {
       return undefined;
     }
 
@@ -159,7 +165,7 @@ async function fetchAndFilterVulnerabilityAlerts(
       break;
     }
 
-    endCursor = result.repository.vulnerabilityAlerts.pageInfo.endCursor;
+    endCursor = pageInfo.endCursor;
   }
 
   return undefined;
