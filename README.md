@@ -41,11 +41,12 @@ Supported inputs are:
 - `github-token` (string)
   - The `GITHUB_TOKEN` secret
   - Defaults to `${{ github.token }}`
-  - Note: this must be set to a [personal access token (PAT)](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token) if you enable `alert-lookup` or `compat-lookup`.
+  - Note: this must be set to a [personal access token (PAT)](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token) or an [installation access token (App Token)](https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/generating-an-installation-access-token-for-a-github-app) if you enable `alert-lookup` or `compat-lookup`.
 - `alert-lookup` (boolean)
   - If `true`, then populate the `alert-state`, `ghsa-id` and `cvss` outputs.
   - Defaults to `false`
-  - Note: the `github-token` field must be set to a [personal access token (PAT)](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token).
+  - Note: the `github-token` field must be set to a [personal access token (PAT)](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token) or an [installation access token (App Token)](https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/generating-an-installation-access-token-for-a-github-app).
+    - App Token requires `Dependabot alerts: Read only` [permission](https://docs.github.com/en/apps/creating-github-apps/registering-a-github-app/choosing-permissions-for-a-github-app)
 - `compat-lookup` (boolean)
   - If `true`, then populate the `compatibility-score` output.
   - Defaults to `false`
@@ -184,6 +185,34 @@ jobs:
         run: gh pr edit "${{github.event.pull_request.html_url}}" --add-label "production"
         env:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+```
+
+### Use with App Token
+At first, create [GitHub App](https://docs.github.com/en/apps/creating-github-apps/about-creating-github-apps/about-creating-github-apps) and set the appropriate permissions.
+
+The following is an example of using an [installation access token (App Token)](https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/generating-an-installation-access-token-for-a-github-app) in `github-token`.
+
+```yml
+on: pull_request
+jobs:
+  dependabot:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.user.login == 'dependabot[bot]' && github.repository == 'owner/my_repo'
+    steps:
+      - uses: actions/create-github-app-token@v2
+        id: app-token
+        with:
+          # TODO: Set secrets to dependabot secrets
+          #       c.f. https://docs.github.com/en/code-security/how-tos/secure-your-supply-chain/manage-your-dependency-security/configuring-access-to-private-registries-for-dependabot
+          app-id: ${{ secrets.GH_APP_ID }} # GitHub App ID
+          private-key: ${{ secrets.GH_APP_PRIVATE_KEY }} # GitHub App Private key
+
+      - name: Dependabot metadata
+        id: dependabot-metadata
+        uses: dependabot/fetch-metadata@v2
+        with:
+          github-token: ${{ steps.app-token.outputs.token }}
+          alert-lookup: true
 ```
 
 ## Notes for project maintainers:
