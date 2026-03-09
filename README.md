@@ -188,7 +188,7 @@ jobs:
 ```
 
 ### Use with App Token
-At first, create [GitHub App](https://docs.github.com/en/apps/creating-github-apps/about-creating-github-apps/about-creating-github-apps) and set the appropriate permissions.
+First, create a [GitHub App](https://docs.github.com/en/apps/creating-github-apps/about-creating-github-apps/about-creating-github-apps) and set the appropriate permissions.
 
 The following is an example of using an [installation access token (App Token)](https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/generating-an-installation-access-token-for-a-github-app) in `github-token`.
 
