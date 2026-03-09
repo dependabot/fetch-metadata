@@ -796,7 +796,9 @@ test("getCompatibility handles errors", async () => {
   ).toEqual(0);
 });
 
-const mockGitHubClient = github.getOctokit("mock-token");
+// Use fetch request settings to ensure nock mocks are respected
+// @see https://github.com/actions/toolkit/issues/1115#issuecomment-1826196208
+const mockGitHubClient = github.getOctokit('mock-token', { request: fetch })
 
 function mockGitHubOtherContext(): Context {
   const ctx = new Context();

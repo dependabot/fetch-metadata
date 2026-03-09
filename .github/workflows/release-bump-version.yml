@@ -22,18 +22,18 @@ jobs:
     steps:
       - name: Generate token
         id: generate_token
-        uses: actions/create-github-app-token@df432ceedc7162793a195dd1713ff69aefc7379e # v2.0.6
+        uses: actions/create-github-app-token@29824e69f54612133e76f7eaac726eef6c875baf # v2.2.1
         with:
           app-id: ${{ secrets.FETCH_METADATA_ACTION_AUTOMATION_APP_ID }}
           private-key: ${{ secrets.FETCH_METADATA_ACTION_AUTOMATION_PRIVATE_KEY }}
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           # Ensure we start from main in case the workflow is run from a branch
           ref: "main"
           token: ${{ steps.generate_token.outputs.token }}
 
-      - uses: actions/setup-node@v4 # bin/bump-version needs npm
+      - uses: actions/setup-node@v6 # bin/bump-version needs npm
         with:
           node-version-file: .nvmrc
           cache: 'npm'
