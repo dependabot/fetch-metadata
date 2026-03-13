@@ -1,155 +1,331 @@
-import * as github from '@actions/github'
-import * as core from '@actions/core'
-import nock from 'nock'
-import { Context } from '@actions/github/lib/context'
-import { getAlert, getMessage, trimSlashes, getCompatibility } from './verified_commits'
+import * as github from "@actions/github";
+import * as core from "@actions/core";
+import nock from "nock";
+import { Context } from "@actions/github/lib/context";
+import {
+  getAlert,
+  getMessage,
+  trimSlashes,
+  getCompatibility,
+  createFetchVulnerabilityAlertsQuery
+} from "./verified_commits";
 
 beforeAll(() => {
-  nock.disableNetConnect()
-})
+  nock.disableNetConnect();
+});
 
 beforeEach(() => {
-  jest.restoreAllMocks()
+  jest.restoreAllMocks();
 
-  jest.spyOn(core, 'debug').mockImplementation(jest.fn())
-  jest.spyOn(core, 'warning').mockImplementation(jest.fn())
+  jest.spyOn(core, "debug").mockImplementation(jest.fn());
+  jest.spyOn(core, "warning").mockImplementation(jest.fn());
 
-  process.env.GITHUB_REPOSITORY = 'dependabot/dependabot'
-})
+  process.env.GITHUB_REPOSITORY = "dependabot/dependabot";
+});
 
-test('it returns false if the action is not invoked on a PullRequest', async () => {
-  expect(await getMessage(mockGitHubClient, mockGitHubOtherContext())).toBe(false)
+const defaultAlertFetchDepth = 0;
+
+test("it returns false if the action is not invoked on a PullRequest", async () => {
+  expect(await getMessage(mockGitHubClient, mockGitHubOtherContext())).toBe(
+    false
+  );
 
   expect(core.warning).toHaveBeenCalledWith(
-    expect.stringContaining('Event payload missing `pull_request` key.')
-  )
-})
+    expect.stringContaining("Event payload missing `pull_request` key.")
+  );
+});
 
-test('it returns false for an event triggered by someone other than Dependabot', async () => {
-  expect(await getMessage(mockGitHubClient, mockGitHubPullContext('jane-doe'))).toBe(false)
+test("it returns false for an event triggered by someone other than Dependabot", async () => {
+  expect(
+    await getMessage(mockGitHubClient, mockGitHubPullContext("jane-doe"))
+  ).toBe(false);
 
   expect(core.debug).toHaveBeenCalledWith(
     expect.stringContaining("PR author 'jane-doe' is not Dependabot.")
-  )
-})
+  );
+});
 
-test('it returns false if the commit was authored by someone other than Dependabot', async () => {
-  nock('https://api.github.com').get('/repos/dependabot/dependabot/pulls/101/commits')
+test("it returns false if the commit was authored by someone other than Dependabot", async () => {
+  nock("https://api.github.com")
+    .get("/repos/dependabot/dependabot/pulls/101/commits")
     .reply(200, [
       {
         author: {
-          login: 'dependanot'
+          login: "dependanot",
         },
         commit: {
-          message: 'Bump lodash from 1.0.0 to 2.0.0'
-        }
-      }
-    ])
+          message: "Bump lodash from 1.0.0 to 2.0.0",
+        },
+      },
+    ]);
 
-  expect(await getMessage(mockGitHubClient, mockGitHubPullContext())).toBe(false)
+  expect(await getMessage(mockGitHubClient, mockGitHubPullContext())).toBe(
+    false
+  );
 
   expect(core.warning).toHaveBeenCalledWith(
-    expect.stringContaining('It looks like this PR was not created by Dependabot, refusing to proceed.')
-  )
-})
+    expect.stringContaining(
+      "It looks like this PR was not created by Dependabot, refusing to proceed."
+    )
+  );
+});
 
-test('it returns false if the commit is has no verification payload', async () => {
-  nock('https://api.github.com').get('/repos/dependabot/dependabot/pulls/101/commits')
+test("it returns false if the commit is has no verification payload", async () => {
+  nock("https://api.github.com")
+    .get("/repos/dependabot/dependabot/pulls/101/commits")
     .reply(200, [
       {
         author: {
-          login: 'dependabot[bot]'
+          login: "dependabot[bot]",
         },
         commit: {
-          message: 'Bump lodash from 1.0.0 to 2.0.0',
-          verification: null
-        }
-      }
-    ])
+          message: "Bump lodash from 1.0.0 to 2.0.0",
+          verification: null,
+        },
+      },
+    ]);
 
-  expect(await getMessage(mockGitHubClient, mockGitHubPullContext())).toBe(false)
-})
+  expect(await getMessage(mockGitHubClient, mockGitHubPullContext())).toBe(
+    false
+  );
+});
 
-test('it returns the message if the commit is has no verification payload but verification is skipped', async () => {
-  nock('https://api.github.com').get('/repos/dependabot/dependabot/pulls/101/commits')
+test("it returns the message if the commit is has no verification payload but verification is skipped", async () => {
+  nock("https://api.github.com")
+    .get("/repos/dependabot/dependabot/pulls/101/commits")
     .reply(200, [
       {
         author: {
-          login: 'dependabot[bot]'
+          login: "dependabot[bot]",
         },
         commit: {
-          message: 'Bump lodash from 1.0.0 to 2.0.0',
-          verification: null
-        }
-      }
-    ])
+          message: "Bump lodash from 1.0.0 to 2.0.0",
+          verification: null,
+        },
+      },
+    ]);
 
-  expect(await getMessage(mockGitHubClient, mockGitHubPullContext(), true)).toEqual('Bump lodash from 1.0.0 to 2.0.0')
-})
+  expect(
+    await getMessage(mockGitHubClient, mockGitHubPullContext(), true)
+  ).toEqual("Bump lodash from 1.0.0 to 2.0.0");
+});
 
-test('it returns the message when skip-verification is enabled', async () => {
-  jest.spyOn(core, 'getInput').mockReturnValue('true')
+test("it returns the message when skip-verification is enabled", async () => {
+  jest.spyOn(core, "getInput").mockReturnValue("true");
 
-  nock('https://api.github.com').get('/repos/dependabot/dependabot/pulls/101/commits')
+  nock("https://api.github.com")
+    .get("/repos/dependabot/dependabot/pulls/101/commits")
     .reply(200, [
       {
         author: {
-          login: 'myUser'
+          login: "myUser",
         },
         commit: {
-          message: 'Bump lodash from 1.0.0 to 2.0.0',
-          verification: false
-        }
-      }
-    ])
+          message: "Bump lodash from 1.0.0 to 2.0.0",
+          verification: false,
+        },
+      },
+    ]);
 
-  expect(await getMessage(mockGitHubClient, mockGitHubPullContext(), false, true)).toEqual('Bump lodash from 1.0.0 to 2.0.0')
-})
+  expect(
+    await getMessage(mockGitHubClient, mockGitHubPullContext(), false, true)
+  ).toEqual("Bump lodash from 1.0.0 to 2.0.0");
+});
 
-test('it returns false if the commit is not verified', async () => {
-  nock('https://api.github.com').get('/repos/dependabot/dependabot/pulls/101/commits')
+test("it returns false if the commit is not verified", async () => {
+  nock("https://api.github.com")
+    .get("/repos/dependabot/dependabot/pulls/101/commits")
     .reply(200, [
       {
         author: {
-          login: 'dependabot[bot]'
+          login: "dependabot[bot]",
         },
         commit: {
-          message: 'Bump lodash from 1.0.0 to 2.0.0',
+          message: "Bump lodash from 1.0.0 to 2.0.0",
           verification: {
-            verified: false
-          }
-        }
-      }
-    ])
+            verified: false,
+          },
+        },
+      },
+    ]);
 
-  expect(await getMessage(mockGitHubClient, mockGitHubPullContext())).toBe(false)
-})
+  expect(await getMessage(mockGitHubClient, mockGitHubPullContext())).toBe(
+    false
+  );
+});
 
-test('it returns the commit message for a PR authored exclusively by Dependabot with verified commits', async () => {
-  nock('https://api.github.com').get('/repos/dependabot/dependabot/pulls/101/commits')
+test("it returns the commit message for a PR authored exclusively by Dependabot with verified commits", async () => {
+  nock("https://api.github.com")
+    .get("/repos/dependabot/dependabot/pulls/101/commits")
     .reply(200, [
       {
         author: {
-          login: 'dependabot[bot]'
+          login: "dependabot[bot]",
         },
         commit: {
-          message: 'Bump lodash from 1.0.0 to 2.0.0',
+          message: "Bump lodash from 1.0.0 to 2.0.0",
           verification: {
-            verified: true
-          }
-        }
+            verified: true,
+          },
+        },
       },
       {
         commit: {
-          message: 'Add some more things.'
+          message: "Add some more things.",
+        },
+      },
+    ]);
+
+  expect(await getMessage(mockGitHubClient, mockGitHubPullContext())).toEqual(
+    "Bump lodash from 1.0.0 to 2.0.0"
+  );
+});
+
+test('createFetchVulnerabilityAlertsQuery', () => {
+  expect(createFetchVulnerabilityAlertsQuery("foo", "bar")).toEqual(`
+    {
+      repository(owner: "foo", name: "bar") {
+        vulnerabilityAlerts(first: 100 ) {
+          nodes {
+            vulnerableManifestFilename
+            vulnerableManifestPath
+            vulnerableRequirements
+            state
+            securityVulnerability {
+              package { name }
+            }
+            securityAdvisory {
+              cvss { score }
+              ghsaId
+            }
+          }
+          pageInfo {
+            hasNextPage
+            endCursor
+          }
         }
       }
-    ])
-
-  expect(await getMessage(mockGitHubClient, mockGitHubPullContext())).toEqual('Bump lodash from 1.0.0 to 2.0.0')
+    }`);
 })
 
-const query = '{"query":"\\n     {\\n       repository(owner: \\"dependabot\\", name: \\"dependabot\\") { \\n         vulnerabilityAlerts(first: 100) {\\n           nodes {\\n             vulnerableManifestFilename\\n             vulnerableManifestPath\\n             vulnerableRequirements\\n             state\\n             securityVulnerability { \\n               package { name } \\n             }\\n             securityAdvisory { \\n              cvss { score }\\n              ghsaId \\n             }\\n           }\\n         }\\n       }\\n     }"}'
+test('createFetchVulnerabilityAlertsQuery with maxResults', () => {
+  expect(createFetchVulnerabilityAlertsQuery("foo", "bar", 0)).toEqual(`
+    {
+      repository(owner: "foo", name: "bar") {
+        vulnerabilityAlerts(first: 100 ) {
+          nodes {
+            vulnerableManifestFilename
+            vulnerableManifestPath
+            vulnerableRequirements
+            state
+            securityVulnerability {
+              package { name }
+            }
+            securityAdvisory {
+              cvss { score }
+              ghsaId
+            }
+          }
+          pageInfo {
+            hasNextPage
+            endCursor
+          }
+        }
+      }
+    }`);
+
+  expect(createFetchVulnerabilityAlertsQuery("foo", "bar", 25)).toEqual(`
+    {
+      repository(owner: "foo", name: "bar") {
+        vulnerabilityAlerts(first: 25 ) {
+          nodes {
+            vulnerableManifestFilename
+            vulnerableManifestPath
+            vulnerableRequirements
+            state
+            securityVulnerability {
+              package { name }
+            }
+            securityAdvisory {
+              cvss { score }
+              ghsaId
+            }
+          }
+          pageInfo {
+            hasNextPage
+            endCursor
+          }
+        }
+      }
+    }`);
+
+  expect(createFetchVulnerabilityAlertsQuery("foo", "bar", 150)).toEqual(`
+    {
+      repository(owner: "foo", name: "bar") {
+        vulnerabilityAlerts(first: 100 ) {
+          nodes {
+            vulnerableManifestFilename
+            vulnerableManifestPath
+            vulnerableRequirements
+            state
+            securityVulnerability {
+              package { name }
+            }
+            securityAdvisory {
+              cvss { score }
+              ghsaId
+            }
+          }
+          pageInfo {
+            hasNextPage
+            endCursor
+          }
+        }
+      }
+    }`);
+})
+
+test('createFetchVulnerabilityAlertsQuery with endCursor', () => {
+  expect(createFetchVulnerabilityAlertsQuery("foo", "bar", 0, "c123")).toEqual(`
+    {
+      repository(owner: "foo", name: "bar") {
+        vulnerabilityAlerts(first: 100 , after: "c123") {
+          nodes {
+            vulnerableManifestFilename
+            vulnerableManifestPath
+            vulnerableRequirements
+            state
+            securityVulnerability {
+              package { name }
+            }
+            securityAdvisory {
+              cvss { score }
+              ghsaId
+            }
+          }
+          pageInfo {
+            hasNextPage
+            endCursor
+          }
+        }
+      }
+    }`);
+})
+
+/**
+ * Wraps the GraphQL query in a json object which would be sent over the wire.
+ *
+ * To get something readable from nock unmatched query error, you can do the opposite steps
+ * in order to get something readable, e.g. via Node REPL:
+ * let s = "unexpected_query"
+ * console.log(JSON.parse(s).query)
+ */
+function createGraphQlJsonBody(maxResults = 100, endCursor?: string): string {
+  const query = createFetchVulnerabilityAlertsQuery("dependabot", "dependabot", maxResults, endCursor);
+  return JSON.stringify({query});
+}
+
+const query = createGraphQlJsonBody();
 
 const response = {
   data: {
@@ -157,18 +333,21 @@ const response = {
       vulnerabilityAlerts: {
         nodes: [
           {
-            vulnerableManifestFilename: 'package.json',
-            vulnerableManifestPath: 'wwwroot/package.json',
-            vulnerableRequirements: '= 4.0.1',
-            state: 'DISMISSED',
-            securityVulnerability: { package: { name: 'coffee-script' } },
-            securityAdvisory: { cvss: { score: 4.5 }, ghsaId: 'FOO' }
-          }
-        ]
-      }
-    }
-  }
-}
+            vulnerableManifestFilename: "package.json",
+            vulnerableManifestPath: "wwwroot/package.json",
+            vulnerableRequirements: "= 4.0.1",
+            state: "DISMISSED",
+            securityVulnerability: { package: { name: "coffee-script" } },
+            securityAdvisory: { cvss: { score: 4.5 }, ghsaId: "FOO" },
+          },
+        ],
+        pageInfo: {
+          hasNextPage: false,
+        },
+      },
+    },
+  },
+};
 
 const responseWithManifestFileAtRoot = {
   data: {
@@ -176,86 +355,389 @@ const responseWithManifestFileAtRoot = {
       vulnerabilityAlerts: {
         nodes: [
           {
-            vulnerableManifestFilename: 'package.json',
-            vulnerableManifestPath: 'package.json',
-            vulnerableRequirements: '= 4.0.1',
-            state: 'DISMISSED',
-            securityVulnerability: { package: { name: 'coffee-script' } },
-            securityAdvisory: { cvss: { score: 4.5 }, ghsaId: 'FOO' }
-          }
-        ]
-      }
-    }
-  }
-}
+            vulnerableManifestFilename: "package.json",
+            vulnerableManifestPath: "package.json",
+            vulnerableRequirements: "= 4.0.1",
+            state: "DISMISSED",
+            securityVulnerability: { package: { name: "coffee-script" } },
+            securityAdvisory: { cvss: { score: 4.5 }, ghsaId: "FOO" },
+          },
+        ],
+        pageInfo: {
+          hasNextPage: false,
+        },
+      },
+    },
+  },
+};
 
-test('it returns the alert state if it matches all 3', async () => {
-  nock('https://api.github.com').post('/graphql', query)
-    .reply(200, response)
+test("it returns the alert state if it matches all 3", async () => {
+  nock("https://api.github.com").post("/graphql", query).reply(200, response);
 
-  expect(await getAlert('coffee-script', '4.0.1', '/wwwroot', mockGitHubClient, mockGitHubPullContext())).toEqual({ alertState: 'DISMISSED', cvss: 4.5, ghsaId: 'FOO' })
+  expect(
+    await getAlert(
+      "coffee-script",
+      "4.0.1",
+      "/wwwroot",
+      mockGitHubClient,
+      mockGitHubPullContext(),
+      defaultAlertFetchDepth
+    )
+  ).toEqual({ alertState: "DISMISSED", cvss: 4.5, ghsaId: "FOO" });
 
-  nock('https://api.github.com').post('/graphql', query)
-    .reply(200, responseWithManifestFileAtRoot)
+  nock("https://api.github.com")
+    .post("/graphql", query)
+    .reply(200, responseWithManifestFileAtRoot);
 
-  expect(await getAlert('coffee-script', '4.0.1', '/', mockGitHubClient, mockGitHubPullContext())).toEqual({ alertState: 'DISMISSED', cvss: 4.5, ghsaId: 'FOO' })
-})
+  expect(
+    await getAlert(
+      "coffee-script",
+      "4.0.1",
+      "/",
+      mockGitHubClient,
+      mockGitHubPullContext(),
+      defaultAlertFetchDepth
+    )
+  ).toEqual({ alertState: "DISMISSED", cvss: 4.5, ghsaId: "FOO" });
+});
 
-test('it returns the alert state if it matches 2 and the version is blank', async () => {
-  nock('https://api.github.com').post('/graphql', query)
-    .reply(200, response)
+test("it returns the alert state if it matches 2 and the version is blank", async () => {
+  nock("https://api.github.com").post("/graphql", query).reply(200, response);
 
-  expect(await getAlert('coffee-script', '', '/wwwroot', mockGitHubClient, mockGitHubPullContext())).toEqual({ alertState: 'DISMISSED', cvss: 4.5, ghsaId: 'FOO' })
+  expect(
+    await getAlert(
+      "coffee-script",
+      "",
+      "/wwwroot",
+      mockGitHubClient,
+      mockGitHubPullContext(),
+      defaultAlertFetchDepth
+    )
+  ).toEqual({ alertState: "DISMISSED", cvss: 4.5, ghsaId: "FOO" });
 
-  nock('https://api.github.com').post('/graphql', query)
-    .reply(200, responseWithManifestFileAtRoot)
+  nock("https://api.github.com")
+    .post("/graphql", query)
+    .reply(200, responseWithManifestFileAtRoot);
 
-  expect(await getAlert('coffee-script', '', '/', mockGitHubClient, mockGitHubPullContext())).toEqual({ alertState: 'DISMISSED', cvss: 4.5, ghsaId: 'FOO' })
-})
+  expect(
+    await getAlert(
+      "coffee-script",
+      "",
+      "/",
+      mockGitHubClient,
+      mockGitHubPullContext(),
+      defaultAlertFetchDepth
+    )
+  ).toEqual({ alertState: "DISMISSED", cvss: 4.5, ghsaId: "FOO" });
+});
 
-test('it returns default if it does not match the version', async () => {
-  nock('https://api.github.com').post('/graphql', query)
-    .reply(200, response)
+test("it returns default if it does not match the version", async () => {
+  nock("https://api.github.com").post("/graphql", query).reply(200, response);
 
-  expect(await getAlert('coffee-script', '4.0.2', '/wwwroot', mockGitHubClient, mockGitHubPullContext())).toEqual({ alertState: '', cvss: 0, ghsaId: '' })
+  expect(
+    await getAlert(
+      "coffee-script",
+      "4.0.2",
+      "/wwwroot",
+      mockGitHubClient,
+      mockGitHubPullContext(),
+      defaultAlertFetchDepth
+    )
+  ).toEqual({ alertState: "", cvss: 0, ghsaId: "" });
 
-  nock('https://api.github.com').post('/graphql', query)
-    .reply(200, responseWithManifestFileAtRoot)
+  nock("https://api.github.com")
+    .post("/graphql", query)
+    .reply(200, responseWithManifestFileAtRoot);
 
-  expect(await getAlert('coffee-script', '4.0.2', '/', mockGitHubClient, mockGitHubPullContext())).toEqual({ alertState: '', cvss: 0, ghsaId: '' })
-})
+  expect(
+    await getAlert(
+      "coffee-script",
+      "4.0.2",
+      "/",
+      mockGitHubClient,
+      mockGitHubPullContext(),
+      defaultAlertFetchDepth
+    )
+  ).toEqual({ alertState: "", cvss: 0, ghsaId: "" });
+});
 
-test('it returns default if it does not match the directory', async () => {
-  nock('https://api.github.com').post('/graphql', query)
-    .reply(200, response)
+test("it returns default if it does not match the directory", async () => {
+  nock("https://api.github.com").post("/graphql", query).reply(200, response);
 
-  expect(await getAlert('coffee-script', '4.0.1', '/', mockGitHubClient, mockGitHubPullContext())).toEqual({ alertState: '', cvss: 0, ghsaId: '' })
+  expect(
+    await getAlert(
+      "coffee-script",
+      "4.0.1",
+      "/",
+      mockGitHubClient,
+      mockGitHubPullContext(),
+      defaultAlertFetchDepth
+    )
+  ).toEqual({ alertState: "", cvss: 0, ghsaId: "" });
 
-  nock('https://api.github.com').post('/graphql', query)
-    .reply(200, responseWithManifestFileAtRoot)
+  nock("https://api.github.com")
+    .post("/graphql", query)
+    .reply(200, responseWithManifestFileAtRoot);
 
-  expect(await getAlert('coffee-script', '4.0.1', '/wwwroot', mockGitHubClient, mockGitHubPullContext())).toEqual({ alertState: '', cvss: 0, ghsaId: '' })
-})
+  expect(
+    await getAlert(
+      "coffee-script",
+      "4.0.1",
+      "/wwwroot",
+      mockGitHubClient,
+      mockGitHubPullContext(),
+      defaultAlertFetchDepth
+    )
+  ).toEqual({ alertState: "", cvss: 0, ghsaId: "" });
+});
 
-test('it returns default if it does not match the name', async () => {
-  nock('https://api.github.com').post('/graphql', query)
-    .reply(200, response)
+test("it returns default if it does not match the name", async () => {
+  nock("https://api.github.com").post("/graphql", query).reply(200, response);
 
-  expect(await getAlert('coffee', '4.0.1', '/wwwroot', mockGitHubClient, mockGitHubPullContext())).toEqual({ alertState: '', cvss: 0, ghsaId: '' })
+  expect(
+    await getAlert(
+      "coffee",
+      "4.0.1",
+      "/wwwroot",
+      mockGitHubClient,
+      mockGitHubPullContext(),
+      defaultAlertFetchDepth
+    )
+  ).toEqual({ alertState: "", cvss: 0, ghsaId: "" });
 
-  nock('https://api.github.com').post('/graphql', query)
-    .reply(200, responseWithManifestFileAtRoot)
+  nock("https://api.github.com")
+    .post("/graphql", query)
+    .reply(200, responseWithManifestFileAtRoot);
 
-  expect(await getAlert('coffee', '4.0.1', '/', mockGitHubClient, mockGitHubPullContext())).toEqual({ alertState: '', cvss: 0, ghsaId: '' })
-})
+  expect(
+    await getAlert(
+      "coffee",
+      "4.0.1",
+      "/",
+      mockGitHubClient,
+      mockGitHubPullContext(),
+      defaultAlertFetchDepth
+    )
+  ).toEqual({ alertState: "", cvss: 0, ghsaId: "" });
+});
 
-test('trimSlashes should only trim slashes from both ends', () => {
-  expect(trimSlashes('')).toEqual('')
-  expect(trimSlashes('///')).toEqual('')
-  expect(trimSlashes('/abc/')).toEqual('abc')
-  expect(trimSlashes('/a/b/c/')).toEqual('a/b/c')
-  expect(trimSlashes('//a//b//c//')).toEqual('a//b//c')
-})
+const responseFetchAllPage1 = {
+  data: {
+    repository: {
+      vulnerabilityAlerts: {
+        nodes: [
+          {
+            vulnerableManifestFilename: "yarn.lock",
+            vulnerableManifestPath: "yarn.lock",
+            vulnerableRequirements: "= 4.17.11",
+            state: "FIXED",
+            securityVulnerability: {
+              package: {
+                name: "lodash",
+              },
+            },
+            securityAdvisory: {
+              cvss: {
+                score: 9.1,
+              },
+              ghsaId: "GHSA-jf85-cpcp-j695",
+            },
+          },
+        ],
+        pageInfo: {
+          hasNextPage: true,
+          endCursor: "Y3Vyc29yOnYyOpHPAAAAAUU_eqA=",
+        },
+      },
+    },
+  },
+};
+
+const queryFetchAllPage2 = createGraphQlJsonBody(defaultAlertFetchDepth, responseFetchAllPage1.data.repository.vulnerabilityAlerts.pageInfo.endCursor);
+
+const responseFetchAllPage2 = {
+  data: {
+    repository: {
+      vulnerabilityAlerts: {
+        nodes: [
+          {
+            vulnerableManifestFilename: "yarn.lock",
+            vulnerableManifestPath: "yarn.lock",
+            vulnerableRequirements: "= 3.12.0",
+            state: "FIXED",
+            securityVulnerability: { package: { name: "js-yaml" } },
+            securityAdvisory: {
+              cvss: { score: 0 },
+              ghsaId: "GHSA-8j8c-7jfh-h6hx",
+            },
+          },
+        ],
+        pageInfo: {
+          hasNextPage: true,
+          endCursor: "Y3Vyc29yOnYyOpHOLxj2uQ==",
+        },
+      },
+    },
+  },
+};
+
+const queryFetchAllPage3 = createGraphQlJsonBody(defaultAlertFetchDepth, responseFetchAllPage2.data.repository.vulnerabilityAlerts.pageInfo.endCursor);
+
+test("fetch all vulnerability alert pages", async () => {
+  const queryFetchAllPage1 = query;
+  const responseFetchAllPage3 = response;
+
+  nock("https://api.github.com")
+    .post("/graphql", queryFetchAllPage1)
+    .reply(200, responseFetchAllPage1)
+    .post("/graphql", queryFetchAllPage2)
+    .reply(200, responseFetchAllPage2)
+    .post("/graphql", queryFetchAllPage3)
+    .reply(200, responseFetchAllPage3);
+
+  expect(
+    await getAlert(
+      "coffee-script",
+      "4.0.1",
+      "/wwwroot",
+      mockGitHubClient,
+      mockGitHubPullContext(),
+      defaultAlertFetchDepth
+    )
+  ).toEqual({ alertState: "DISMISSED", cvss: 4.5, ghsaId: "FOO" });
+});
+
+test("fetch all vulnerability alert pages, match on page 2", async () => {
+  const queryFetchAllPage1 = query;
+
+  nock("https://api.github.com")
+    .post("/graphql", queryFetchAllPage1)
+    .reply(200, responseFetchAllPage1)
+    .post("/graphql", queryFetchAllPage2)
+    .reply(200, responseFetchAllPage2)
+    .post("/graphql", queryFetchAllPage3)
+    .replyWithError("impl should not continue fetching this page");
+
+  expect(
+    await getAlert(
+      "js-yaml",
+      "3.12.0",
+      "/",
+      mockGitHubClient,
+      mockGitHubPullContext(),
+      defaultAlertFetchDepth
+    )
+  ).toEqual({ alertState: "FIXED", cvss: 0, ghsaId: "GHSA-8j8c-7jfh-h6hx" });
+});
+
+test("fetch all vulnerability alerts, 3 pages, fetch-depth 2", async () => {
+  const queryFetch1 = createGraphQlJsonBody(2);
+  const queryFetch2 = createGraphQlJsonBody(1, responseFetchAllPage1.data.repository.vulnerabilityAlerts.pageInfo.endCursor);
+  const queryFetch3 = createGraphQlJsonBody(100, responseFetchAllPage2.data.repository.vulnerabilityAlerts.pageInfo.endCursor);
+
+  nock("https://api.github.com")
+    .post("/graphql", queryFetch1)
+    .reply(200, responseFetchAllPage1)
+    .post("/graphql", queryFetch2)
+    .reply(200, responseFetchAllPage2)
+    .post("/graphql", queryFetch3)
+    .replyWithError("impl should not continue fetching this page");
+
+  expect(
+    await getAlert(
+      "coffee-script",
+      "4.0.1",
+      "/wwwroot",
+      mockGitHubClient,
+      mockGitHubPullContext(),
+      2
+    )
+  ).toEqual({ alertState: "", cvss: 0, ghsaId: "" });
+
+  expect(core.warning).toHaveBeenCalledWith("Query has more results, but reached number of max results configured via fetch-depth");
+});
+
+test("fetch all vulnerability alerts, 3 pages, fetch-depth 3", async () => {
+  const queryFetch1 = createGraphQlJsonBody(3);
+  const queryFetch2 = createGraphQlJsonBody(2, responseFetchAllPage1.data.repository.vulnerabilityAlerts.pageInfo.endCursor);
+  const queryFetch3 = createGraphQlJsonBody(1, responseFetchAllPage2.data.repository.vulnerabilityAlerts.pageInfo.endCursor);
+  const responseFetchAllPage3 = response;
+
+  nock("https://api.github.com")
+    .post("/graphql", queryFetch1)
+    .reply(200, responseFetchAllPage1)
+    .post("/graphql", queryFetch2)
+    .reply(200, responseFetchAllPage2)
+    .post("/graphql", queryFetch3)
+    .reply(200, responseFetchAllPage3);
+
+  expect(
+    await getAlert(
+      "coffee-script",
+      "4.0.1",
+      "/wwwroot",
+      mockGitHubClient,
+      mockGitHubPullContext(),
+      3
+    )
+  ).toEqual({ alertState: "DISMISSED", cvss: 4.5, ghsaId: "FOO" });
+});
+
+const responseWithoutEqInFrontOfVulnerableRequirements = {
+  data: {
+    repository: {
+      vulnerabilityAlerts: {
+        nodes: [
+          {
+            vulnerableManifestFilename: "yarn.lock",
+            vulnerableManifestPath: "cypress/yarn.lock",
+            vulnerableRequirements: "4.4.0",
+            state: "OPEN",
+            securityVulnerability: {
+              package: {
+                name: "terser",
+              },
+            },
+            securityAdvisory: {
+              cvss: {
+                score: 7.5,
+              },
+              ghsaId: "GHSA-4wf5-vphf-c2xc",
+            },
+          },
+        ],
+        pageInfo: {
+          hasNextPage: false,
+        },
+      },
+    },
+  },
+};
+
+test("it returns alert without eq in front of vulnerableRequirements", async () => {
+  nock("https://api.github.com")
+    .post("/graphql", query)
+    .reply(200, responseWithoutEqInFrontOfVulnerableRequirements);
+
+  expect(
+    await getAlert(
+      "terser",
+      "4.4.0",
+      "/cypress",
+      mockGitHubClient,
+      mockGitHubPullContext(),
+      defaultAlertFetchDepth
+    )
+  ).toEqual({ alertState: "OPEN", cvss: 7.5, ghsaId: "GHSA-4wf5-vphf-c2xc" });
+});
+
+test("trimSlashes should only trim slashes from both ends", () => {
+  expect(trimSlashes("")).toEqual("");
+  expect(trimSlashes("///")).toEqual("");
+  expect(trimSlashes("/abc/")).toEqual("abc");
+  expect(trimSlashes("/a/b/c/")).toEqual("a/b/c");
+  expect(trimSlashes("//a//b//c//")).toEqual("a//b//c");
+});
 
 const svgContents = `<svg width="132.9" height="20" viewBox="0 0 1329 200" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" role="img" aria-label="compatibility: 75%">
   <title>compatibility: 75%</title>
@@ -276,58 +758,73 @@ const svgContents = `<svg width="132.9" height="20" viewBox="0 0 1329 200" xmlns
     <text x="1014" y="138" textLength="260">75%</text>
   </g>
   <image x="40" y="35" width="130" height="130" xlink:href="data:image/svg+xml;base64,PHN2ZyBmaWxsPSJub25lIiB2aWV3Qm94PSIwIDAgNTQgNTQiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggY2xpcC1ydWxlPSJldmVub2RkIiBkPSJNMzAgMTV2LTNoLTVhMSAxIDAgMDEtMS0xVjRhMSAxIDAgMDExLTFoN2ExIDEgMCAwMTEgMXYxMWgxNWEzIDMgMCAwMTMgM3YxMmgyYTEgMSAwIDAxMSAxdjEwYTEgMSAwIDAxLTEgMWgtMnY2YTMgMyAwIDAxLTMgM0g2YTMgMyAwIDAxLTMtM3YtNkgxYTEgMSAwIDAxLTEtMVYzMWExIDEgMCAwMTEtMWgyVjE4YTMgMyAwIDAxMy0zem02Ljg1NCAyMy42NDNsNi4yOS02LjI4OWExLjIxIDEuMjEgMCAwMDAtMS43MWwtMS4yOS0xLjI5YTEuMjEgMS4yMSAwIDAwLTEuNzEgMEwzNS45OTggMzMuNWwtMS42NDUtMS42NDVhMS4yMSAxLjIxIDAgMDAtMS43MSAwbC0xLjI5IDEuMjlhMS4yMSAxLjIxIDAgMDAwIDEuNzFsMy43OSAzLjc5YTEuMjEgMS4yMSAwIDAwMS43MSAwem0tMTMuNzEtNi4yODlsLTYuMjkgNi4yOWExLjIxIDEuMjEgMCAwMS0xLjcxIDBsLTMuNzktMy43OWExLjIxIDEuMjEgMCAwMTAtMS43MWwxLjI5LTEuMjlhMS4yMSAxLjIxIDAgMDExLjcxIDBMMTYgMzMuNWw0LjE0NC00LjE0NWExLjIxIDEuMjEgMCAwMTEuNzExIDBsMS4yOSAxLjI5YTEuMjEgMS4yMSAwIDAxMCAxLjcxeiIgZmlsbD0iI2ZmZiIgZmlsbC1ydWxlPSJldmVub2RkIi8+PC9zdmc+Cg=="/>
-</svg>`
+</svg>`;
 
-test('getCompatibility pulls out the score', async () => {
-  nock('https://dependabot-badges.githubapp.com').get('/badges/compatibility_score?dependency-name=coffee-script&package-manager=npm_and_yarn&previous-version=2.1.3&new-version=2.2.0')
-    .reply(200, svgContents)
+test("getCompatibility pulls out the score", async () => {
+  nock("https://dependabot-badges.githubapp.com")
+    .get(
+      "/badges/compatibility_score?dependency-name=coffee-script&package-manager=npm_and_yarn&previous-version=2.1.3&new-version=2.2.0"
+    )
+    .reply(200, svgContents);
 
-  expect(await getCompatibility('coffee-script', '2.1.3', '2.2.0', 'npm_and_yarn')).toEqual(75)
-})
+  expect(
+    await getCompatibility("coffee-script", "2.1.3", "2.2.0", "npm_and_yarn")
+  ).toEqual(75);
+});
 
-test('getCompatibility fails gracefully', async () => {
-  nock('https://dependabot-badges.githubapp.com').get('/badges/compatibility_score?dependency-name=coffee-script&package-manager=npm_and_yarn&previous-version=2.1.3&new-version=2.2.0')
-    .reply(200, '')
+test("getCompatibility fails gracefully", async () => {
+  nock("https://dependabot-badges.githubapp.com")
+    .get(
+      "/badges/compatibility_score?dependency-name=coffee-script&package-manager=npm_and_yarn&previous-version=2.1.3&new-version=2.2.0"
+    )
+    .reply(200, "");
 
-  expect(await getCompatibility('coffee-script', '2.1.3', '2.2.0', 'npm_and_yarn')).toEqual(0)
-})
+  expect(
+    await getCompatibility("coffee-script", "2.1.3", "2.2.0", "npm_and_yarn")
+  ).toEqual(0);
+});
 
-test('getCompatibility handles errors', async () => {
-  nock('https://dependabot-badges.githubapp.com').get('/badges/compatibility_score?dependency-name=coffee-script&package-manager=npm_and_yarn&previous-version=2.1.3&new-version=2.2.0')
-    .reply(500, '')
+test("getCompatibility handles errors", async () => {
+  nock("https://dependabot-badges.githubapp.com")
+    .get(
+      "/badges/compatibility_score?dependency-name=coffee-script&package-manager=npm_and_yarn&previous-version=2.1.3&new-version=2.2.0"
+    )
+    .reply(500, "");
 
-  expect(await getCompatibility('coffee-script', '2.1.3', '2.2.0', 'npm_and_yarn')).toEqual(0)
-})
+  expect(
+    await getCompatibility("coffee-script", "2.1.3", "2.2.0", "npm_and_yarn")
+  ).toEqual(0);
+});
 
 // Use fetch request settings to ensure nock mocks are respected
 // @see https://github.com/actions/toolkit/issues/1115#issuecomment-1826196208
 const mockGitHubClient = github.getOctokit('mock-token', { request: fetch })
 
-function mockGitHubOtherContext (): Context {
-  const ctx = new Context()
+function mockGitHubOtherContext(): Context {
+  const ctx = new Context();
   ctx.payload = {
     issue: {
-      number: 100
-    }
-  }
-  return ctx
+      number: 100,
+    },
+  };
+  return ctx;
 }
 
-function mockGitHubPullContext (author = 'dependabot[bot]'): Context {
-  const ctx = new Context()
+function mockGitHubPullContext(author = "dependabot[bot]"): Context {
+  const ctx = new Context();
   ctx.payload = {
     pull_request: {
       number: 101,
       user: {
-        login: author
-      }
+        login: author,
+      },
     },
     repository: {
-      name: 'dependabot',
+      name: "dependabot",
       owner: {
-        login: 'dependabot'
-      }
-    }
-  }
-  return ctx
+        login: "dependabot",
+      },
+    },
+  };
+  return ctx;
 }

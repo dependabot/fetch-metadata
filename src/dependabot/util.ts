@@ -1,4 +1,5 @@
 import { Context } from '@actions/github/lib/context'
+import { getInput } from '@actions/core'
 
 export function parseNwo (nwo: string): {owner: string; repo: string} {
   const [owner, name] = nwo.split('/')
@@ -23,4 +24,14 @@ export function getBranchNames (context: Context): branchNames {
 export function getBody (context: Context): string {
   const { pull_request: pr } = context.payload
   return pr?.body || ''
+}
+
+export function getNumberInput (inputName: string, defaultVal: number): number;
+export function getNumberInput (inputName: string, defaultVal?: number): number | undefined {
+  const inputStr = getInput(inputName);
+  let num = Number.parseInt(inputStr);
+  if (Number.isNaN(num)) {
+    return defaultVal;
+  }
+  return num;
 }
