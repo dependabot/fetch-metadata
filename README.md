@@ -202,8 +202,8 @@ jobs:
       - uses: actions/create-github-app-token@v2
         id: app-token
         with:
-          # TODO: Set secrets to dependabot secrets
-          #       c.f. https://docs.github.com/en/code-security/how-tos/secure-your-supply-chain/manage-your-dependency-security/configuring-access-to-private-registries-for-dependabot
+          # Store these as repository or organization GitHub Dependabot secrets
+          # (e.g. Settings → Secrets and variables → Dependabot → GH_APP_ID, GH_APP_PRIVATE_KEY)
           app-id: ${{ secrets.GH_APP_ID }} # GitHub App ID
           private-key: ${{ secrets.GH_APP_PRIVATE_KEY }} # GitHub App Private key
 
