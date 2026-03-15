@@ -45,8 +45,7 @@ Supported inputs are:
 - `alert-lookup` (boolean)
   - If `true`, then populate the `alert-state`, `ghsa-id` and `cvss` outputs.
   - Defaults to `false`
-  - Note: the `github-token` field must be set to a [personal access token (PAT)](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token) or an [installation access token (App Token)](https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/generating-an-installation-access-token-for-a-github-app).
-    - App Token requires `Dependabot alerts: Read only` [permission](https://docs.github.com/en/apps/creating-github-apps/registering-a-github-app/choosing-permissions-for-a-github-app)
+  - Note: the `github-token` field must be set to a [personal access token (PAT)](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token) or an [installation access token (App Token)](https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/generating-an-installation-access-token-for-a-github-app). For more details, see [this](#use-with-app-token)
 - `compat-lookup` (boolean)
   - If `true`, then populate the `compatibility-score` output.
   - Defaults to `false`
@@ -189,6 +188,12 @@ jobs:
 
 ### Use with App Token
 First, create a [GitHub App](https://docs.github.com/en/apps/creating-github-apps/about-creating-github-apps/about-creating-github-apps) and set the appropriate permissions.
+
+For example, to use the features below, the minimum [permissions](https://docs.github.com/en/apps/creating-github-apps/registering-a-github-app/choosing-permissions-for-a-github-app) required for the GitHub App are as follows:
+
+- `alert-lookup` : `Dependabot alerts: Read only`
+
+Please add any necessary permissions for your job as needed.
 
 The following is an example of using an [installation access token (App Token)](https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/generating-an-installation-access-token-for-a-github-app) in `github-token`.
 
