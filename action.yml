@@ -53,5 +53,5 @@ outputs:
   dependency-group:
     description: 'The dependency group that the PR is associated with (otherwise it is an empty string).'
 runs:
-  using: 'node20'
+  using: 'node24'
   main: 'dist/index.js'
