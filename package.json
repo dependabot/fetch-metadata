@@ -4,7 +4,7 @@
   "description": "Parse Dependabot commit metadata to automate PR handling",
   "main": "dist/index.js",
   "scripts": {
-    "build": "ncc build src/main.ts",
+    "build": "esbuild src/main.ts --bundle --platform=node --target=node24 --outfile=dist/index.js --format=cjs",
     "lint": "eslint . --ext .ts",
     "test": "jest",
     "dry-run": "ts-node src/dry-run.ts"
@@ -22,9 +22,9 @@
   "author": "dependabot",
   "license": "MIT",
   "dependencies": {
-    "@actions/core": "^1.11.1",
-    "@actions/github": "^6.0.1",
-    "@octokit/request-error": "^5.1.1",
+    "@actions/core": "^3.0.0",
+    "@actions/github": "^9.0.0",
+    "@octokit/request-error": "^7.1.0",
     "pluralize": "^8.0.0"
   },
   "devDependencies": {
@@ -35,8 +35,8 @@
     "@types/yargs": "^17.0.33",
     "@typescript-eslint/eslint-plugin": "^8.32.1",
     "@typescript-eslint/parser": "^8.32.1",
-    "@vercel/ncc": "^0.38.3",
     "dotenv": "^16.5.0",
+    "esbuild": "^0.27.4",
     "eslint": "^9.26.0",
     "eslint-plugin-import": "^2.31.0",
     "eslint-plugin-node": "^11.1.0",
