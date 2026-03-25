@@ -1,4 +1,4 @@
-import { Context } from '@actions/github/lib/context'
+import type { Context } from './github-context'
 
 export function parseNwo (nwo: string): {owner: string; repo: string} {
   const [owner, name] = nwo.split('/')
