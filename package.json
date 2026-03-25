@@ -7,7 +7,7 @@
     "build": "esbuild src/main.ts --bundle --platform=node --target=node24 --outfile=dist/index.js --format=cjs",
     "lint": "eslint . --ext .ts",
     "test": "jest",
-    "dry-run": "ts-node src/dry-run.ts"
+    "dry-run": "esbuild src/dry-run.ts --bundle --platform=node --target=node24 --format=cjs --outfile=dist/dry-run.js --log-level=warning && node dist/dry-run.js"
   },
   "keywords": [
     "actions",
@@ -45,7 +45,6 @@
     "jest": "^29.7.0",
     "nock": "^14.0.4",
     "ts-jest": "^29.3.3",
-    "ts-node": "^10.9.2",
     "typescript": "^5.8.3",
     "yaml": "^2.7.1",
     "yargs": "^17.7.2"
