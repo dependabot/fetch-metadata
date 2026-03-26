@@ -56,7 +56,7 @@ function branchNameToDirectoryName (chunks: string[], delimiter: string, updated
     sliceEnd -= 1
   }
 
-  updatedDependencies.forEach(dependency => {
+  updatedDependencies.forEach((dependency: any) => {
     // After replacing "/" in the dependency name with the delimiter, which could also be "/", we count how many pieces
     // the dependency name would split into by the delimiter, and slicing that amount off the end of the branch name.
     // e.g. "@types/twilio-video" and a delimiter of "-" would show up in the branch name as "types-twilio-video".
@@ -89,7 +89,7 @@ export async function parse (commitMessage: string, body: string, branchName: st
       const updatedVersions = parseMetadataLinks(commitMessage)
       const dirname = branchNameToDirectoryName(chunks, delim, data['updated-dependencies'], dependencyGroup)
 
-      return await Promise.all(data['updated-dependencies'].map(async (dependency, index) => {
+      return await Promise.all(data['updated-dependencies'].map(async (dependency: any, index: number) => {
         const dependencyName = dependency['dependency-name']
         const updatedVersion = updatedVersions.get(dependencyName)
         const lastVersion = updatedVersion?.prevVersion || (index === 0 ? prev : '')

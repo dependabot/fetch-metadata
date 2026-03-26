@@ -79,7 +79,7 @@ export async function getAlert (name: string, version: string, directory: string
      }`)
 
   const nodes = alerts?.repository?.vulnerabilityAlerts?.nodes
-  const found = nodes.find(a => (version === '' || a.vulnerableRequirements === `= ${version}`) &&
+  const found = nodes.find((a: any) => (version === '' || a.vulnerableRequirements === `= ${version}`) &&
       trimSlashes(a.vulnerableManifestPath) === trimSlashes(`${directory}/${a.vulnerableManifestFilename}`) &&
       a.securityVulnerability.package.name === name)
 

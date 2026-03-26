@@ -51,7 +51,7 @@ async function check (args: any): Promise<void> {
     if (commitMessage) {
       console.log('This appears to be a valid Dependabot Pull Request.')
       const branchNames = getBranchNames(newContext)
-      const lookupFn = (name, version, directory) => getAlert(name, version, directory, githubClient, actionContext)
+      const lookupFn = (name: string, version: string, directory: string) => getAlert(name, version, directory, githubClient, actionContext)
 
       const updatedDependencies = await parse(commitMessage, pullRequest.body, branchNames.headName, branchNames.baseName, lookupFn, getCompatibility)
 
@@ -78,7 +78,7 @@ async function check (args: any): Promise<void> {
 dotenv.config()
 
 require('yargs')(hideBin(process.argv))
-  .command('check <nwo> <pr-number>', 'Perform a dry run on the given PR number of the NWO repo', (yargs) => {
+  .command('check <nwo> <pr-number>', 'Perform a dry run on the given PR number of the NWO repo', (yargs: Argv) => {
     yargs.positional('nwo', {
       describe: 'The name with owner representation of a target repository, e.g. github/github',
       type: 'string'
