@@ -3,7 +3,6 @@
     "target": "es2024",
     "module": "commonjs",
     "moduleResolution": "node",
-    "outDir": "./lib",
     "rootDir": "./src",
     "strict": true,
     "noImplicitAny": false,
