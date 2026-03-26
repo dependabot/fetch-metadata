@@ -1,13 +1,12 @@
 {
   "compilerOptions": {
     "target": "es2024",
-    "module": "commonjs",
-    "moduleResolution": "node",
+    "module": "es2022",
+    "moduleResolution": "bundler",
     "rootDir": "./src",
     "strict": true,
     "noImplicitAny": false,
-    "esModuleInterop": true,
-    "skipLibCheck": true
+    "esModuleInterop": true
   },
   "exclude": ["node_modules"]
 }
