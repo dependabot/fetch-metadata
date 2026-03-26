@@ -5,6 +5,7 @@
   "main": "dist/index.js",
   "scripts": {
     "build": "esbuild src/main.ts --bundle --platform=node --target=node24 --outfile=dist/index.js --format=cjs",
+    "typecheck": "tsc --noEmit",
     "lint": "eslint . --ext .ts",
     "test": "jest",
     "dry-run": "esbuild src/dry-run.ts --bundle --platform=node --target=node24 --format=cjs --outfile=dist/dry-run.js --log-level=warning && node dist/dry-run.js"
