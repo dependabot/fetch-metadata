@@ -15,6 +15,8 @@ on:  # yamllint disable-line rule:truthy
           - patch
         default: "minor"
 
+permissions: {}
+
 jobs:
   Create-PR-To-Bump-Fetch-Metadata-Version:
     runs-on: ubuntu-latest
