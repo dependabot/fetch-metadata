@@ -4,7 +4,7 @@
   "description": "Parse Dependabot commit metadata to automate PR handling",
   "main": "dist/index.js",
   "scripts": {
-    "build": "esbuild src/main.ts --bundle --platform=node --target=node24 --outfile=dist/index.js --format=cjs",
+    "build": "esbuild src/main.ts --bundle --platform=node --target=node24 --outfile=dist/index.js --format=cjs --legal-comments=none",
     "typecheck": "tsc --noEmit",
     "lint": "eslint . --ext .ts",
     "test": "jest",
