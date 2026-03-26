@@ -12,6 +12,8 @@ on:
   release:
     types: [published]
 
+permissions: {}
+
 jobs:
   Move-Tracking-Tag-To-Latest-Release:
     runs-on: ubuntu-latest
