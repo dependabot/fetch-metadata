@@ -1,6 +1,6 @@
  
 import * as github from '@actions/github'
-import { Context } from '@actions/github/lib/context'
+import { Context } from './dependabot/github-context'
 import * as dotenv from 'dotenv'
 import { Argv } from 'yargs'
 import { hideBin } from 'yargs/helpers'

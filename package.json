@@ -24,8 +24,8 @@
   "license": "MIT",
   "dependencies": {
     "@actions/core": "^3.0.0",
-    "@actions/github": "^6.0.1",
-    "@octokit/request-error": "^5.1.1",
+    "@actions/github": "^9.0.0",
+    "@octokit/request-error": "^7.1.0",
     "pluralize": "^8.0.0"
   },
   "devDependencies": {

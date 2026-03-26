@@ -1,7 +1,7 @@
 import * as github from '@actions/github'
 import * as core from '@actions/core'
 import nock from 'nock'
-import { Context } from '@actions/github/lib/context'
+import { Context } from './github-context'
 import { getAlert, getMessage, trimSlashes, getCompatibility } from './verified_commits'
 
 beforeAll(() => {
