@@ -23,7 +23,7 @@
   "author": "dependabot",
   "license": "MIT",
   "dependencies": {
-    "@actions/core": "^1.11.1",
+    "@actions/core": "^3.0.0",
     "@actions/github": "^6.0.1",
     "@octokit/request-error": "^5.1.1",
     "pluralize": "^8.0.0"
