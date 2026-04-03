@@ -41,7 +41,7 @@ Supported inputs are:
 - `github-token` (string)
   - The `GITHUB_TOKEN` secret
   - Defaults to `${{ github.token }}`
-  - Note: this must be set to a [personal access token (PAT)](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token) or an [installation access token (App Token)](https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/generating-an-installation-access-token-for-a-github-app) if you enable `alert-lookup` or `compat-lookup`.
+  - Note: this must be set to a [personal access token (PAT)](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token) or an [installation access token (App Token)](https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/generating-an-installation-access-token-for-a-github-app) if you enable `alert-lookup`.
 - `alert-lookup` (boolean)
   - If `true`, then populate the `alert-state`, `ghsa-id` and `cvss` outputs.
   - Defaults to `false`
@@ -49,7 +49,7 @@ Supported inputs are:
 - `compat-lookup` (boolean)
   - If `true`, then populate the `compatibility-score` output.
   - Defaults to `false`
-  - Note: the `github-token` field must be set to a [personal access token (PAT)](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token).
+  - Note: To use this field, `contents: read` and `pull-requests: read` permissions are required for `secrets.GITHUB_TOKEN`. For more details, see [this](#compatibility-score)
 - `skip-commit-verification` (boolean)
   - If `true`, then the action will not expect the commits to have a verification signature. **It is required to set this to 'true' in GitHub Enterprise Server**
   - Defaults to `false`
@@ -218,6 +218,41 @@ jobs:
         with:
           github-token: ${{ steps.app-token.outputs.token }}
           alert-lookup: true
+```
+
+### Compatibility score
+This is a simple example of how to use `compat-lookup`.
+
+```yml
+name: dependabot-compatibility-score
+
+on:
+  pull_request:
+
+jobs:
+  dependabot:
+    runs-on: ubuntu-latest
+
+    if: github.actor == 'dependabot[bot]'
+
+    # Following is required for compat-lookup
+    permissions:
+      contents: read
+      pull-requests: read
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Dependabot metadata
+        id: metadata
+        uses: dependabot/fetch-metadata@v2
+        with:
+          compat-lookup: true
+
+      - name: Print compatibility-score
+        run: echo "COMPATIBILITY_SCORE=${COMPATIBILITY_SCORE}"
+        env:
+          COMPATIBILITY_SCORE: ${{ steps.metadata.outputs.compatibility-score }}
 ```
 
 ## Notes for project maintainers:
