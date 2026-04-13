@@ -585,6 +585,112 @@ test('it handles pip requirement updates with directory suffix', async () => {
   expect(updatedDependencies[0].newVersion).toEqual('1.42.86')
 })
 
+test('it handles Composer updates where commit message lacks versions but PR title has them', async () => {
+  const commitMessage =
+    'Updates the requirements on [rector/rector](https://github.com/rectorphp/rector) to permit the latest version.\n' +
+    '- [Release notes](https://github.com/rectorphp/rector/releases)\n' +
+    '- [Changelog](https://github.com/rectorphp/rector/blob/main/CHANGELOG.md)\n' +
+    '\n' +
+    '---\n' +
+    'updated-dependencies:\n' +
+    '- dependency-name: rector/rector\n' +
+    '  dependency-type: direct:development\n' +
+    '...\n' +
+    '\n' +
+    'Signed-off-by: dependabot[bot] <support@github.com>'
+  const title = 'Update rector/rector requirement from ^1.2 to ^2.0'
+  const updatedDependencies = await updateMetadata.parse(commitMessage, '', 'dependabot/composer/rector/rector-2.0.4', 'main', undefined, undefined, title)
+
+  expect(updatedDependencies).toHaveLength(1)
+  expect(updatedDependencies[0].dependencyName).toEqual('rector/rector')
+  expect(updatedDependencies[0].updateType).toEqual('version-update:semver-major')
+  expect(updatedDependencies[0].prevVersion).toEqual('1.2')
+  expect(updatedDependencies[0].newVersion).toEqual('2.0')
+})
+
+test('it handles Terraform updates with chore(deps) commit prefix', async () => {
+  const commitMessage =
+    'chore(deps): Update hashicorp/aws requirement from ~> 5.90 to ~> 5.92 in /terraform/test/region/us-west-2\n' +
+    '\n' +
+    '---\n' +
+    'updated-dependencies:\n' +
+    '- dependency-name: hashicorp/aws\n' +
+    '  dependency-type: direct:production\n' +
+    '...\n' +
+    '\n' +
+    'Signed-off-by: dependabot[bot] <support@github.com>'
+  const updatedDependencies = await updateMetadata.parse(commitMessage, '', 'dependabot/terraform/terraform/test/region/us-west-2/hashicorp/aws-5.92', 'main')
+
+  expect(updatedDependencies).toHaveLength(1)
+  expect(updatedDependencies[0].dependencyName).toEqual('hashicorp/aws')
+  expect(updatedDependencies[0].prevVersion).toEqual('5.90')
+  expect(updatedDependencies[0].newVersion).toEqual('5.92')
+  expect(updatedDependencies[0].updateType).toEqual('version-update:semver-minor')
+})
+
+test('it handles Python pip updates where commit lacks versions and PR title is used as fallback', async () => {
+  const commitMessage =
+    'Updates the requirements on [faker](https://github.com/joke2k/faker) to permit the latest version.\n' +
+    '\n' +
+    '---\n' +
+    'updated-dependencies:\n' +
+    '- dependency-name: faker\n' +
+    '  dependency-type: direct:production\n' +
+    '...\n' +
+    '\n' +
+    'Signed-off-by: dependabot[bot] <support@github.com>'
+  const title = 'Update faker requirement from ~=35.0 to ~=35.2 in /asset_api'
+  const updatedDependencies = await updateMetadata.parse(commitMessage, '', 'dependabot/pip/asset_api/faker-35.2', 'main', undefined, undefined, title)
+
+  expect(updatedDependencies).toHaveLength(1)
+  expect(updatedDependencies[0].dependencyName).toEqual('faker')
+  expect(updatedDependencies[0].prevVersion).toEqual('35.0')
+  expect(updatedDependencies[0].newVersion).toEqual('35.2')
+  expect(updatedDependencies[0].updateType).toEqual('version-update:semver-minor')
+})
+
+test('it handles Python pip updates with ~= prefix in PR title for boto3', async () => {
+  const commitMessage =
+    'Updates the requirements on [boto3](https://github.com/boto/boto3) to permit the latest version.\n' +
+    '\n' +
+    '---\n' +
+    'updated-dependencies:\n' +
+    '- dependency-name: boto3\n' +
+    '  dependency-type: direct:production\n' +
+    '...\n' +
+    '\n' +
+    'Signed-off-by: dependabot[bot] <support@github.com>'
+  const title = 'Update boto3 requirement from ~=1.42.73 to ~=1.42.88 in /services/search'
+  const updatedDependencies = await updateMetadata.parse(commitMessage, '', 'dependabot/pip/services/search/boto3-1.42.88', 'main', undefined, undefined, title)
+
+  expect(updatedDependencies).toHaveLength(1)
+  expect(updatedDependencies[0].dependencyName).toEqual('boto3')
+  expect(updatedDependencies[0].prevVersion).toEqual('1.42.73')
+  expect(updatedDependencies[0].newVersion).toEqual('1.42.88')
+  expect(updatedDependencies[0].updateType).toEqual('version-update:semver-patch')
+})
+
+test('it prefers commit message versions over PR title versions', async () => {
+  const commitMessage =
+    'Update boto3 requirement from <=1.42.76 to <=1.42.86 in /app\n' +
+    '\n' +
+    'Updates the requirements on [boto3](https://github.com/boto/boto3) to permit the latest version.\n' +
+    '\n' +
+    '---\n' +
+    'updated-dependencies:\n' +
+    '- dependency-name: boto3\n' +
+    '  dependency-type: direct:production\n' +
+    '...\n' +
+    '\n' +
+    'Signed-off-by: dependabot[bot] <support@github.com>'
+  const title = 'Update boto3 requirement from <=1.42.00 to <=1.42.99 in /app'
+  const updatedDependencies = await updateMetadata.parse(commitMessage, '', 'dependabot/pip/app/boto3-1.42.86', 'main', undefined, undefined, title)
+
+  expect(updatedDependencies).toHaveLength(1)
+  expect(updatedDependencies[0].prevVersion).toEqual('1.42.76')
+  expect(updatedDependencies[0].newVersion).toEqual('1.42.86')
+})
+
 test('it handles duplicate dependency names in metadata links without mixing versions', async () => {
   const commitMessage =
     'Bumps the production group with 2 updates\n' +
