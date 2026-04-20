@@ -93,19 +93,27 @@ Subsequent actions will have access to the following outputs:
 **Note:** By default, these outputs will only be populated if the target Pull Request was opened by Dependabot and contains
 **only** Dependabot-created commits. To override, see `skip-commit-verification` / `skip-verification`.
 
-For workflows initiated by Dependabot (`github.actor == 'dependabot[bot]'`) using the `pull_request_target` event, if the base ref of the pull request was created by Dependabot (`github.event.pull_request.user.login == 'dependabot[bot]'`), the `GITHUB_TOKEN` will be read-only and secrets are not available.
-
 This metadata can be used along with Action's [expression syntax](https://docs.github.com/en/actions/reference/context-and-expression-syntax-for-github-actions#functions) and the [GitHub CLI](https://github.com/cli/cli) to create
 useful automation for your Dependabot PRs.
+
+> [!NOTE]
+> Workflows triggered by Dependabot on the `pull_request` event [run with a read-only `GITHUB_TOKEN`](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#permissions-for-workflow-runs-triggered-by-dependabot) and cannot access user-defined repository or organization secrets. The GitHub-provided token is still available, but only with read-only permissions (prefer `github.token` when referring to that built-in token in examples). If your workflow needs write permissions or access to user-defined secrets, use the [`pull_request_target`](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#pull_request_target) event or a separate workflow triggered by [`workflow_run`](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#workflow_run). The examples below use `pull_request_target` for this reason.
 
 ### Auto-approving
 
 Since the `dependabot/fetch-metadata` Action will set a failure code if it cannot find any metadata, you can
 have a permissive auto-approval on all Dependabot PRs like so:
 
+> [!NOTE]
+> The `GITHUB_TOKEN` approval will come from the `github-actions[bot]` user.
+> If your branch protection rules use ["Require approval of the most recent reviewable push"](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches#require-pull-request-reviews-before-merging)
+> or restrict which users/teams can provide approving reviews, this approval may not satisfy your merge requirements.
+> In those cases, consider using a [PAT](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token)
+> or [GitHub App token](https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/generating-an-installation-access-token-for-a-github-app) instead, but store that credential as a secret, grant it the least privilege needed, and do not expose it to untrusted or PR-controlled code paths. This is especially important for workflows triggered by `pull_request_target`: do not make such secrets available to steps that run code from the pull request.
+
 ```yaml
 name: Dependabot auto-approve
-on: pull_request
+on: pull_request_target
 permissions:
   pull-requests: write
 jobs:
@@ -133,13 +141,13 @@ jobs:
 ### Enabling auto-merge
 
 If you are using [the auto-merge feature](https://docs.github.com/en/github/collaborating-with-pull-requests/incorporating-changes-from-a-pull-request/automatically-merging-a-pull-request) on your repository,
-you can set up an action that will enable Dependabot PRs to merge once CI and other [branch protection rules](https://docs.github.com/en/github/administering-a-repository/defining-the-mergeability-of-pull-requests/managing-a-branch-protection-rule) are met.  (Note that you must use a [personal access token (PAT)](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token) when executing the merge instruction.)
+you can set up an action that will enable Dependabot PRs to merge once CI and other [branch protection rules](https://docs.github.com/en/github/administering-a-repository/defining-the-mergeability-of-pull-requests/managing-a-branch-protection-rule) are met. Enabling auto-merge requires [write permissions](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/incorporating-changes-from-a-pull-request/automatically-merging-a-pull-request#enabling-auto-merge) on the repository. When using `pull_request_target`, the `GITHUB_TOKEN` [has read/write access](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#permissions) and satisfies this requirement when configured with `contents: write` and `pull-requests: write`.
 
 For example, if you want to automatically merge all patch updates to Rails:
 
 ```yaml
 name: Dependabot auto-merge
-on: pull_request
+on: pull_request_target
 permissions:
   pull-requests: write
   contents: write
@@ -166,7 +174,7 @@ For example, if you want to flag all production dependency updates with a label:
 
 ```yaml
 name: Dependabot auto-label
-on: pull_request
+on: pull_request_target
 permissions:
   pull-requests: write
   issues: write
@@ -225,12 +233,12 @@ jobs:
 <details><summary>:book: Release guide</summary>
 <p>
 
-  ## Dependabot PR's
+## Dependabot PRs
 
-  - We expect Dependabot PRs to be passing CI and have any changes to the `dist/` folder built for production dependencies
-  - Some development dependencies may fail the `dist/` check if they modify the Typescript compilation, these should be updated manually via `npm run build`. See the [`dependabot-build`](https://github.com/dependabot/fetch-metadata/blob/main/.github/workflows/dependabot-build.yml) action for details.
+- We expect Dependabot PRs to be passing CI and have any changes to the `dist/` folder built for production dependencies
+- Some development dependencies may fail the `dist/` check if they modify the TypeScript compilation, these should be updated manually via `npm run build`. See the [`dependabot-build`](https://github.com/dependabot/fetch-metadata/blob/main/.github/workflows/dependabot-build.yml) action for details.
 
- ## Tagging a new release
+## Tagging a new release
 
   Publish a new release by running the [`Release - Bump Version`](https://github.com/dependabot/fetch-metadata/actions/workflows/release-bump-version.yml) workflow and following the instructions on the job summary.
 
