@@ -1,6 +1,6 @@
 {
   "name": "dependabot-pull-request-action",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "description": "Parse Dependabot commit metadata to automate PR handling",
   "main": "dist/index.js",
   "scripts": {
@@ -24,7 +24,7 @@
   "license": "MIT",
   "dependencies": {
     "@actions/core": "^3.0.0",
-    "@actions/github": "^9.0.0",
+    "@actions/github": "^9.1.0",
     "@octokit/request-error": "^7.1.0",
     "pluralize": "^8.0.0"
   },
@@ -38,12 +38,12 @@
     "@typescript-eslint/eslint-plugin": "^8.32.1",
     "@typescript-eslint/parser": "^8.32.1",
     "dotenv": "^16.5.0",
-    "esbuild": "^0.27.4",
+    "esbuild": "^0.28.0",
     "eslint": "^9.26.0",
     "eslint-plugin-import": "^2.31.0",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-promise": "^7.2.1",
-    "globals": "^16.0.0",
+    "globals": "^17.5.0",
     "jest": "^29.7.0",
     "nock": "^14.0.4",
     "ts-jest": "^29.3.3",

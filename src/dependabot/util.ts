@@ -24,3 +24,8 @@ export function getBody (context: Context): string {
   const { pull_request: pr } = context.payload
   return pr?.body || ''
 }
+
+export function getTitle (context: Context): string {
+  const { pull_request: pr } = context.payload
+  return pr?.title || ''
+}

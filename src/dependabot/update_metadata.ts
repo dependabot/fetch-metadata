@@ -66,9 +66,11 @@ function branchNameToDirectoryName (chunks: string[], delimiter: string, updated
   return `/${chunks.slice(sliceStart, sliceEnd).join('/')}`
 }
 
-export async function parse (commitMessage: string, body: string, branchName: string, mainBranch: string, lookup?: alertLookup, getScore?: scoreLookup): Promise<Array<updatedDependency>> {
+export async function parse (commitMessage: string, body: string, branchName: string, mainBranch: string, lookup?: alertLookup, getScore?: scoreLookup, title?: string): Promise<Array<updatedDependency>> {
+  const updateRegex = /\b[Uu]pdate .* requirement from \S*? ?(?<from>v?\d\S*) to \S*? ?(?<to>v?\d\S*)/
   const bumpFragment = commitMessage.match(/^Bumps .* from (?<from>v?\d[^ ]*) to (?<to>v?\d[^ ]*)\.$/m)
-  const updateFragment = commitMessage.match(/^Update .* requirement from \S*? ?(?<from>v?\d\S*) to \S*? ?(?<to>v?\d\S*)$/m)
+  const updateFragment = commitMessage.split('\n')[0].match(updateRegex)
+  const titleUpdateFragment = (!bumpFragment && !updateFragment && title) ? title.match(updateRegex) : null
   const yamlFragment = commitMessage.match(/^-{3}\n(?<dependencies>[\S|\s]*?)\n^\.{3}\n/m)
   const groupName = commitMessage.match(/dependency-group:\s(?<name>\S*)/m)
   const newMaintainer = !!body.match(/Maintainer changes/m)
@@ -81,17 +83,21 @@ export async function parse (commitMessage: string, body: string, branchName: st
     // Since we are on the `dependabot` branch (9 letters), the 10th letter in the branch name is the delimiter
     const delim = branchName[10]
     const chunks = branchName.split(delim)
-    const prev = bumpFragment?.groups?.from ?? (updateFragment?.groups?.from ?? '')
-    const next = bumpFragment?.groups?.to ?? (updateFragment?.groups?.to ?? '')
+    const prev = bumpFragment?.groups?.from ?? updateFragment?.groups?.from ?? titleUpdateFragment?.groups?.from ?? ''
+    const next = bumpFragment?.groups?.to ?? updateFragment?.groups?.to ?? titleUpdateFragment?.groups?.to ?? ''
     const dependencyGroup = groupName?.groups?.name ?? ''
 
     if (data['updated-dependencies']) {
       const updatedVersions = parseMetadataLinks(commitMessage)
       const dirname = branchNameToDirectoryName(chunks, delim, data['updated-dependencies'], dependencyGroup)
+      const nameCounters: Map<string, number> = new Map()
 
       return await Promise.all(data['updated-dependencies'].map(async (dependency: any, index: number) => {
         const dependencyName = dependency['dependency-name']
-        const updatedVersion = updatedVersions.get(dependencyName)
+        const nameIndex = nameCounters.get(dependencyName) ?? 0
+        nameCounters.set(dependencyName, nameIndex + 1)
+        const updatedVersionList = updatedVersions.get(dependencyName)
+        const updatedVersion = updatedVersionList?.[nameIndex]
         const lastVersion = updatedVersion?.prevVersion || (index === 0 ? prev : '')
         const nextVersion = dependency['dependency-version'] || updatedVersion?.newVersion || (index === 0 ? next : '')
         const updateType = dependency['update-type'] || calculateUpdateType(lastVersion, nextVersion)
@@ -125,20 +131,26 @@ export async function parse (commitMessage: string, body: string, branchName: st
  * **NOTE**: This data is only available if more than one dependency is updated in a single PR.
  *
  * @param commitMessage - The commit message containing metadata links.
- * @returns A map from the name of the dependency to an updatedDependency object containing the old and new versions.
+ * @returns A map from each dependency name to an array of version pairs containing the old and new versions for that dependency.
  */
-function parseMetadataLinks(commitMessage: string): Map<string, dependencyVersions> {
-  const updates: Map<string, dependencyVersions> = new Map()
+function parseMetadataLinks(commitMessage: string): Map<string, dependencyVersions[]> {
+  const updates: Map<string, dependencyVersions[]> = new Map()
   const updatesExpr: RegExp = /^Updates `(?<dependencyName>\S+)` (from (?<from>\S+) )?to (?<to>\S+)$/gm
   let match: RegExpExecArray | null
   while ((match = updatesExpr.exec(commitMessage)) !== null) {
     const groups = match.groups
     if (groups) {
       const dependencyName = groups.dependencyName
-      updates.set(dependencyName, {
+      const entry: dependencyVersions = {
         prevVersion: groups.from ?? '',
         newVersion: groups.to
-      })
+      }
+      const existing = updates.get(dependencyName)
+      if (existing) {
+        existing.push(entry)
+      } else {
+        updates.set(dependencyName, [entry])
+      }
     }
   }
   return updates
