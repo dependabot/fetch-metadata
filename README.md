@@ -49,7 +49,7 @@ Supported inputs are:
 - `compat-lookup` (boolean)
   - If `true`, then populate the `compatibility-score` output.
   - Defaults to `false`
-  - Note: To use this field, `contents: read` and `pull-requests: read` permissions are required for `secrets.GITHUB_TOKEN`. For more details, see [this](#compatibility-score)
+  - Note: To use this field with the default `${{ github.token }}`, `pull-requests: read` permission is required. If your workflow also checks out the repository or otherwise reads repository contents, `contents: read` may also be needed. For more details, see [this](#compatibility-score)
 - `skip-commit-verification` (boolean)
   - If `true`, then the action will not expect the commits to have a verification signature. **It is required to set this to 'true' in GitHub Enterprise Server**
   - Defaults to `false`
@@ -245,7 +245,6 @@ jobs:
 
     # Following is required for compat-lookup
     permissions:
-      contents: read
       pull-requests: read
 
     steps:
