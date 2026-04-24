@@ -1,4 +1,3 @@
- 
 import * as github from '@actions/github'
 import { Context } from './dependabot/github-context'
 import * as dotenv from 'dotenv'
@@ -7,7 +6,7 @@ import { hideBin } from 'yargs/helpers'
 
 import { getMessage, getAlert, getCompatibility } from './dependabot/verified_commits'
 import { parse } from './dependabot/update_metadata'
-import { getBranchNames, parseNwo } from './dependabot/util'
+import { getBranchNames, parseNwo, getNumberInput } from './dependabot/util'
 
 async function check (args: any): Promise<void> {
   try {
@@ -51,7 +50,8 @@ async function check (args: any): Promise<void> {
     if (commitMessage) {
       console.log('This appears to be a valid Dependabot Pull Request.')
       const branchNames = getBranchNames(newContext)
-      const lookupFn = (name: string, version: string, directory: string) => getAlert(name, version, directory, githubClient, actionContext)
+      const fetchDepth = getNumberInput('fetch-depth', 0)
+      const lookupFn = (name: string, version: string, directory: string) => getAlert(name, version, directory, githubClient, actionContext, fetchDepth)
 
       const updatedDependencies = await parse(commitMessage, pullRequest.body, branchNames.headName, branchNames.baseName, lookupFn, getCompatibility)
 
