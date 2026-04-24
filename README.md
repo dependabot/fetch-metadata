@@ -241,7 +241,7 @@ jobs:
   dependabot:
     runs-on: ubuntu-latest
 
-    if: github.actor == 'dependabot[bot]'
+    if: github.event.pull_request.user.login == 'dependabot[bot]'
 
     # Following is required for compat-lookup
     permissions:
