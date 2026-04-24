@@ -235,7 +235,7 @@ This is a simple example of how to use `compat-lookup`.
 name: dependabot-compatibility-score
 
 on:
-  pull_request:
+  pull_request_target:
 
 jobs:
   dependabot:
