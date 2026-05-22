@@ -21,6 +21,10 @@ inputs:
     type: boolean
     description: 'If true, the action will not validate the user or the commit verification status'
     default: false
+  fetch-depth:
+    description: The number of vulnerability alerts to fetch, <= 0 for all
+    required: false
+    default: '0'
 outputs:
   dependency-names:
     description: 'A comma-separated list of all package names updated.'
