@@ -31660,8 +31660,10 @@ async function parse3(commitMessage, body, branchName, mainBranch, lookup, getSc
         nameCounters.set(dependencyName, nameIndex + 1);
         const updatedVersionList = updatedVersions.get(dependencyName);
         const updatedVersion = updatedVersionList?.[nameIndex];
-        const lastVersion = updatedVersion?.prevVersion || (index === 0 ? prev : "");
-        const nextVersion = dependency["dependency-version"] || updatedVersion?.newVersion || (index === 0 ? next : "");
+        const dependencyVersion = dependency["dependency-version"];
+        const isDockerDigestOnlyUpdate = chunks[1] === "docker" && !!dependencyVersion && !dependency["update-type"] && isMarkdownCodeSpan(updatedVersion?.prevVersion) && isMarkdownCodeSpan(updatedVersion?.newVersion);
+        const lastVersion = isDockerDigestOnlyUpdate ? dependencyVersion : updatedVersion?.prevVersion || (index === 0 ? prev : "");
+        const nextVersion = dependencyVersion || updatedVersion?.newVersion || (index === 0 ? next : "");
         const updateType = dependency["update-type"] || calculateUpdateType(lastVersion, nextVersion);
         return {
           dependencyName: dependency["dependency-name"],
@@ -31703,6 +31705,9 @@ function parseMetadataLinks(commitMessage) {
     }
   }
   return updates;
+}
+function isMarkdownCodeSpan(value) {
+  return !!value && value.startsWith("`") && value.endsWith("`");
 }
 function calculateUpdateType(lastVersion, nextVersion) {
   if (!lastVersion || !nextVersion || lastVersion === nextVersion) {
