@@ -31563,33 +31563,83 @@ async function getMessage(client, context3, skipCommitVerification = false, skip
   }
   return commit.message;
 }
-async function getAlert(name, version, directory, client, context3) {
-  const alerts = await client.graphql(`
-     {
-       repository(owner: "${context3.repo.owner}", name: "${context3.repo.repo}") { 
-         vulnerabilityAlerts(first: 100) {
-           nodes {
-             vulnerableManifestFilename
-             vulnerableManifestPath
-             vulnerableRequirements
-             state
-             securityVulnerability { 
-               package { name } 
-             }
-             securityAdvisory { 
+function createFetchVulnerabilityAlertsQuery(repoOwner, repoName, nResults = 100, endCursor) {
+  const first = nResults < 1 || nResults > 100 ? 100 : nResults;
+  return `
+    {
+      repository(owner: "${repoOwner}", name: "${repoName}") {
+        vulnerabilityAlerts(first: ${first} ${endCursor ? ', after: "' + endCursor + '"' : ""}) {
+          nodes {
+            vulnerableManifestFilename
+            vulnerableManifestPath
+            vulnerableRequirements
+            state
+            securityVulnerability {
+              package { name }
+            }
+            securityAdvisory {
               cvss { score }
-              ghsaId 
-             }
-           }
-         }
-       }
-     }`);
-  const nodes = alerts?.repository?.vulnerabilityAlerts?.nodes;
-  const found = nodes.find((a) => (version === "" || a.vulnerableRequirements === `= ${version}`) && trimSlashes(a.vulnerableManifestPath) === trimSlashes(`${directory}/${a.vulnerableManifestFilename}`) && a.securityVulnerability.package.name === name);
+              ghsaId
+            }
+          }
+          pageInfo {
+            hasNextPage
+            endCursor
+          }
+        }
+      }
+    }`;
+}
+function createFindAlertFunction(name, version, directory) {
+  return function(repoAlert) {
+    return (version === "" || repoAlert.vulnerableRequirements === `${version}` || repoAlert.vulnerableRequirements === `= ${version}`) && trimSlashes(repoAlert.vulnerableManifestPath) === trimSlashes(`${directory}/${repoAlert.vulnerableManifestFilename}`) && repoAlert.securityVulnerability.package.name === name;
+  };
+}
+async function fetchAndFilterVulnerabilityAlerts(client, repoOwner, repoName, fetchDepth, findFn, endCursor) {
+  let fetchedResults = 0;
+  while (true) {
+    debug(`Fetching vulnerability alerts for cursor ${endCursor ?? "start"}`);
+    const query = createFetchVulnerabilityAlertsQuery(repoOwner, repoName, fetchDepth - fetchedResults, endCursor);
+    const result = await client.graphql(query);
+    const vulnerabilityAlerts = result.repository.vulnerabilityAlerts;
+    const nodes = vulnerabilityAlerts.nodes;
+    const found = nodes.find(findFn);
+    if (found) {
+      return found;
+    }
+    const pageInfo = vulnerabilityAlerts.pageInfo;
+    if (!pageInfo.hasNextPage) {
+      return void 0;
+    }
+    fetchedResults += nodes.length;
+    if (fetchDepth > 0 && fetchedResults >= fetchDepth) {
+      warning("Query has more results, but reached number of max results configured via fetch-depth");
+      break;
+    }
+    endCursor = pageInfo.endCursor;
+    if (!endCursor) {
+      warning("pageInfo.hasNextPage is true, but endCursor is missing; stopping pagination to avoid infinite loop");
+      break;
+    }
+  }
+  return void 0;
+}
+async function getAlert(name, version, directory, client, context3, fetchDepth = 0) {
+  const findFn = createFindAlertFunction(name, version, directory);
+  const repoAlert = await fetchAndFilterVulnerabilityAlerts(client, context3.repo.owner, context3.repo.repo, fetchDepth, findFn);
+  if (repoAlert) {
+    debug(`Found matching vulnerability alert`);
+    return {
+      alertState: repoAlert?.state ?? "",
+      ghsaId: repoAlert?.securityAdvisory.ghsaId ?? "",
+      cvss: repoAlert?.securityAdvisory.cvss.score ?? 0
+    };
+  }
+  debug(`Did not find matching vulnerability alert`);
   return {
-    alertState: found?.state ?? "",
-    ghsaId: found?.securityAdvisory.ghsaId ?? "",
-    cvss: found?.securityAdvisory.cvss.score ?? 0
+    alertState: "",
+    ghsaId: "",
+    cvss: 0
   };
 }
 function trimSlashes(value) {
@@ -31809,6 +31859,14 @@ function getTitle(context3) {
   const { pull_request: pr } = context3.payload;
   return pr?.title || "";
 }
+function getNumberInput(inputName, defaultVal) {
+  const inputStr = getInput(inputName);
+  let num = Number.parseInt(inputStr, 10);
+  if (Number.isNaN(num)) {
+    return defaultVal;
+  }
+  return num;
+}
 
 // src/main.ts
 async function run() {
@@ -31827,7 +31885,8 @@ async function run() {
     const title = getTitle(context2);
     let alertLookup;
     if (getInput("alert-lookup")) {
-      alertLookup = (name, version, directory) => getAlert(name, version, directory, githubClient, context2);
+      const fetchDepth = getNumberInput("fetch-depth", 0);
+      alertLookup = (name, version, directory) => getAlert(name, version, directory, githubClient, context2, fetchDepth);
     }
     const scoreLookup = getInput("compat-lookup") ? getCompatibility : void 0;
     if (commitMessage) {
