@@ -31548,7 +31548,8 @@ async function getMessage(client, context3, skipCommitVerification = false, skip
     repo: context3.repo.repo,
     pull_number: pr.number
   });
-  const { commit, author } = commits[0];
+  const headCommit = pr.head?.sha ? commits.find(({ sha }) => sha === pr.head.sha) : void 0;
+  const { commit, author } = headCommit ?? commits[0];
   if (!skipVerification && author?.login !== DEPENDABOT_LOGIN) {
     warning(
       "It looks like this PR was not created by Dependabot, refusing to proceed."
