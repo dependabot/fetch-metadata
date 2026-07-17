@@ -149,6 +149,38 @@ test('it returns the commit message for a PR authored exclusively by Dependabot 
   expect(await getMessage(mockGitHubClient, mockGitHubPullContext())).toEqual('Bump lodash from 1.0.0 to 2.0.0')
 })
 
+test('it returns the current head commit message when a Dependabot PR has been updated', async () => {
+  nock('https://api.github.com').get('/repos/dependabot/dependabot/pulls/101/commits')
+    .reply(200, [
+      {
+        sha: 'initial-commit',
+        author: {
+          login: 'dependabot[bot]'
+        },
+        commit: {
+          message: 'Bump lodash from 1.0.0 to 2.0.0',
+          verification: {
+            verified: true
+          }
+        }
+      },
+      {
+        sha: 'updated-commit',
+        author: {
+          login: 'dependabot[bot]'
+        },
+        commit: {
+          message: 'Bump lodash from 1.0.0 to 3.0.0',
+          verification: {
+            verified: true
+          }
+        }
+      }
+    ])
+
+  expect(await getMessage(mockGitHubClient, mockGitHubPullContext('dependabot[bot]', 'updated-commit'))).toEqual('Bump lodash from 1.0.0 to 3.0.0')
+})
+
 const query = '{"query":"\\n     {\\n       repository(owner: \\"dependabot\\", name: \\"dependabot\\") { \\n         vulnerabilityAlerts(first: 100) {\\n           nodes {\\n             vulnerableManifestFilename\\n             vulnerableManifestPath\\n             vulnerableRequirements\\n             state\\n             securityVulnerability { \\n               package { name } \\n             }\\n             securityAdvisory { \\n              cvss { score }\\n              ghsaId \\n             }\\n           }\\n         }\\n       }\\n     }"}'
 
 const response = {
@@ -313,11 +345,12 @@ function mockGitHubOtherContext (): Context {
   return ctx
 }
 
-function mockGitHubPullContext (author = 'dependabot[bot]'): Context {
+function mockGitHubPullContext (author = 'dependabot[bot]', headSha?: string): Context {
   const ctx = new Context()
   ctx.payload = {
     pull_request: {
       number: 101,
+      ...(headSha ? { head: { sha: headSha } } : {}),
       user: {
         login: author
       }

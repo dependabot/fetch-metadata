@@ -35,7 +35,10 @@ export async function getMessage (client: InstanceType<typeof GitHub>, context: 
     pull_number: pr.number
   })
 
-  const { commit, author } = commits[0]
+  const headCommit = pr.head?.sha
+    ? commits.find(({ sha }) => sha === pr.head.sha)
+    : undefined
+  const { commit, author } = headCommit ?? commits[0]
 
   if (!skipVerification && author?.login !== DEPENDABOT_LOGIN) {
     // TODO: Promote to setFailed
