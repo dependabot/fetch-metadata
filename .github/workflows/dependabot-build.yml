@@ -46,7 +46,7 @@ jobs:
           # Check out using an app token so any pushed changes will trigger checkruns
           token: ${{ steps.generate_token.outputs.token }}
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
           cache: 'npm'
