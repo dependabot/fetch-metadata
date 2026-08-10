@@ -16,7 +16,6 @@ jobs:
     if: ${{ github.event.pull_request.user.login == 'dependabot[bot]' }}
     # Map the step output to a job output for subsequent jobs
     outputs:
-      dependency-type: ${{ steps.dependabot-metadata.outputs.dependency-type }}
       package-ecosystem: ${{ steps.dependabot-metadata.outputs.package-ecosystem }}
     steps:
       - uses: actions/checkout@v7
@@ -31,8 +30,8 @@ jobs:
     permissions:
       contents: write
 
-    # We only need to build the dist/ folder if the PR relates a production NPM dependency, otherwise we don't expect changes.
-    if: needs.fetch-dependabot-metadata.outputs.package-ecosystem == 'npm_and_yarn' && needs.fetch-dependabot-metadata.outputs.dependency-type == 'direct:production'
+    # Any npm dependency can affect the bundle, including indirect dependencies and build tooling.
+    if: needs.fetch-dependabot-metadata.outputs.package-ecosystem == 'npm_and_yarn'
     steps:
       - name: Generate token
         id: generate_token
@@ -59,8 +58,14 @@ jobs:
       - name: Check in any change to dist/
         run: |
           git add dist/
+
+          if git diff --cached --quiet -- dist/; then
+            echo "The dependency update does not affect dist/"
+            exit 0
+          fi
+
           # Specifying the full email allows the avatar to show up: https://github.com/orgs/community/discussions/26560
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -m "[dependabot skip] Update dist/ with build changes" || exit 0
+          git commit -m "[dependabot skip] Update dist/ with build changes"
           git push
