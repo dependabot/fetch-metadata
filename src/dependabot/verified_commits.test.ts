@@ -2,7 +2,13 @@ import * as github from '@actions/github'
 import * as core from '@actions/core'
 import nock from 'nock'
 import { Context } from './github-context'
-import { getAlert, getMessage, trimSlashes, getCompatibility } from './verified_commits'
+import {
+  getAlert,
+  getMessage,
+  trimSlashes,
+  getCompatibility,
+  createFetchVulnerabilityAlertsQuery
+} from './verified_commits'
 
 beforeAll(() => {
   nock.disableNetConnect()
@@ -149,7 +155,151 @@ test('it returns the commit message for a PR authored exclusively by Dependabot 
   expect(await getMessage(mockGitHubClient, mockGitHubPullContext())).toEqual('Bump lodash from 1.0.0 to 2.0.0')
 })
 
-const query = '{"query":"\\n     {\\n       repository(owner: \\"dependabot\\", name: \\"dependabot\\") { \\n         vulnerabilityAlerts(first: 100) {\\n           nodes {\\n             vulnerableManifestFilename\\n             vulnerableManifestPath\\n             vulnerableRequirements\\n             state\\n             securityVulnerability { \\n               package { name } \\n             }\\n             securityAdvisory { \\n              cvss { score }\\n              ghsaId \\n             }\\n           }\\n         }\\n       }\\n     }"}'
+test('createFetchVulnerabilityAlertsQuery', () => {
+  expect(createFetchVulnerabilityAlertsQuery("foo", "bar")).toEqual(`
+    {
+      repository(owner: "foo", name: "bar") {
+        vulnerabilityAlerts(first: 100 ) {
+          nodes {
+            vulnerableManifestFilename
+            vulnerableManifestPath
+            vulnerableRequirements
+            state
+            securityVulnerability {
+              package { name }
+            }
+            securityAdvisory {
+              cvss { score }
+              ghsaId
+            }
+          }
+          pageInfo {
+            hasNextPage
+            endCursor
+          }
+        }
+      }
+    }`)
+})
+
+test('createFetchVulnerabilityAlertsQuery with maxResults', () => {
+  expect(createFetchVulnerabilityAlertsQuery("foo", "bar", 0)).toEqual(`
+    {
+      repository(owner: "foo", name: "bar") {
+        vulnerabilityAlerts(first: 100 ) {
+          nodes {
+            vulnerableManifestFilename
+            vulnerableManifestPath
+            vulnerableRequirements
+            state
+            securityVulnerability {
+              package { name }
+            }
+            securityAdvisory {
+              cvss { score }
+              ghsaId
+            }
+          }
+          pageInfo {
+            hasNextPage
+            endCursor
+          }
+        }
+      }
+    }`)
+
+  expect(createFetchVulnerabilityAlertsQuery("foo", "bar", 25)).toEqual(`
+    {
+      repository(owner: "foo", name: "bar") {
+        vulnerabilityAlerts(first: 25 ) {
+          nodes {
+            vulnerableManifestFilename
+            vulnerableManifestPath
+            vulnerableRequirements
+            state
+            securityVulnerability {
+              package { name }
+            }
+            securityAdvisory {
+              cvss { score }
+              ghsaId
+            }
+          }
+          pageInfo {
+            hasNextPage
+            endCursor
+          }
+        }
+      }
+    }`)
+
+  expect(createFetchVulnerabilityAlertsQuery("foo", "bar", 150)).toEqual(`
+    {
+      repository(owner: "foo", name: "bar") {
+        vulnerabilityAlerts(first: 100 ) {
+          nodes {
+            vulnerableManifestFilename
+            vulnerableManifestPath
+            vulnerableRequirements
+            state
+            securityVulnerability {
+              package { name }
+            }
+            securityAdvisory {
+              cvss { score }
+              ghsaId
+            }
+          }
+          pageInfo {
+            hasNextPage
+            endCursor
+          }
+        }
+      }
+    }`)
+})
+
+test('createFetchVulnerabilityAlertsQuery with endCursor', () => {
+  expect(createFetchVulnerabilityAlertsQuery("foo", "bar", 0, "c123")).toEqual(`
+    {
+      repository(owner: "foo", name: "bar") {
+        vulnerabilityAlerts(first: 100 , after: "c123") {
+          nodes {
+            vulnerableManifestFilename
+            vulnerableManifestPath
+            vulnerableRequirements
+            state
+            securityVulnerability {
+              package { name }
+            }
+            securityAdvisory {
+              cvss { score }
+              ghsaId
+            }
+          }
+          pageInfo {
+            hasNextPage
+            endCursor
+          }
+        }
+      }
+    }`)
+})
+
+/**
+ * Wraps the GraphQL query in a json object which would be sent over the wire.
+ *
+ * To get something readable from nock unmatched query error, you can do the opposite steps
+ * in order to get something readable, e.g. via Node REPL:
+ * let s = "unexpected_query"
+ * console.log(JSON.parse(s).query)
+ */
+function createGraphQlJsonBody(maxResults = 100, endCursor?: string): string {
+  const query = createFetchVulnerabilityAlertsQuery('dependabot', 'dependabot', maxResults, endCursor)
+  return JSON.stringify({query})
+}
+
+const query = createGraphQlJsonBody()
 
 const response = {
   data: {
@@ -164,7 +314,10 @@ const response = {
             securityVulnerability: { package: { name: 'coffee-script' } },
             securityAdvisory: { cvss: { score: 4.5 }, ghsaId: 'FOO' }
           }
-        ]
+        ],
+        pageInfo: {
+          hasNextPage: false
+        }
       }
     }
   }
@@ -183,7 +336,10 @@ const responseWithManifestFileAtRoot = {
             securityVulnerability: { package: { name: 'coffee-script' } },
             securityAdvisory: { cvss: { score: 4.5 }, ghsaId: 'FOO' }
           }
-        ]
+        ],
+        pageInfo: {
+          hasNextPage: false
+        }
       }
     }
   }
@@ -247,6 +403,215 @@ test('it returns default if it does not match the name', async () => {
     .reply(200, responseWithManifestFileAtRoot)
 
   expect(await getAlert('coffee', '4.0.1', '/', mockGitHubClient, mockGitHubPullContext())).toEqual({ alertState: '', cvss: 0, ghsaId: '' })
+})
+
+const responseFetchAllPage1 = {
+  data: {
+    repository: {
+      vulnerabilityAlerts: {
+        nodes: [
+          {
+            vulnerableManifestFilename: 'yarn.lock',
+            vulnerableManifestPath: 'yarn.lock',
+            vulnerableRequirements: '= 4.17.11',
+            state: 'FIXED',
+            securityVulnerability: {
+              package: {
+                name: 'lodash'
+              }
+            },
+            securityAdvisory: {
+              cvss: {
+                score: 9.1
+              },
+              ghsaId: 'GHSA-jf85-cpcp-j695'
+            }
+          }
+        ],
+        pageInfo: {
+          hasNextPage: true,
+          endCursor: 'Y3Vyc29yOnYyOpHPAAAAAUU_eqA='
+        }
+      }
+    }
+  }
+}
+
+const defaultAlertFetchDepth = 0
+
+const queryFetchAllPage2 = createGraphQlJsonBody(defaultAlertFetchDepth, responseFetchAllPage1.data.repository.vulnerabilityAlerts.pageInfo.endCursor)
+
+const responseFetchAllPage2 = {
+  data: {
+    repository: {
+      vulnerabilityAlerts: {
+        nodes: [
+          {
+            vulnerableManifestFilename: 'yarn.lock',
+            vulnerableManifestPath: 'yarn.lock',
+            vulnerableRequirements: '= 3.12.0',
+            state: 'FIXED',
+            securityVulnerability: { package: { name: 'js-yaml' } },
+            securityAdvisory: {
+              cvss: { score: 0 },
+              ghsaId: 'GHSA-8j8c-7jfh-h6hx'
+            },
+          },
+        ],
+        pageInfo: {
+          hasNextPage: true,
+          endCursor: 'Y3Vyc29yOnYyOpHOLxj2uQ=='
+        }
+      }
+    }
+  }
+}
+
+const queryFetchAllPage3 = createGraphQlJsonBody(defaultAlertFetchDepth, responseFetchAllPage2.data.repository.vulnerabilityAlerts.pageInfo.endCursor)
+
+test('fetch all vulnerability alert pages', async () => {
+  const queryFetchAllPage1 = query
+  const responseFetchAllPage3 = response
+
+  nock('https://api.github.com')
+    .post('/graphql', queryFetchAllPage1)
+    .reply(200, responseFetchAllPage1)
+    .post('/graphql', queryFetchAllPage2)
+    .reply(200, responseFetchAllPage2)
+    .post('/graphql', queryFetchAllPage3)
+    .reply(200, responseFetchAllPage3)
+
+  expect(
+    await getAlert(
+      'coffee-script',
+      '4.0.1',
+      '/wwwroot',
+      mockGitHubClient,
+      mockGitHubPullContext()
+    )
+  ).toEqual({ alertState: 'DISMISSED', cvss: 4.5, ghsaId: 'FOO' })
+})
+
+test('fetch all vulnerability alert pages, match on page 2', async () => {
+  const queryFetchAllPage1 = query
+
+  nock('https://api.github.com')
+    .post('/graphql', queryFetchAllPage1)
+    .reply(200, responseFetchAllPage1)
+    .post('/graphql', queryFetchAllPage2)
+    .reply(200, responseFetchAllPage2)
+    .post('/graphql', queryFetchAllPage3)
+    .replyWithError('impl should not continue fetching this page')
+
+  expect(
+    await getAlert(
+      'js-yaml',
+      '3.12.0',
+      '/',
+      mockGitHubClient,
+      mockGitHubPullContext()
+    )
+  ).toEqual({ alertState: 'FIXED', cvss: 0, ghsaId: 'GHSA-8j8c-7jfh-h6hx' })
+})
+
+test('fetch all vulnerability alerts, 3 pages, fetch-depth 2', async () => {
+  const queryFetch1 = createGraphQlJsonBody(2)
+  const queryFetch2 = createGraphQlJsonBody(1, responseFetchAllPage1.data.repository.vulnerabilityAlerts.pageInfo.endCursor)
+  const queryFetch3 = createGraphQlJsonBody(100, responseFetchAllPage2.data.repository.vulnerabilityAlerts.pageInfo.endCursor)
+
+  nock('https://api.github.com')
+    .post('/graphql', queryFetch1)
+    .reply(200, responseFetchAllPage1)
+    .post('/graphql', queryFetch2)
+    .reply(200, responseFetchAllPage2)
+    .post('/graphql', queryFetch3)
+    .replyWithError('impl should not continue fetching this page')
+
+  expect(
+    await getAlert(
+      'coffee-script',
+      '4.0.1',
+      '/wwwroot',
+      mockGitHubClient,
+      mockGitHubPullContext(),
+      2
+    )
+  ).toEqual({ alertState: '', cvss: 0, ghsaId: '' })
+
+  expect(core.warning).toHaveBeenCalledWith('Query has more results, but reached number of max results configured via fetch-depth')
+})
+
+test('fetch all vulnerability alerts, 3 pages, fetch-depth 3', async () => {
+  const queryFetch1 = createGraphQlJsonBody(3)
+  const queryFetch2 = createGraphQlJsonBody(2, responseFetchAllPage1.data.repository.vulnerabilityAlerts.pageInfo.endCursor)
+  const queryFetch3 = createGraphQlJsonBody(1, responseFetchAllPage2.data.repository.vulnerabilityAlerts.pageInfo.endCursor)
+  const responseFetchAllPage3 = response
+
+  nock('https://api.github.com')
+    .post('/graphql', queryFetch1)
+    .reply(200, responseFetchAllPage1)
+    .post('/graphql', queryFetch2)
+    .reply(200, responseFetchAllPage2)
+    .post('/graphql', queryFetch3)
+    .reply(200, responseFetchAllPage3)
+
+  expect(
+    await getAlert(
+      'coffee-script',
+      '4.0.1',
+      '/wwwroot',
+      mockGitHubClient,
+      mockGitHubPullContext(),
+      3
+    )
+  ).toEqual({ alertState: 'DISMISSED', cvss: 4.5, ghsaId: 'FOO' })
+})
+
+const responseWithoutEqInFrontOfVulnerableRequirements = {
+  data: {
+    repository: {
+      vulnerabilityAlerts: {
+        nodes: [
+          {
+            vulnerableManifestFilename: 'yarn.lock',
+            vulnerableManifestPath: 'cypress/yarn.lock',
+            vulnerableRequirements: '4.4.0',
+            state: 'OPEN',
+            securityVulnerability: {
+              package: {
+                name: 'terser'
+              }
+            },
+            securityAdvisory: {
+              cvss: {
+                score: 7.5
+              },
+              ghsaId: 'GHSA-4wf5-vphf-c2xc'
+            }
+          }
+        ],
+        pageInfo: {
+          hasNextPage: false
+        }
+      }
+    }
+  }
+}
+
+test('it returns alert without eq in front of vulnerableRequirements', async () => {
+  nock('https://api.github.com')
+    .post('/graphql', query)
+    .reply(200, responseWithoutEqInFrontOfVulnerableRequirements)
+
+  expect(
+    await getAlert(
+      'terser',
+      '4.4.0',
+      '/cypress',
+      mockGitHubClient,
+      mockGitHubPullContext()
+    )
+  ).toEqual({ alertState: 'OPEN', cvss: 7.5, ghsaId: 'GHSA-4wf5-vphf-c2xc' })
 })
 
 test('trimSlashes should only trim slashes from both ends', () => {
