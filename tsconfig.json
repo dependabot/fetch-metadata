@@ -5,7 +5,8 @@
     "moduleResolution": "bundler",
     "rootDir": "./src",
     "strict": true,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "types": ["node", "jest"]
   },
   "exclude": ["node_modules"]
 }
