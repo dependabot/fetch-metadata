@@ -30,7 +30,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.7",
-    "@eslint/js": "^10.0.1",
+    "@eslint/js": "^9.26.0",
     "@types/jest": "^30.0.0",
     "@types/node": "^26.6.2",
     "@types/pluralize": "^0.0.33",
@@ -39,7 +39,7 @@
     "@typescript-eslint/parser": "^8.67.0",
     "dotenv": "^18.0.3",
     "esbuild": "^0.28.2",
-    "eslint": "^10.11.0",
+    "eslint": "^9.26.0",
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-promise": "^7.3.0",
@@ -47,7 +47,7 @@
     "jest": "^30.5.2",
     "nock": "^14.0.17",
     "ts-jest": "^29.4.12",
-    "typescript": "^7.0.2",
+    "typescript": "^6.0.3",
     "yaml": "^2.9.1",
     "yargs": "^18.2.0"
   }
