@@ -536,6 +536,54 @@ updated-dependencies:
   expect(updatedDependencies[1].newVersion).toEqual('1.27.1')
 })
 
+test('it handles Docker digest-only updates without classifying the tag as changed', async () => {
+  const commitMessage = `Bumps the docker group with 1 update: shawntoffel/dependabot-digest-test.
+
+
+Updates \`shawntoffel/dependabot-digest-test\` from \`e1b523f\` to \`5fdf1f3\`
+
+---
+updated-dependencies:
+- dependency-name: shawntoffel/dependabot-digest-test
+  dependency-version: 1.0-alpine3.24
+  dependency-type: direct:production
+  dependency-group: docker
+...
+
+Signed-off-by: dependabot[bot] <support@github.com>
+`
+  const updatedDependencies = await updateMetadata.parse(commitMessage, '', 'dependabot/docker/docker-2b208d09c0', 'master')
+
+  expect(updatedDependencies).toHaveLength(1)
+  expect(updatedDependencies[0].dependencyName).toEqual('shawntoffel/dependabot-digest-test')
+  expect(updatedDependencies[0].updateType).toEqual('')
+  expect(updatedDependencies[0].prevVersion).toEqual('1.0-alpine3.24')
+  expect(updatedDependencies[0].newVersion).toEqual('1.0-alpine3.24')
+})
+
+test('it does not suppress updates between Docker tags that are commit SHAs', async () => {
+  const previousTag = '0123456789abcdef0123456789abcdef01234567'
+  const nextTag = '89abcdef0123456789abcdef0123456789abcdef'
+  const commitMessage = `Bumps the docker group with 1 update: example/image.
+
+Updates \`example/image\` from \`${previousTag.slice(0, 7)}\` to \`${nextTag.slice(0, 7)}\`
+
+---
+updated-dependencies:
+- dependency-name: example/image
+  dependency-version: ${nextTag}
+  dependency-type: direct:production
+  dependency-group: docker
+...
+`
+  const updatedDependencies = await updateMetadata.parse(commitMessage, '', 'dependabot/docker/docker-2b208d09c0', 'main')
+
+  expect(updatedDependencies).toHaveLength(1)
+  expect(updatedDependencies[0].prevVersion).toEqual('`0123456`')
+  expect(updatedDependencies[0].newVersion).toEqual(nextTag)
+  expect(updatedDependencies[0].updateType).not.toEqual('')
+})
+
 test('it handles new versions from YAML', async () => {
   const commitMessage = `Bump the non-breaking group in /log4j-parent with 2 updates
 
