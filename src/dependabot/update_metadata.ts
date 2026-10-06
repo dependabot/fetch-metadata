@@ -98,8 +98,17 @@ export async function parse (commitMessage: string, body: string, branchName: st
         nameCounters.set(dependencyName, nameIndex + 1)
         const updatedVersionList = updatedVersions.get(dependencyName)
         const updatedVersion = updatedVersionList?.[nameIndex]
-        const lastVersion = updatedVersion?.prevVersion || (index === 0 ? prev : '')
-        const nextVersion = dependency['dependency-version'] || updatedVersion?.newVersion || (index === 0 ? next : '')
+        const dependencyVersion = dependency['dependency-version']
+        // Digest-only Docker updates code-format the digests while dependency-version contains the unchanged tag.
+        const isDockerDigestOnlyUpdate = chunks[1] === 'docker' &&
+          !!dependencyVersion &&
+          !dependency['update-type'] &&
+          isMarkdownCodeSpan(updatedVersion?.prevVersion) &&
+          isMarkdownCodeSpan(updatedVersion?.newVersion) &&
+          !!updatedVersion?.newVersion &&
+          !dependencyVersion.startsWith(updatedVersion.newVersion.slice(1, -1))
+        const lastVersion = isDockerDigestOnlyUpdate ? dependencyVersion : updatedVersion?.prevVersion || (index === 0 ? prev : '')
+        const nextVersion = dependencyVersion || updatedVersion?.newVersion || (index === 0 ? next : '')
         const updateType = dependency['update-type'] || calculateUpdateType(lastVersion, nextVersion)
         return {
           dependencyName: dependency['dependency-name'],
@@ -154,6 +163,10 @@ function parseMetadataLinks(commitMessage: string): Map<string, dependencyVersio
     }
   }
   return updates
+}
+
+function isMarkdownCodeSpan (value?: string): boolean {
+  return !!value && value.startsWith('`') && value.endsWith('`')
 }
 
 export function calculateUpdateType (lastVersion: string, nextVersion: string) {
