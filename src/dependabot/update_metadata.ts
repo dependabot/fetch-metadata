@@ -32,8 +32,8 @@ export interface scoreLookup {
 }
 
 function branchNameToDirectoryName (chunks: string[], delimiter: string, updatedDependencies: any, dependencyGroup: string): string {
-  // We can always slice after the first 2 pieces, because they will always contain "dependabot" followed by the name
-  // of the package ecosystem. e.g. "dependabot/npm_and_yarn".
+  // The first 2 pieces contain the branch prefix and package ecosystem,
+  // e.g. "dependabot/npm_and_yarn" or "chore/npm_and_yarn".
   const sliceStart = 2
   let sliceEnd = chunks.length
 
@@ -77,11 +77,14 @@ export async function parse (commitMessage: string, body: string, branchName: st
   const lookupFn = lookup ?? (() => Promise.resolve({ alertState: '', ghsaId: '', cvss: 0 }))
   const scoreFn = getScore ?? (() => Promise.resolve(0))
 
-  if (yamlFragment?.groups && branchName.startsWith('dependabot')) {
+  const slashSeparated = /^[^/]+\/[^/]+\/.+/.test(branchName)
+
+  if (yamlFragment?.groups && (slashSeparated || branchName.startsWith('dependabot'))) {
     const data = YAML.parse(yamlFragment.groups.dependencies)
 
-    // Since we are on the `dependabot` branch (9 letters), the 10th letter in the branch name is the delimiter
-    const delim = branchName[10]
+    // Custom prefixes use the conventional PREFIX/ECOSYSTEM/... structure.
+    // Preserve alternate separators for branches with the default prefix.
+    const delim = slashSeparated ? '/' : branchName[10]
     const chunks = branchName.split(delim)
     const prev = bumpFragment?.groups?.from ?? updateFragment?.groups?.from ?? titleUpdateFragment?.groups?.from ?? ''
     const next = bumpFragment?.groups?.to ?? updateFragment?.groups?.to ?? titleUpdateFragment?.groups?.to ?? ''
