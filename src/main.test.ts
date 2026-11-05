@@ -75,6 +75,46 @@ test('it does nothing if there is no metadata in the commit', async () => {
    
 })
 
+test('it outputs verified metadata from a custom-prefix branch', async () => {
+  const commitMessage = `Bumps the dependencies group with 1 update.
+
+---
+updated-dependencies:
+- dependency-name: actions/checkout
+  dependency-type: direct:production
+  update-type: version-update:semver-major
+  dependency-group: dependencies
+...
+`
+  jest.spyOn(core, 'getInput').mockImplementation(name => name === 'github-token' ? 'mock-token' : '')
+  jest.spyOn(core, 'setOutput').mockImplementation(jest.fn())
+  jest.spyOn(util, 'getBranchNames').mockReturnValue({
+    headName: 'chore/github-actions/dependencies-fca3083807', baseName: 'main'
+  })
+  jest.spyOn(dependabotCommits, 'getMessage').mockResolvedValue(commitMessage)
+
+  await run()
+
+  expect(core.setFailed).not.toHaveBeenCalled()
+  expect(core.setOutput).toHaveBeenCalledWith('dependency-names', 'actions/checkout')
+  expect(core.setOutput).toHaveBeenCalledWith('directory', '/')
+  expect(core.setOutput).toHaveBeenCalledWith('package-ecosystem', 'github-actions')
+})
+
+test('a custom-prefix branch does not bypass failed Dependabot verification', async () => {
+  jest.spyOn(core, 'getInput').mockImplementation(name => name === 'github-token' ? 'mock-token' : '')
+  jest.spyOn(core, 'setOutput').mockImplementation(jest.fn())
+  jest.spyOn(util, 'getBranchNames').mockReturnValue({
+    headName: 'chore/github-actions/dependencies-fca3083807', baseName: 'main'
+  })
+  jest.spyOn(dependabotCommits, 'getMessage').mockResolvedValue(false)
+
+  await run()
+
+  expect(core.setFailed).toHaveBeenCalledWith('PR is not from Dependabot, nothing to do.')
+  expect(core.setOutput).not.toHaveBeenCalled()
+})
+
 test('it sets the updated dependency as an output for subsequent actions when given a commit message for application', async () => {
   const mockCommitMessage =
     'Bumps [coffee-rails](https://github.com/rails/coffee-rails) from 4.0.1 to 4.2.2.\n' +

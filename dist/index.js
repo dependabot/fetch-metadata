@@ -31690,9 +31690,10 @@ async function parse3(commitMessage, body, branchName, mainBranch, lookup, getSc
   const newMaintainer = !!body.match(/Maintainer changes/m);
   const lookupFn = lookup ?? (() => Promise.resolve({ alertState: "", ghsaId: "", cvss: 0 }));
   const scoreFn = getScore ?? (() => Promise.resolve(0));
-  if (yamlFragment?.groups && branchName.startsWith("dependabot")) {
+  const slashSeparated = /^[^/]+\/[^/]+\/.+/.test(branchName);
+  if (yamlFragment?.groups && (slashSeparated || branchName.startsWith("dependabot"))) {
     const data = YAML.parse(yamlFragment.groups.dependencies);
-    const delim = branchName[10];
+    const delim = slashSeparated ? "/" : branchName[10];
     const chunks = branchName.split(delim);
     const prev = bumpFragment?.groups?.from ?? updateFragment?.groups?.from ?? titleUpdateFragment?.groups?.from ?? "";
     const next = bumpFragment?.groups?.to ?? updateFragment?.groups?.to ?? titleUpdateFragment?.groups?.to ?? "";
