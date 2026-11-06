@@ -614,6 +614,39 @@ updated-dependencies:
   expect(updatedDependencies[1].newVersion).toEqual('1.27.1')
 })
 
+test('it handles grouped Maven updates with the format from issue 602', async () => {
+  const commitMessage = `NOJIRA | Dependabot | Bump io.netty:netty-common
+Bumps the maven group in /xxx_core with 1 update: [io.netty:netty-common](https://github.com/netty/netty).
+
+Updates \`io.netty:netty-common\` from 4.1.115.Final to 4.1.118.Final
+- [Commits](https://github.com/netty/netty/compare/netty-4.1.115.Final...netty-4.1.118.Final)
+
+---
+updated-dependencies:
+- dependency-name: io.netty:netty-common
+  dependency-type: direct:production
+  dependency-group: maven
+...
+
+Signed-off-by: dependabot[bot] <support@github.com>`
+
+  const updatedDependencies = await updateMetadata.parse(
+    commitMessage, '', 'dependabot/maven/xxx_core/maven-abc123', 'main'
+  )
+
+  expect(updatedDependencies).toHaveLength(1)
+  expect(updatedDependencies[0]).toMatchObject({
+    dependencyName: 'io.netty:netty-common',
+    dependencyType: 'direct:production',
+    dependencyGroup: 'maven',
+    directory: '/xxx_core',
+    packageEcosystem: 'maven',
+    prevVersion: '4.1.115.Final',
+    newVersion: '4.1.118.Final',
+    updateType: 'version-update:semver-patch'
+  })
+})
+
 test('it handles new versions from YAML', async () => {
   const commitMessage = `Bump the non-breaking group in /log4j-parent with 2 updates
 
