@@ -28,6 +28,10 @@
     "@octokit/request-error": "^7.1.2",
     "pluralize": "^8.0.0"
   },
+  "overrides": {
+    "glob@13": "14.0.0",
+    "minimatch@>=10 <12": "11.0.1"
+  },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.7",
     "@eslint/js": "^9.26.0",
