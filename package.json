@@ -29,8 +29,8 @@
     "pluralize": "^8.0.0"
   },
   "overrides": {
-    "glob@13": "14.0.0",
-    "minimatch@>=10 <12": "11.0.1"
+    "glob@10 || 13": "14.0.0",
+    "minimatch@>=9 <12": "11.0.1"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.7",

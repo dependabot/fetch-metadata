@@ -11,7 +11,11 @@ test('the lockfile excludes minimatch affected by GHSA-g3hv-75wg-m249', () => {
     .map(([, entry]) => (entry as { version: string }).version)
 
   expect(versions.length).toBeGreaterThan(0)
-  expect(versions).not.toContain('10.2.6')
+  for (const version of versions) {
+    const major = Number(version.split('.')[0])
+    expect(major < 7 || major >= 11).toBe(true)
+    expect(version).not.toBe('11.0.0')
+  }
 })
 
 test('glob still discovers files with wildcard and globstar patterns', () => {
@@ -21,4 +25,18 @@ test('glob still discovers files with wildcard and globstar patterns', () => {
     'src/main.test.ts',
     'src/dependabot/update_metadata.test.ts'
   ]))
+})
+
+test('test-exclude preserves synchronous and asynchronous file filtering', async () => {
+  const TestExclude = require('test-exclude')
+  const exclude = new TestExclude({
+    cwd: resolve(root, 'src/dependabot'),
+    extension: ['.ts'],
+    exclude: ['**/*.test.ts']
+  })
+  const files = exclude.globSync()
+
+  expect(files).toContain('output.ts')
+  expect(files).not.toContain('output.test.ts')
+  expect((await exclude.glob()).sort()).toEqual(files.sort())
 })
