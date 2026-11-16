@@ -1,3 +1,4 @@
+import * as core from '@actions/core'
 import * as YAML from 'yaml'
 
 export interface dependencyAlert {
@@ -102,6 +103,13 @@ export async function parse (commitMessage: string, body: string, branchName: st
         const updatedVersionList = updatedVersions.get(dependencyName)
         const updatedVersion = updatedVersionList?.[nameIndex]
         const dependencyVersion = dependency['dependency-version']
+        const describedVersion = updatedVersion?.newVersion
+        // Human-readable SHA refs and Docker digests are not directly comparable to metadata versions.
+        if (typeof dependencyVersion === 'string' && dependencyVersion && describedVersion &&
+            !isMarkdownCodeSpan(describedVersion) && !/^[0-9a-f]{40}/i.test(dependencyVersion) &&
+            dependencyVersion !== describedVersion) {
+          core.warning(`${dependencyName}: metadata says ${dependencyVersion}, but the update description says ${describedVersion}; using ${dependencyVersion}. Check the PR diff.`)
+        }
         // Digest-only Docker updates code-format the digests while dependency-version contains the unchanged tag.
         const isDockerDigestOnlyUpdate = chunks[1] === 'docker' &&
           !dependency['update-type'] &&
