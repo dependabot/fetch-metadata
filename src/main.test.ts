@@ -115,6 +115,39 @@ test('a custom-prefix branch does not bypass failed Dependabot verification', as
   expect(core.setOutput).not.toHaveBeenCalled()
 })
 
+test('it warns about inconsistent versions without changing the outputs', async () => {
+  const commitMessage = `Bumps the grpc-compatible group with 1 update.
+
+Updates \`grpcio\` from 1.84.0 to 1.85.1
+
+---
+updated-dependencies:
+- dependency-name: grpcio
+  dependency-version: 1.85.0
+  dependency-type: direct:production
+  dependency-group: grpc-compatible
+...
+`
+  jest.spyOn(core, 'getInput').mockImplementation(name => name === 'github-token' ? 'mock-token' : '')
+  jest.spyOn(core, 'warning').mockImplementation(jest.fn())
+  jest.spyOn(core, 'setOutput').mockImplementation(jest.fn())
+  jest.spyOn(util, 'getBranchNames').mockReturnValue({
+    headName: 'dependabot/pip/grpc-compatible-166a9411c6', baseName: 'main'
+  })
+  jest.spyOn(dependabotCommits, 'getMessage').mockResolvedValue(commitMessage)
+
+  await run()
+
+  expect(core.warning).toHaveBeenCalledWith(
+    'grpcio: metadata says 1.85.0, but the update description says 1.85.1; using 1.85.0. Check the PR diff.'
+  )
+  expect(core.setFailed).not.toHaveBeenCalled()
+  expect(core.setOutput).toHaveBeenCalledWith('new-version', '1.85.0')
+  expect(core.setOutput).toHaveBeenCalledWith('updated-dependencies-json', [
+    expect.objectContaining({ dependencyName: 'grpcio', prevVersion: '1.84.0', newVersion: '1.85.0' })
+  ])
+})
+
 test('it sets the updated dependency as an output for subsequent actions when given a commit message for application', async () => {
   const mockCommitMessage =
     'Bumps [coffee-rails](https://github.com/rails/coffee-rails) from 4.0.1 to 4.2.2.\n' +

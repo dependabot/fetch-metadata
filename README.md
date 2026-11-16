@@ -90,6 +90,9 @@ Subsequent actions will have access to the following outputs:
 - `steps.dependabot-metadata.outputs.dependency-group`
   - The dependency group that the PR is associated with (otherwise it is an empty string).
 
+When comparable versions in the commit's YAML metadata and `Updates` lines disagree, the action emits a warning.
+It still uses the YAML version and does not stop the workflow; check the PR diff before using the affected outputs.
+
 **Note:** By default, these outputs will only be populated if the target Pull Request was opened by Dependabot and contains
 **only** Dependabot-created commits. To override, see `skip-commit-verification` / `skip-verification`.
 

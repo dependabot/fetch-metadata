@@ -32107,6 +32107,10 @@ async function parse3(commitMessage, body, branchName, mainBranch, lookup, getSc
         const updatedVersionList = updatedVersions.get(dependencyName);
         const updatedVersion = updatedVersionList?.[nameIndex];
         const dependencyVersion = dependency["dependency-version"];
+        const describedVersion = updatedVersion?.newVersion;
+        if (typeof dependencyVersion === "string" && dependencyVersion && describedVersion && !isMarkdownCodeSpan(describedVersion) && !/^[0-9a-f]{40}/i.test(dependencyVersion) && dependencyVersion !== describedVersion) {
+          warning(`${dependencyName}: metadata says ${dependencyVersion}, but the update description says ${describedVersion}; using ${dependencyVersion}. Check the PR diff.`);
+        }
         const isDockerDigestOnlyUpdate = chunks[1] === "docker" && !dependency["update-type"] && isMarkdownCodeSpan(updatedVersion?.prevVersion) && isNewVersionChanged(dependencyVersion, updatedVersion?.newVersion);
         const lastVersion = isDockerDigestOnlyUpdate ? dependencyVersion : updatedVersion?.prevVersion || (index === 0 ? prev : "");
         const nextVersion = dependencyVersion || updatedVersion?.newVersion || (index === 0 ? next : "");

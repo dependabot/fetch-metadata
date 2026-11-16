@@ -1,3 +1,4 @@
+import * as core from '@actions/core'
 import * as updateMetadata from './update_metadata'
 
 describe('custom branch prefixes with the default separator', () => {
@@ -881,4 +882,164 @@ test('it handles duplicate dependency names in metadata links without mixing ver
   expect(updatedDependencies[1].prevVersion).toEqual('4.0.1')
   expect(updatedDependencies[1].newVersion).toEqual('4.0.2')
   expect(updatedDependencies[1].updateType).toEqual('version-update:semver-patch')
+})
+
+describe('warnings for inconsistent versions', () => {
+  beforeEach(() => {
+    jest.spyOn(core, 'warning').mockImplementation(jest.fn())
+  })
+
+  afterEach(() => {
+    jest.restoreAllMocks()
+  })
+
+  test('warns for each mismatch while retaining the metadata versions', async () => {
+    const commitMessage = `Bumps the grpc-compatible group with 2 updates.
+
+Updates \`grpcio\` from 1.84.0 to 1.85.1
+Updates \`grpcio-tools\` from 1.84.0 to 1.85.1
+
+---
+updated-dependencies:
+- dependency-name: grpcio
+  dependency-version: 1.85.0
+  dependency-type: direct:production
+  update-type: version-update:semver-minor
+  dependency-group: grpc-compatible
+- dependency-name: grpcio-tools
+  dependency-version: 1.85.0
+  dependency-type: direct:development
+  update-type: version-update:semver-minor
+  dependency-group: grpc-compatible
+...
+`
+    const getScore = jest.fn().mockResolvedValue(43)
+    const updatedDependencies = await updateMetadata.parse(
+      commitMessage, '', 'dependabot/pip/grpc-compatible-166a9411c6', 'main', undefined, getScore
+    )
+
+    expect(core.warning).toHaveBeenCalledTimes(2)
+    expect(core.warning).toHaveBeenNthCalledWith(
+      1, 'grpcio: metadata says 1.85.0, but the update description says 1.85.1; using 1.85.0. Check the PR diff.'
+    )
+    expect(core.warning).toHaveBeenNthCalledWith(
+      2, 'grpcio-tools: metadata says 1.85.0, but the update description says 1.85.1; using 1.85.0. Check the PR diff.'
+    )
+    expect(updatedDependencies.map(({ dependencyName, prevVersion, newVersion, updateType }) => ({
+      dependencyName, prevVersion, newVersion, updateType
+    }))).toEqual([
+      { dependencyName: 'grpcio', prevVersion: '1.84.0', newVersion: '1.85.0', updateType: 'version-update:semver-minor' },
+      { dependencyName: 'grpcio-tools', prevVersion: '1.84.0', newVersion: '1.85.0', updateType: 'version-update:semver-minor' }
+    ])
+    expect(getScore).toHaveBeenNthCalledWith(1, 'grpcio', '1.84.0', '1.85.0', 'pip')
+    expect(getScore).toHaveBeenNthCalledWith(2, 'grpcio-tools', '1.84.0', '1.85.0', 'pip')
+  })
+
+  test('matches repeated dependency names by occurrence', async () => {
+    const commitMessage = `Bumps the production group with 2 updates.
+
+Updates \`picomatch\` from 2.3.1 to 2.3.2
+Updates \`picomatch\` from 4.0.1 to 4.0.2
+
+---
+updated-dependencies:
+- dependency-name: picomatch
+  dependency-version: 2.3.2
+- dependency-name: picomatch
+  dependency-version: 4.0.1
+...
+`
+    const updatedDependencies = await updateMetadata.parse(
+      commitMessage, '', 'dependabot/npm_and_yarn/production-abc123', 'main'
+    )
+
+    expect(core.warning).toHaveBeenCalledTimes(1)
+    expect(core.warning).toHaveBeenCalledWith(
+      'picomatch: metadata says 4.0.1, but the update description says 4.0.2; using 4.0.1. Check the PR diff.'
+    )
+    expect(updatedDependencies.map(dependency => dependency.newVersion)).toEqual(['2.3.2', '4.0.1'])
+  })
+
+  test.each([
+    {
+      name: 'matching versions',
+      updateLine: 'Updates `example` from 1.0.0 to 1.1.0',
+      metadataLine: '  dependency-version: 1.1.0'
+    },
+    {
+      name: 'a missing metadata version',
+      updateLine: 'Updates `example` from 1.0.0 to 1.1.0',
+      metadataLine: ''
+    },
+    {
+      name: 'an empty metadata version',
+      updateLine: 'Updates `example` from 1.0.0 to 1.1.0',
+      metadataLine: "  dependency-version: ''"
+    },
+    {
+      name: 'a missing update description',
+      updateLine: '',
+      metadataLine: '  dependency-version: 1.1.0'
+    }
+  ])('does not warn for $name', async ({ updateLine, metadataLine }) => {
+    const commitMessage = `Bumps example.
+
+${updateLine}
+
+---
+updated-dependencies:
+- dependency-name: example
+${metadataLine}
+...
+`
+    const updatedDependencies = await updateMetadata.parse(
+      commitMessage, '', 'dependabot/npm_and_yarn/example-1.1.0', 'main'
+    )
+
+    expect(core.warning).not.toHaveBeenCalled()
+    expect(updatedDependencies[0].newVersion).toEqual('1.1.0')
+  })
+
+  test.each([
+    {
+      name: 'Docker digest',
+      ecosystem: 'docker',
+      previousVersion: '`e1b523f`',
+      describedVersion: '`5fdf1f3`',
+      metadataVersion: '1.0-alpine3.24'
+    },
+    {
+      name: 'shortened SHA',
+      ecosystem: 'github-actions',
+      previousVersion: '`0123456`',
+      describedVersion: '`89abcde`',
+      metadataVersion: '89abcdef0123456789abcdef0123456789abcdef'
+    },
+    {
+      name: 'Git ref for a SHA',
+      ecosystem: 'github-actions',
+      previousVersion: 'v1',
+      describedVersion: 'v2',
+      metadataVersion: '89abcdef0123456789abcdef0123456789abcdef'
+    }
+  ])('does not compare a $name with its metadata version', async ({
+    ecosystem, previousVersion, describedVersion, metadataVersion
+  }) => {
+    const commitMessage = `Bumps example.
+
+Updates \`example\` from ${previousVersion} to ${describedVersion}
+
+---
+updated-dependencies:
+- dependency-name: example
+  dependency-version: '${metadataVersion}'
+...
+`
+    const updatedDependencies = await updateMetadata.parse(
+      commitMessage, '', `dependabot/${ecosystem}/example-1`, 'main'
+    )
+
+    expect(core.warning).not.toHaveBeenCalled()
+    expect(updatedDependencies[0].newVersion).toEqual(metadataVersion)
+  })
 })
